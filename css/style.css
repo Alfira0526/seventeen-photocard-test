@@ -100,14 +100,14 @@ body {
 /* 플레이 레이아웃 */
 .play-grid {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 320px 1fr;
   gap: 28px;
   align-items: start;
 }
 .card-stage { position: sticky; top: 20px; }
 .card-art {
   width: 100%;
-  aspect-ratio: 300 / 420;
+  aspect-ratio: 1 / 1; /* 앨범 자켓은 정사각형 */
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow);
@@ -166,5 +166,5 @@ body {
 /* 반응형 */
 @media (max-width: 720px) {
   .play-grid { grid-template-columns: 1fr; }
-  .card-stage { position: static; max-width: 240px; margin: 0 auto; }
+  .card-stage { position: static; max-width: 300px; margin: 0 auto; }
 }
