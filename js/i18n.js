@@ -20,8 +20,8 @@
       next: { result: "결과 보기", more: "다음 자켓 →" },
       caption: {
         loaded: "© 저작권자 · Apple Music",
-        error: "이미지 미로드 · 자켓 상상 모드",
-        noArt: "이미지 미로드 · scripts/fetch-art.mjs 실행 시 표시",
+        error: "자켓을 표시하지 못했어요 · 자켓 상상 모드",
+        noArt: "자켓을 불러오지 못했어요 · 인터넷 연결을 확인해 주세요",
       },
       hudMode: { normal: "🎲 일반", daily: "📅 데일리", review: "🔁 복습" },
       shareMode: { normal: "일반", daily: "데일리", review: "복습" },

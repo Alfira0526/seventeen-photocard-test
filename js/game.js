@@ -102,23 +102,7 @@
   // ── 라운드 렌더 ──
   function renderRound() {
     const album = state.deck[state.round];
-    const stage = el["card-art"];
-
-    if (album.art) {
-      stage.classList.add("loading");
-      stage.innerHTML = "";
-      el["card-caption"].textContent = "";
-      const img = document.createElement("img");
-      img.alt = "앨범 자켓";
-      img.addEventListener("load", () => { img.classList.add("loaded"); stage.classList.remove("loading"); el["card-caption"].textContent = T.caption.loaded; });
-      img.addEventListener("error", () => { stage.classList.remove("loading"); stage.innerHTML = placeholderArt(album); el["card-caption"].textContent = T.caption.error; });
-      img.src = album.art;
-      stage.appendChild(img);
-    } else {
-      stage.classList.remove("loading");
-      stage.innerHTML = placeholderArt(album);
-      el["card-caption"].textContent = T.caption.noArt;
-    }
+    renderArt(album);
 
     el.progress.textContent = `${state.round + 1} / ${state.deck.length}`;
 
@@ -132,6 +116,42 @@
     el.feedback.textContent = ""; el.feedback.className = "feedback";
     el["btn-next"].disabled = true;
     el["btn-next"].textContent = state.round + 1 === state.deck.length ? T.next.result : T.next.more;
+  }
+
+  // ── 자켓 렌더: 베이크(album.art) → 실시간(SVTArtLive) → 플레이스홀더 순 ──
+  function renderArt(album) {
+    const stage = el["card-art"];
+    if (album.art) { mountImage(stage, album.art, album); return; }
+
+    // 실시간 로딩 시도: 스켈레톤 표시 후 URL 도착 시 교체
+    stage.classList.add("loading");
+    stage.innerHTML = "";
+    el["card-caption"].textContent = "";
+    const live = window.SVTArtLive;
+    if (!live) { showPlaceholder(stage, album); return; }
+    live.get(album).then((url) => {
+      if (state.deck[state.round] !== album) return; // 이미 다음 라운드면 무시
+      if (url) mountImage(stage, url, album);
+      else showPlaceholder(stage, album);
+    });
+  }
+
+  function mountImage(stage, url, album) {
+    stage.classList.add("loading");
+    stage.innerHTML = "";
+    el["card-caption"].textContent = "";
+    const img = document.createElement("img");
+    img.alt = "앨범 자켓";
+    img.addEventListener("load", () => { img.classList.add("loaded"); stage.classList.remove("loading"); el["card-caption"].textContent = T.caption.loaded; });
+    img.addEventListener("error", () => { showPlaceholder(stage, album, true); });
+    img.src = url;
+    stage.appendChild(img);
+  }
+
+  function showPlaceholder(stage, album, isError) {
+    stage.classList.remove("loading");
+    stage.innerHTML = placeholderArt(album);
+    el["card-caption"].textContent = isError ? T.caption.error : T.caption.noArt;
   }
 
   function renderQuestion(containerId, label, correct, choices) {
