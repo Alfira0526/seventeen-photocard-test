@@ -61,8 +61,8 @@ node --test          # 순수 로직 + 데이터 무결성 (9 tests)
 
 - ✅ 게임 루프 · 채점 · 결과 · 재시작 정상 (Node 단위테스트 9/9, Playwright E2E 통과)
 - ✅ 로직/데이터/DOM 분리, 데이터 로드시 무결성 검증
+- ✅ 앨범/연도/타이틀곡 데이터 **웹서치 3라운드 교차검증 완료** (앨범 20개, ANALYSIS.md 로그)
 - ⚠️ `js/albumArt.js` 생성 전에는 플레이스홀더 표시 → `node scripts/fetch-art.mjs` 1회 실행 필요
-- ⚠️ 타이틀곡 표기는 최종 팬덤 고증 확인 권장 (data.js 주석 참고)
 
 남은 개선 과제는 [`ANALYSIS.md`](./ANALYSIS.md) 참고.
 

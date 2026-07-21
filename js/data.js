@@ -33,29 +33,39 @@ const MEMBERS = [
  *  - title     : 앨범명 (문제 정답)
  *  - year      : 발매연도 (문제 정답)
  *  - type      : 앨범 유형
- *  - titleTrack: 타이틀곡 (문제 정답) — ⚠️ 팬덤 고증 최종 확인 권장
+ *  - titleTrack: 타이틀곡 (문제 정답)
  *  - itunes    : fetch-art.mjs 가 아트워크를 찾을 때 쓰는 검색 힌트
  *
  *  타이틀곡 표기는 "국문 (영문)" 우선, 영문 단독 곡은 영문만.
+ *
+ *  ✅ 데이터 검증: 웹서치 3라운드(팩트/고증/정합성) 교차검증 완료.
+ *     출처 — Wikipedia(영문 각 앨범/곡 문서), Kpop Fandom / carat.fandom Wiki.
+ *     주요 정정: 미니3집 Going Seventeen 추가, SPILL THE FEELS=미니12집,
+ *     17 IS RIGHT HERE(베스트)·HAPPY BURSTDAY(정규5집) 추가.
+ *  ※ FML/You Made My Dawn 등 더블 타이틀곡은 대표곡 1개를 정답으로 사용.
  */
 const ALBUMS = [
   { id: "17carat",       title: "17 CARAT",           year: 2015, type: "미니 1집",  titleTrack: "아낀다 (Adore U)",       itunes: "17 CARAT" },
   { id: "boysbe",        title: "BOYS BE",            year: 2015, type: "미니 2집",  titleTrack: "만세 (Mansae)",          itunes: "BOYS BE" },
   { id: "loveandletter", title: "Love&Letter",        year: 2016, type: "정규 1집",  titleTrack: "예쁘다 (Pretty U)",      itunes: "Love and Letter" },
+  { id: "goingseventeen", title: "Going Seventeen",   year: 2016, type: "미니 3집",  titleTrack: "붐붐 (BOOMBOOM)",        itunes: "Going Seventeen" },
   { id: "al1",           title: "Al1",                year: 2017, type: "미니 4집",  titleTrack: "울고 싶지 않아 (Don't Wanna Cry)", itunes: "Al1" },
   { id: "teenage",       title: "TEEN, AGE",          year: 2017, type: "정규 2집",  titleTrack: "박수 (CLAP)",            itunes: "TEEN AGE" },
   { id: "youmakemyday",  title: "You Make My Day",    year: 2018, type: "미니 5집",  titleTrack: "어쩌나 (Oh My!)",        itunes: "You Make My Day" },
   { id: "youmademydawn", title: "You Made My Dawn",   year: 2019, type: "미니 6집",  titleTrack: "고맙다 (Home)",          itunes: "You Made My Dawn" },
-  { id: "anode",         title: "An Ode",             year: 2019, type: "정규 3집",  titleTrack: "독: Fear",               itunes: "An Ode" },
+  { id: "anode",         title: "An Ode",             year: 2019, type: "정규 3집",  titleTrack: "독 (Fear)",              itunes: "An Ode" },
   { id: "henggarae",     title: "Heng:garæ",          year: 2020, type: "미니 7집",  titleTrack: "좋아 (Left & Right)",    itunes: "Heng garae" },
   { id: "semicolon",     title: "; [Semicolon]",      year: 2020, type: "스페셜 앨범", titleTrack: "HOME;RUN",              itunes: "Semicolon" },
   { id: "yourchoice",    title: "Your Choice",        year: 2021, type: "미니 8집",  titleTrack: "Ready to love",          itunes: "Your Choice" },
   { id: "attacca",       title: "Attacca",            year: 2021, type: "미니 9집",  titleTrack: "Rock with you",          itunes: "Attacca" },
   { id: "facethesun",    title: "Face the Sun",       year: 2022, type: "정규 4집",  titleTrack: "Darl+ing",               itunes: "Face the Sun" },
   { id: "sector17",      title: "SECTOR 17",          year: 2022, type: "리패키지",  titleTrack: "_WORLD",                 itunes: "SECTOR 17" },
+  // FML 은 더블 타이틀("손오공(Super)" + "F*ck My Life"). 대표 타이틀로 Super 사용.
   { id: "fml",           title: "FML",                year: 2023, type: "미니 10집", titleTrack: "손오공 (Super)",         itunes: "FML SEVENTEEN" },
   { id: "17thheaven",    title: "SEVENTEENTH HEAVEN", year: 2023, type: "미니 11집", titleTrack: "음악의 신 (God of Music)", itunes: "SEVENTEENTH HEAVEN" },
-  { id: "spillthefeels", title: "SPILL THE FEELS",    year: 2024, type: "정규 5집",  titleTrack: "MAESTRO",                itunes: "SPILL THE FEELS" },
+  { id: "17isrighthere", title: "17 IS RIGHT HERE",   year: 2024, type: "베스트 앨범", titleTrack: "MAESTRO",               itunes: "17 IS RIGHT HERE" },
+  { id: "spillthefeels", title: "SPILL THE FEELS",    year: 2024, type: "미니 12집", titleTrack: "LOVE, MONEY, FAME",      itunes: "SPILL THE FEELS" },
+  { id: "happyburstday", title: "HAPPY BURSTDAY",     year: 2025, type: "정규 5집",  titleTrack: "Thunder",                itunes: "HAPPY BURSTDAY" },
 ];
 
 // ── 아트워크 URL 병합: albumArt.js 가 있으면 window.SVTArt 로 주입됨 ──
