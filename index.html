@@ -8,9 +8,34 @@
       name="description"
       content="세븐틴 앨범 자켓을 보고 앨범·발매연도·타이틀곡을 맞히는 퀴즈 게임"
     />
+    <meta name="theme-color" content="#0d0d14" />
+    <!-- 웹폰트 Pretendard (CDN). 오프라인/차단 시 시스템 폰트로 폴백 -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+    />
     <link rel="stylesheet" href="css/style.css" />
+    <!-- FOUC/테마 깜빡임 방지: 렌더 전에 저장된 테마 적용 -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("svt-theme");
+          if (!t)
+            t =
+              window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: light)").matches
+                ? "light"
+                : "dark";
+          document.documentElement.setAttribute("data-theme", t);
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
   </head>
   <body>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="테마 전환" title="라이트/다크 전환">🌙</button>
     <main class="app">
       <!-- 시작 화면 -->
       <section id="screen-start" class="screen active">
@@ -21,10 +46,23 @@
           </p>
           <ul class="rules">
             <li>자켓 1장당 3문제 (앨범 / 연도 / 타이틀곡)</li>
-            <li>총 8장, 문제당 10점</li>
-            <li>정답률에 따라 캐럿 등급이 매겨집니다</li>
+            <li>문제당 10점 · 정답률에 따라 캐럿 등급</li>
+            <li>근접 오답으로 난이도를 높였습니다</li>
           </ul>
-          <button id="btn-start" class="btn primary">게임 시작</button>
+          <div class="modes">
+            <button class="mode-btn" data-mode="normal">
+              <b>🎲 일반 모드</b>
+              <small>랜덤 8장. 가볍게 즐기기</small>
+            </button>
+            <button class="mode-btn" data-mode="daily">
+              <b>📅 데일리 챌린지</b>
+              <small id="daily-sub">오늘의 8장 · 하루 한 번 같은 문제</small>
+            </button>
+            <button class="mode-btn" data-mode="review" id="mode-review" disabled>
+              <b>🔁 오답 복습</b>
+              <small id="review-sub">직전 판의 틀린 앨범 다시 풀기</small>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -32,12 +70,14 @@
       <section id="screen-play" class="screen">
         <header class="hud">
           <span class="hud-progress">CARD <b id="progress">1 / 8</b></span>
+          <span class="hud-mode" id="hud-mode"></span>
           <span class="hud-score">SCORE <b id="score">0</b></span>
         </header>
 
         <div class="play-grid">
           <div class="card-stage">
             <div id="card-art" class="card-art"></div>
+            <p id="card-caption" class="card-caption"></p>
           </div>
 
           <div class="questions">
@@ -57,7 +97,13 @@
           <h2>결과</h2>
           <p id="result-score" class="result-score">0 / 0 점</p>
           <div id="result-detail" class="result-detail"></div>
-          <button id="btn-restart" class="btn primary">다시 하기</button>
+          <div class="result-actions">
+            <button id="btn-restart" class="btn primary">다시 하기</button>
+            <button id="btn-share" class="btn ghost">🖼️ 결과 이미지 저장</button>
+            <button id="btn-tweet" class="btn ghost">🐦 트위터로 공유</button>
+            <button id="btn-review" class="btn ghost" hidden>🔁 오답 복습</button>
+          </div>
+          <canvas id="result-canvas" width="1200" height="630"></canvas>
         </div>
       </section>
     </main>

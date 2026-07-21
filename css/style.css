@@ -1,6 +1,10 @@
-/* SEVENTEEN Photocard Quiz — 스타일 */
-:root {
+/* SEVENTEEN Album-Cover Quiz — 스타일 (라이트/다크 테마) */
+
+/* 다크(기본) */
+:root,
+:root[data-theme="dark"] {
   --bg: #0d0d14;
+  --bg-grad-top: #241b3d;
   --bg-soft: #16161f;
   --card: #1d1d2a;
   --line: #2a2a3a;
@@ -10,6 +14,30 @@
   --accent-2: #ff5c9d;
   --good: #30d158;
   --bad: #ff453a;
+  --choice-bg: #1d1d2a;
+  --skel-1: #1d1d2a;
+  --skel-2: #262636;
+}
+
+/* 라이트 */
+:root[data-theme="light"] {
+  --bg: #f5f4fb;
+  --bg-grad-top: #e9e3ff;
+  --bg-soft: #ffffff;
+  --card: #ffffff;
+  --line: #e2e0ee;
+  --text: #1c1b28;
+  --muted: #6b6a80;
+  --accent: #6a45ff;
+  --accent-2: #ff3d8a;
+  --good: #1ea94a;
+  --bad: #e0342a;
+  --choice-bg: #f3f2fb;
+  --skel-1: #eceaf6;
+  --skel-2: #f6f5fc;
+}
+
+:root {
   --radius: 16px;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
@@ -18,21 +46,40 @@
 
 body {
   margin: 0;
-  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI",
-    "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-  background: radial-gradient(1200px 600px at 50% -10%, #241b3d 0%, var(--bg) 55%);
+  font-family: "Pretendard", "Pretendard Variable", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  background: radial-gradient(1200px 600px at 50% -10%, var(--bg-grad-top) 0%, var(--bg) 55%);
   color: var(--text);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .app {
   flex: 1;
-  width: min(960px, 100%);
+  width: min(1040px, 100%);
   margin: 0 auto;
   padding: 24px 20px;
 }
+
+/* 테마 토글 */
+.theme-toggle {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 20;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--bg-soft);
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+.theme-toggle:hover { transform: rotate(-15deg) scale(1.08); }
 
 /* 화면 전환 */
 .screen { display: none; animation: fade 0.35s ease; }
@@ -51,120 +98,107 @@ body {
 }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn:not(:disabled):hover { transform: translateY(-2px); filter: brightness(1.08); }
-.btn.primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
-}
+.btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; }
+.btn.ghost { background: var(--bg-soft); color: var(--text); border: 1px solid var(--line); }
 
 /* 시작 화면 */
-.hero { text-align: center; padding: 40px 0; }
-.logo {
-  font-size: clamp(30px, 7vw, 54px);
-  line-height: 1.05;
-  letter-spacing: 2px;
-  margin: 0 0 8px;
-}
+.hero { text-align: center; padding: 36px 0; }
+.logo { font-size: clamp(30px, 7vw, 54px); line-height: 1.05; letter-spacing: 2px; margin: 0 0 8px; }
 .logo span {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .tagline { color: var(--muted); font-size: 17px; margin: 6px 0 22px; }
 .rules {
-  list-style: none;
-  padding: 18px;
-  margin: 0 auto 26px;
-  max-width: 380px;
-  text-align: left;
-  background: var(--bg-soft);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  color: var(--muted);
+  list-style: none; padding: 18px; margin: 0 auto 22px; max-width: 400px; text-align: left;
+  background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius); color: var(--muted);
 }
 .rules li { padding: 5px 0; }
 .rules li::before { content: "▸ "; color: var(--accent-2); }
 
-/* HUD */
-.hud {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  letter-spacing: 1px;
-  color: var(--muted);
-  margin-bottom: 18px;
+/* 모드 선택 */
+.modes { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 6px; }
+.mode-btn {
+  flex: 1 1 190px; max-width: 260px; text-align: left;
+  background: var(--bg-soft); border: 1px solid var(--line); border-radius: 14px;
+  padding: 16px 18px; cursor: pointer; color: var(--text);
+  transition: transform 0.12s ease, border-color 0.12s ease;
 }
-.hud b { color: var(--text); font-size: 16px; margin-left: 6px; }
+.mode-btn:hover:not(:disabled) { transform: translateY(-3px); border-color: var(--accent); }
+.mode-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.mode-btn b { display: block; font-size: 16px; margin-bottom: 4px; }
+.mode-btn small { color: var(--muted); font-size: 13px; line-height: 1.35; }
 
-/* 플레이 레이아웃 */
-.play-grid {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 28px;
-  align-items: start;
-}
-.card-stage { position: sticky; top: 20px; }
+/* HUD */
+.hud { display: flex; justify-content: space-between; align-items: center; font-size: 13px; letter-spacing: 1px; color: var(--muted); margin-bottom: 16px; padding-right: 52px; }
+.hud b { color: var(--text); font-size: 16px; margin-left: 6px; }
+.hud .hud-mode { color: var(--accent-2); font-weight: 700; }
+
+/* 플레이 레이아웃 — 자켓 확대 */
+.play-grid { display: grid; grid-template-columns: 360px 1fr; gap: 30px; align-items: start; }
+.card-stage { position: sticky; top: 18px; }
 .card-art {
-  width: 100%;
-  aspect-ratio: 1 / 1; /* 앨범 자켓은 정사각형 */
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  background: var(--card);
+  width: 100%; aspect-ratio: 1 / 1; border-radius: var(--radius);
+  overflow: hidden; box-shadow: var(--shadow); background: var(--card); position: relative;
 }
-.card-art svg,
-.card-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-art svg, .card-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* 이미지 블러업: 로드 완료 전 흐릿→선명 */
+.card-art img { opacity: 0; filter: blur(12px); transition: opacity 0.4s ease, filter 0.4s ease; }
+.card-art img.loaded { opacity: 1; filter: blur(0); }
+/* 로딩 스켈레톤(shimmer) */
+.card-art.loading::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(100deg, var(--skel-1) 30%, var(--skel-2) 50%, var(--skel-1) 70%);
+  background-size: 200% 100%; animation: shimmer 1.2s infinite;
+}
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.card-caption { text-align: center; color: var(--muted); font-size: 12px; margin-top: 8px; min-height: 16px; }
 
 /* 문제 */
-.question {
-  background: var(--bg-soft);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 16px 18px;
-  margin-bottom: 14px;
-}
-.q-label { margin: 0 0 12px; font-weight: 700; font-size: 15px; }
+.question { background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 15px 18px; margin-bottom: 12px; }
+.q-label { margin: 0 0 11px; font-weight: 700; font-size: 15px; }
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
-  background: var(--card);
-  border: 1px solid var(--line);
-  color: var(--text);
-  border-radius: 10px;
-  padding: 12px 10px;
-  font-size: 15px;
-  cursor: pointer;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  background: var(--choice-bg); border: 1px solid var(--line); color: var(--text);
+  border-radius: 10px; padding: 12px 10px; font-size: 15px; cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+  font-family: inherit;
 }
-.choice:not(:disabled):hover { border-color: var(--accent); }
-.choice.correct { background: rgba(48, 209, 88, 0.18); border-color: var(--good); color: #b8f5c9; }
-.choice.wrong { background: rgba(255, 69, 58, 0.16); border-color: var(--bad); color: #ffc2bd; }
+.choice:not(:disabled):hover { border-color: var(--accent); transform: translateY(-1px); }
+.choice:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.choice.correct { background: color-mix(in srgb, var(--good) 22%, transparent); border-color: var(--good); animation: pop 0.32s ease; }
+.choice.wrong { background: color-mix(in srgb, var(--bad) 20%, transparent); border-color: var(--bad); animation: shake 0.34s ease; }
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.07); } 100% { transform: scale(1); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
 
 /* 피드백 */
-.feedback { min-height: 22px; font-weight: 700; margin: 6px 2px 12px; }
+.feedback { min-height: 22px; font-weight: 700; margin: 4px 2px 12px; }
 .feedback.good { color: var(--good); }
 .feedback.mid { color: var(--accent-2); }
 
 /* 결과 */
-.result { text-align: center; padding: 40px 0; }
+.result { text-align: center; padding: 32px 0; }
 .result h2 { font-size: 22px; color: var(--muted); letter-spacing: 2px; }
 .result-score {
-  font-size: clamp(30px, 8vw, 52px);
-  font-weight: 800;
-  margin: 10px 0 18px;
+  font-size: clamp(30px, 8vw, 52px); font-weight: 800; margin: 10px 0 14px;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .result-detail .tier { font-size: 26px; font-weight: 800; margin: 0 0 6px; }
-.result-detail .pct { color: var(--muted); margin: 0 0 26px; }
+.result-detail .pct { color: var(--muted); margin: 0 0 18px; }
+.result-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 6px; }
+#result-canvas { display: none; }
 
 /* 푸터 */
 .site-foot { text-align: center; padding: 20px; color: var(--muted); opacity: 0.7; }
 
 /* 반응형 */
-@media (max-width: 720px) {
+@media (max-width: 760px) {
   .play-grid { grid-template-columns: 1fr; }
-  .card-stage { position: static; max-width: 300px; margin: 0 auto; }
+  .card-stage { position: static; max-width: 320px; margin: 0 auto; }
+}
+
+/* 모션 최소화 선호 존중 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::after { animation: none !important; transition: none !important; }
 }
