@@ -68,6 +68,74 @@ const ALBUMS = [
   { id: "happyburstday", title: "HAPPY BURSTDAY",     year: 2025, type: "정규 5집",  titleTrack: "Thunder",                itunes: "HAPPY BURSTDAY" },
 ];
 
+/**
+ * 확장 데이터(웹서치 검증) — 새 문제 유형용. 정확도 우선 = 검증된 앨범만 채운다.
+ *  - tracks: 수록곡 목록. unit 태그(vocal/hiphop/performance)가 있으면 유닛곡 문제 출제.
+ *  - titleLyricists: 타이틀곡 작사에 참여한 "멤버" id (비멤버 작곡가 Bumzu 등은 제외).
+ * 미기재 앨범은 기본 3유형(앨범/연도/타이틀곡)만 출제된다.
+ * 출처: 영문 Wikipedia 각 곡/앨범 문서, carat.fandom Wiki 등. 상세는 PROGRESS.md.
+ */
+const TRACKLISTS = {
+  al1: [
+    { title: "Don't Wanna Cry" },
+    { title: "Habit", unit: "vocal" },
+    { title: "If I", unit: "hiphop" },
+    { title: "Swimming Fool", unit: "performance" },
+    { title: "My I" },
+    { title: "Crazy in Love" },
+    { title: "Who" },
+    { title: "Check-In" },
+  ],
+  teenage: [
+    { title: "CLAP" },
+    { title: "Change Up" },
+    { title: "Trauma", unit: "hiphop" },
+    { title: "Lilili Yabbay", unit: "performance" },
+    { title: "Pinwheel", unit: "vocal" },
+  ],
+  anode: [
+    { title: "Hit" },
+    { title: "Lie Again" },
+    { title: "Fear" },
+    { title: "Let Me Hear You Say" },
+    { title: "247", unit: "performance" },
+    { title: "Second Life", unit: "vocal" },
+    { title: "Network Love" },
+    { title: "Back It Up", unit: "hiphop" },
+    { title: "Lucky" },
+    { title: "Snap Shoot" },
+    { title: "Happy Ending" },
+  ],
+  henggarae: [
+    { title: "Fearless" },
+    { title: "Left & Right" },
+    { title: "I Wish" },
+    { title: "My My" },
+    { title: "Kidult" },
+    { title: "Together" },
+  ],
+  yourchoice: [
+    { title: "Heaven's Cloud" },
+    { title: "Ready to love" },
+    { title: "Anyone" },
+    { title: "GAM3 BO1" },
+    { title: "Wave" },
+    { title: "Same dream, same mind, same night" },
+  ],
+};
+
+const TITLE_LYRICISTS = {
+  al1: ["woozi", "vernon", "hoshi", "jeonghan"], // Don't Wanna Cry
+  anode: ["woozi", "scoups", "vernon"], // Fear
+  henggarae: ["woozi", "vernon"], // Left & Right
+  fml: ["woozi", "scoups", "vernon"], // Super
+};
+
+ALBUMS.forEach((a) => {
+  if (TRACKLISTS[a.id]) a.tracks = TRACKLISTS[a.id];
+  if (TITLE_LYRICISTS[a.id]) a.titleLyricists = TITLE_LYRICISTS[a.id];
+});
+
 // ── 아트워크 URL 병합: albumArt.js 가 있으면 window.SVTArt 로 주입됨 ──
 // scripts/fetch-art.mjs 실행 전에는 SVTArt 가 없어 art=null → 플레이스홀더.
 const ART = (typeof window !== "undefined" && window.SVTArt) || {};
@@ -77,6 +145,7 @@ ALBUMS.forEach((a) => {
 
 // ── 조회 헬퍼 ──
 const albumById = Object.fromEntries(ALBUMS.map((a) => [a.id, a]));
+const memberById = Object.fromEntries(MEMBERS.map((m) => [m.id, m]));
 const ALBUM_YEARS = [...new Set(ALBUMS.map((a) => a.year))].sort((x, y) => x - y);
 
 // ── 로드시 데이터 무결성 검증(개발 편의) : 콘솔에 경고만, 게임은 계속 ──
@@ -94,9 +163,9 @@ const ALBUM_YEARS = [...new Set(ALBUMS.map((a) => a.year))].sort((x, y) => x - y
 
 // 전역 노출
 if (typeof window !== "undefined") {
-  window.SVTData = { MEMBERS, ALBUMS, albumById, ALBUM_YEARS };
+  window.SVTData = { MEMBERS, ALBUMS, albumById, memberById, ALBUM_YEARS };
 }
 // Node(테스트/스크립트)에서 재사용
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { MEMBERS, ALBUMS, albumById, ALBUM_YEARS };
+  module.exports = { MEMBERS, ALBUMS, albumById, memberById, ALBUM_YEARS };
 }

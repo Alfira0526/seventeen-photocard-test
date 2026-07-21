@@ -45,9 +45,9 @@
             앨범 자켓을 보고 <b>앨범 · 발매연도 · 타이틀곡</b>을 맞혀보세요.
           </p>
           <ul class="rules">
-            <li>자켓 1장당 3문제 (앨범 / 연도 / 타이틀곡)</li>
-            <li>문제당 10점 · 정답률에 따라 캐럿 등급</li>
-            <li>근접 오답으로 난이도를 높였습니다</li>
+            <li>자켓 1장당 <b>랜덤 유형 1문제</b> (앨범/연도/타이틀곡/수록곡/작사/유닛)</li>
+            <li>총 10장 · 문제당 10점 · 정답률에 따라 캐럿 등급</li>
+            <li>근접 오답 + 고난도 유형으로 난이도를 높였습니다</li>
           </ul>
           <div class="modes">
             <button class="mode-btn" data-mode="normal">
@@ -81,9 +81,8 @@
           </div>
 
           <div class="questions">
-            <div id="q-album" class="question"></div>
-            <div id="q-year" class="question"></div>
-            <div id="q-track" class="question"></div>
+            <div id="question" class="question"></div>
+            <p id="question-note" class="q-note"></p>
 
             <p id="feedback" class="feedback"></p>
             <button id="btn-next" class="btn primary" disabled>다음 카드 →</button>
@@ -120,6 +119,7 @@
     <script src="js/i18n.js"></script>
     <script src="js/logic.js"></script>
     <script src="js/data.js"></script>
+    <script src="js/questions.js"></script>
     <!-- albumArt.js가 없을 때 자켓을 실시간으로 불러오는 폴백 -->
     <script src="js/artlive.js"></script>
     <script src="js/game.js"></script>

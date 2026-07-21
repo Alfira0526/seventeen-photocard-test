@@ -33,10 +33,8 @@ async function withPage(fn) {
 
 async function playThrough(page, pick = "first-child") {
   await page.waitForSelector("#screen-play.active");
-  for (let r = 0; r < 8; r++) {
-    for (const q of ["#q-album", "#q-year", "#q-track"]) {
-      await page.click(`${q} .choice:${pick}`);
-    }
+  for (let r = 0; r < 12; r++) {
+    await page.click(`#question .choice:${pick}`); // 카드당 1문제
     await page.waitForSelector("#btn-next:not([disabled])");
     await page.click("#btn-next");
     if (await page.$("#screen-result.active")) break;
@@ -44,12 +42,12 @@ async function playThrough(page, pick = "first-child") {
   await page.waitForSelector("#screen-result.active");
 }
 
-test("일반 모드: 8라운드 완주 → 결과·공유카드 렌더", { skip: !chromium }, async () => {
+test("일반 모드: 완주 → 결과·공유카드 렌더", { skip: !chromium }, async () => {
   await withPage(async (page) => {
     await page.click('.mode-btn[data-mode="normal"]');
     await playThrough(page);
     const score = await page.textContent("#result-score");
-    assert.match(score, /\/\s*240/);
+    assert.match(score, /\d+\s*\/\s*\d+/);
     const drawn = await page.evaluate(() => {
       const cv = document.getElementById("result-canvas");
       const d = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data;
@@ -68,9 +66,9 @@ test("데일리 모드: 동일 날짜엔 결정론적(같은 덱/보기)", { ski
     return withPage(async (page) => {
       await page.click('.mode-btn[data-mode="daily"]');
       await page.waitForSelector("#screen-play.active");
-      const a = await page.$$eval("#q-album .choice", (e) => e.map((x) => x.textContent).join("|"));
-      const y = await page.$$eval("#q-year .choice", (e) => e.map((x) => x.textContent).join("|"));
-      return a + "||" + y;
+      const label = await page.textContent(".q-label");
+      const choices = await page.$$eval("#question .choice", (e) => e.map((x) => x.textContent).join("|"));
+      return label + "::" + choices;
     });
   }
   assert.equal(await firstChoices(), await firstChoices());

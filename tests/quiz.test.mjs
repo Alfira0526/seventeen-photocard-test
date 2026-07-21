@@ -12,7 +12,13 @@ const require = createRequire(import.meta.url);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const { shuffle, buildChoices, buildYearChoices, buildAlbumChoices, tierFor } =
   require(resolve(root, "js/logic.js"));
-const { ALBUMS, ALBUM_YEARS } = require(resolve(root, "js/data.js"));
+const { ALBUMS, ALBUM_YEARS, MEMBERS, memberById } = require(resolve(root, "js/data.js"));
+const { buildQuestion, availableTypes } = require(resolve(root, "js/questions.js"));
+
+const QCTX = {
+  albums: ALBUMS, years: ALBUM_YEARS, members: MEMBERS, n: 4, rng: Math.random,
+  memberName: (id) => (memberById[id] ? memberById[id].name : id),
+};
 
 test("buildChoices: 항상 정답을 포함한다", () => {
   const pool = ALBUMS.map((a) => a.title);
@@ -97,6 +103,61 @@ test("buildAlbumChoices: 후보가 부족해도 정답 유지", () => {
   const albums = [{ title: "유일", type: "정규", year: 2020 }];
   const c = buildAlbumChoices(albums[0], albums, 4);
   assert.deepEqual(c, ["유일"]);
+});
+
+test("buildQuestion: 모든 앨범에서 정답 포함·4지선다·중복없음(대량 시행)", () => {
+  for (let i = 0; i < 2000; i++) {
+    const al = ALBUMS[i % ALBUMS.length];
+    const q = buildQuestion(al, QCTX);
+    assert.ok(q.choices.includes(q.correct), `정답 누락 (${q.typeId})`);
+    assert.equal(q.choices.length, 4, `보기 4개 아님 (${q.typeId})`);
+    assert.equal(new Set(q.choices).size, 4, `중복 보기 (${q.typeId})`);
+    assert.ok(q.correct != null && q.correct !== "", `빈 정답 (${q.typeId})`);
+  }
+});
+
+test("questions: 데이터 없는 앨범은 기본 3유형만 가용", () => {
+  const bare = ALBUMS.find((a) => !a.tracks && !a.titleLyricists);
+  assert.ok(bare, "데이터 없는 앨범 예시 존재");
+  const ids = availableTypes(bare, QCTX).map((t) => t.id).sort();
+  assert.deepEqual(ids, ["album", "titleTrack", "year"]);
+});
+
+test("questions: tracks 있는 앨범은 notInAlbum 가용", () => {
+  const withTracks = ALBUMS.find((a) => a.tracks && a.tracks.length >= 3);
+  assert.ok(availableTypes(withTracks, QCTX).some((t) => t.id === "notInAlbum"));
+});
+
+test("questions: unit 태그 있는 앨범은 unitSong 가용", () => {
+  const withUnit = ALBUMS.find((a) => a.tracks && a.tracks.some((x) => x.unit));
+  assert.ok(availableTypes(withUnit, QCTX).some((t) => t.id === "unitSong"));
+});
+
+test("questions: lyricist 정답은 크레딧 멤버, 오답은 비크레딧 멤버", () => {
+  const al = ALBUMS.find((a) => a.titleLyricists && a.titleLyricists.length);
+  const names = al.titleLyricists.map((id) => memberById[id].name);
+  let sawLyricist = false;
+  for (let i = 0; i < 300; i++) {
+    const q = buildQuestion(al, QCTX);
+    if (q.typeId !== "lyricist") continue;
+    sawLyricist = true;
+    assert.ok(names.includes(q.correct), `정답이 크레딧 멤버가 아님: ${q.correct}`);
+    const distractors = q.choices.filter((c) => c !== q.correct);
+    for (const d of distractors) assert.ok(!names.includes(d), `오답이 크레딧 멤버임: ${d}`);
+  }
+  assert.ok(sawLyricist, "lyricist 유형이 한 번도 안 나옴");
+});
+
+test("notInAlbum: 정답은 실제로 그 앨범 수록곡이 아님", () => {
+  const al = ALBUMS.find((a) => a.tracks && a.tracks.length >= 3);
+  const inTitles = al.tracks.map((x) => x.title);
+  for (let i = 0; i < 300; i++) {
+    const q = buildQuestion(al, QCTX);
+    if (q.typeId !== "notInAlbum") continue;
+    assert.ok(!inTitles.includes(q.correct), `정답이 수록곡임: ${q.correct}`);
+    const distractors = q.choices.filter((c) => c !== q.correct);
+    for (const d of distractors) assert.ok(inTitles.includes(d), `오답이 수록곡이 아님: ${d}`);
+  }
 });
 
 test("데이터 무결성: 앨범 id 고유", () => {

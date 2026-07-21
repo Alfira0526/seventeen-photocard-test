@@ -50,6 +50,26 @@
 - 유닛 13 pass, E2E 3 pass, 문법 체크 OK.
 - 스크린샷: 시작(라/다), 플레이(라/다), 결과 — 레이아웃·테마·근접오답·토글 겹침수정 확인.
 
+## 🆕 v0.4 요청 (카드당 1문제 랜덤 + 새 문제 유형)
+
+결정: **카드당 1문제, 유형 랜덤** / **정확도 우선**(검증된 앨범만 새 유형 출제, 점진 확대).
+
+- [x] **Q1. 문제 엔진 재설계** — js/questions.js: 유형 레지스트리 + 가용성(available)+가중 랜덤 선택
+- [x] **Q2. 카드당 1문제 UI** — index.html 단일 #question, game.js 단일 문제 렌더/채점(rounds=10, 만점 100)
+- [x] **Q3. 새 유형 로직** — notInAlbum/lyricist/unitSong (데이터 있는 앨범만 가용)
+- [x] **Q4. 데이터 수집·검증** — 웹서치로 6개 앨범 데이터 추가(정확도 우선 부분 커버리지)
+- [x] **Q5. 테스트/문서 갱신** — questions 유닛테스트 6종, e2e 단일문제, README/데이터 주석
+
+진행 완료:
+- 엔진: 6유형(album/year/titleTrack/notInAlbum/lyricist/unitSong), 가용성 게이팅 + 가중 랜덤.
+- 데이터(웹 검증): 수록곡+유닛 태그 = al1/teenage/anode/henggarae/yourchoice,
+  타이틀곡 작사 멤버 = al1(우지·버논·호시·정한)/anode(우지·에스쿱스·버논)/henggarae(우지·버논)/fml(우지·에스쿱스·버논).
+  · notInAlbum 가용: 5개 앨범 / unitSong 가용: 3개(al1·teenage·anode) / lyricist 가용: 4개.
+  · 유닛곡 예: An Ode 247(퍼포)/Second Life(보컬)/Back It Up(힙합), Al1 Habit(보컬)/If I(힙합)/Swimming Fool(퍼포),
+    TEEN,AGE Trauma(힙합)/Lilili Yabbay(퍼포)/Pinwheel(보컬).
+- 검증: 유닛 19 pass, e2e 3 pass, 대량 시행(정답 포함·4지선다·중복0)·유형별 사실성 테스트 통과. 스크린샷 확인.
+- 커버리지 확대는 tracks/titleLyricists에 앨범 추가만 하면 됨(엔진 자동 반영).
+
 ## ⏳ 사용자 확인 필요 (부재 종료 후)
 
 1. **[필수] 자켓 이미지 실제 로딩** — 이 개발 환경은 프록시 정책상 iTunes/CDN 접근이

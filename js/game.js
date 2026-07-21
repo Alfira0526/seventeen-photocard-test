@@ -7,12 +7,20 @@
 (function () {
   "use strict";
 
-  const { ALBUMS, albumById, ALBUM_YEARS } = window.SVTData;
-  const { shuffle, buildChoices, buildYearChoices, buildAlbumChoices, tierFor } =
-    window.QuizLogic;
+  const { ALBUMS, albumById, memberById, MEMBERS, ALBUM_YEARS } = window.SVTData;
+  const { shuffle, tierFor } = window.QuizLogic;
+  const { buildQuestion } = window.QuizQuestions;
   const T = window.I18N.t; // UI 문자열(i18n-lite)
 
-  const CONFIG = { rounds: 8, pointsPerCorrect: 10, choices: 4 };
+  const CONFIG = { rounds: 10, pointsPerCorrect: 10, choices: 4 };
+
+  // 문제 생성에 넘길 컨텍스트(카드당 1문제, 랜덤 유형)
+  function qctx(rng) {
+    return {
+      albums: ALBUMS, years: ALBUM_YEARS, members: MEMBERS, n: CONFIG.choices, rng,
+      memberName: (id) => (memberById[id] ? memberById[id].name : id),
+    };
+  }
   const LS = { theme: "svt-theme", wrong: "svt-wrong", daily: "svt-daily", streak: "svt-streak" };
 
   const state = {
@@ -43,7 +51,7 @@
       "screen-start", "screen-play", "screen-result",
       "btn-restart", "btn-next", "btn-share", "btn-tweet", "btn-review",
       "card-art", "card-caption", "progress", "score", "hud-mode",
-      "q-album", "q-year", "q-track", "feedback",
+      "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
       "theme-toggle", "mode-review", "review-sub", "daily-sub",
     ].forEach((id) => (el[id] = document.getElementById(id)));
@@ -106,12 +114,9 @@
 
     el.progress.textContent = `${state.round + 1} / ${state.deck.length}`;
 
-    renderQuestion("q-album", T.q.album, album.title,
-      buildAlbumChoices(album, ALBUMS, CONFIG.choices, state.rng));
-    renderQuestion("q-year", T.q.year, album.year,
-      buildYearChoices(album.year, ALBUM_YEARS, CONFIG.choices, state.rng));
-    renderQuestion("q-track", T.q.track, album.titleTrack,
-      buildChoices(album.titleTrack, ALBUMS.map((a) => a.titleTrack), CONFIG.choices, state.rng));
+    // 카드당 1문제: 이 앨범에서 가능한 유형 중 랜덤 출제
+    const q = buildQuestion(album, qctx(state.rng));
+    renderQuestion(q);
 
     el.feedback.textContent = ""; el.feedback.className = "feedback";
     el["btn-next"].disabled = true;
@@ -154,31 +159,33 @@
     el["card-caption"].textContent = isError ? T.caption.error : T.caption.noArt;
   }
 
-  function renderQuestion(containerId, label, correct, choices) {
-    const c = el[containerId];
-    c.dataset.answered = "false"; c.dataset.result = "";
-    c.innerHTML = `<p class="q-label">${label}</p>` +
-      `<div class="choices" role="group" aria-label="${label}">` +
-      choices.map((v) => `<button type="button" class="choice" data-value="${escapeHtml(v)}">${escapeHtml(v)}</button>`).join("") +
+  // 단일 문제 렌더(label 은 HTML 허용, 보기는 이스케이프)
+  function renderQuestion(q) {
+    const c = el["question"];
+    c.dataset.answered = "false";
+    c.innerHTML = `<p class="q-label">${q.label}</p>` +
+      `<div class="choices" role="group">` +
+      q.choices.map((v) => `<button type="button" class="choice" data-value="${escapeHtml(v)}">${escapeHtml(v)}</button>`).join("") +
       `</div>`;
-    c.querySelectorAll(".choice").forEach((btn) => btn.addEventListener("click", () => selectChoice(c, btn, correct)));
+    c.querySelectorAll(".choice").forEach((btn) => btn.addEventListener("click", () => selectChoice(btn, q.correct)));
+    el["question-note"].textContent = q.note || "";
   }
 
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])); }
 
-  // ── 보기 선택 ──
-  function selectChoice(container, btn, correct) {
-    if (container.dataset.answered === "true") return;
-    container.dataset.answered = "true";
+  // ── 보기 선택(카드당 1문제) ──
+  function selectChoice(btn, correct) {
+    const c = el["question"];
+    if (c.dataset.answered === "true") return;
+    c.dataset.answered = "true";
     const isCorrect = String(btn.dataset.value) === String(correct);
-    container.dataset.result = isCorrect ? "correct" : "wrong";
     if (isCorrect) animateScore(state.score, (state.score += CONFIG.pointsPerCorrect));
-    container.querySelectorAll(".choice").forEach((b) => {
+    c.querySelectorAll(".choice").forEach((b) => {
       b.disabled = true; b.setAttribute("aria-disabled", "true");
       if (String(b.dataset.value) === String(correct)) { b.classList.add("correct"); b.setAttribute("aria-label", b.textContent + " (정답)"); }
       else if (b === btn) { b.classList.add("wrong"); b.setAttribute("aria-label", b.textContent + " (오답)"); }
     });
-    maybeFinishRound();
+    finishRound(isCorrect);
   }
 
   // ── 점수 카운트업 ──
@@ -193,20 +200,11 @@
     requestAnimationFrame(step);
   }
 
-  function maybeFinishRound() {
-    const ids = ["q-album", "q-year", "q-track"];
-    if (!ids.every((id) => el[id].dataset.answered === "true")) return;
-    if (el["btn-next"].disabled === false) return;
+  function finishRound(isCorrect) {
     const album = state.deck[state.round];
-    const got = {
-      album: el["q-album"].dataset.result === "correct",
-      year: el["q-year"].dataset.result === "correct",
-      track: el["q-track"].dataset.result === "correct",
-    };
-    state.answers.push({ albumId: album.id, got });
-    const hit = Object.values(got).filter(Boolean).length;
-    el.feedback.textContent = hit === 3 ? T.feedback.allCorrect : T.feedback.partial(hit);
-    el.feedback.className = "feedback " + (hit === 3 ? "good" : "mid");
+    state.answers.push({ albumId: album.id, correct: isCorrect });
+    el.feedback.textContent = isCorrect ? T.feedback.correct : T.feedback.wrong;
+    el.feedback.className = "feedback " + (isCorrect ? "good" : "mid");
     el["btn-next"].disabled = false; el["btn-next"].focus();
   }
 
@@ -217,9 +215,9 @@
 
   // ── 결과 ──
   function computeStats() {
-    const max = state.deck.length * 3 * CONFIG.pointsPerCorrect;
-    const hits = state.answers.reduce((a, x) => a + Object.values(x.got).filter(Boolean).length, 0);
-    const total = state.deck.length * 3;
+    const total = state.deck.length; // 카드당 1문제
+    const max = total * CONFIG.pointsPerCorrect;
+    const hits = state.answers.reduce((a, x) => a + (x.correct ? 1 : 0), 0);
     const pct = total ? Math.round((hits / total) * 100) : 0;
     return { max, hits, total, pct, tier: tierFor(pct) };
   }
@@ -229,8 +227,8 @@
     el["result-score"].textContent = T.result.score(state.score, st.max);
     el["result-detail"].innerHTML = T.result.detail(st.tier, st.pct, st.hits, st.total);
 
-    // 오답 앨범 저장(복습용): 한 문제라도 틀린 앨범
-    const wrongIds = state.answers.filter((a) => Object.values(a.got).some((v) => !v)).map((a) => a.albumId);
+    // 오답 앨범 저장(복습용): 틀린 카드
+    const wrongIds = state.answers.filter((a) => !a.correct).map((a) => a.albumId);
     store.set(LS.wrong, wrongIds);
     el["btn-review"].hidden = wrongIds.length === 0;
 

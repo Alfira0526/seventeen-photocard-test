@@ -12,10 +12,19 @@
         album: "이 자켓의 앨범은?",
         year: "이 앨범의 발매 연도는?",
         track: "이 앨범의 타이틀곡은?",
+        notInAlbum: "이 앨범의 수록곡이 <b>아닌</b> 것은?",
+        lyricist: (track) => `‘${track}’ 작사에 참여한 멤버는?`,
+        unitSong: (unit) => `이 앨범에서 <b>${unit} 유닛</b>이 부른 곡은?`,
+      },
+      unit: { vocal: "보컬", hiphop: "힙합", performance: "퍼포먼스" },
+      note: {
+        notInAlbum: "힌트: 나머지 셋은 이 앨범 수록곡이에요.",
+        lyricist: "힌트: 세븐틴은 멤버들이 직접 작사에 참여해요.",
+        unitSong: "힌트: 유닛곡은 앨범 안에 숨어 있어요.",
       },
       feedback: {
-        allCorrect: "🎉 3문제 모두 정답!",
-        partial: (hit) => `이 자켓에서 ${hit} / 3 정답`,
+        correct: "🎉 정답!",
+        wrong: "아쉬워요, 오답!",
       },
       next: { result: "결과 보기", more: "다음 자켓 →" },
       caption: {

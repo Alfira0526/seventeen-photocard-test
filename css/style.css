@@ -156,7 +156,9 @@ body {
 
 /* 문제 */
 .question { background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 15px 18px; margin-bottom: 12px; }
-.q-label { margin: 0 0 11px; font-weight: 700; font-size: 15px; }
+.q-label { margin: 0 0 11px; font-weight: 700; font-size: 16px; }
+.q-label b { color: var(--accent-2); }
+.q-note { color: var(--muted); font-size: 13px; margin: 8px 2px 14px; min-height: 16px; }
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {
   background: var(--choice-bg); border: 1px solid var(--line); color: var(--text);
