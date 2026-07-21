@@ -8,7 +8,8 @@
   "use strict";
 
   const { ALBUMS, ALBUM_YEARS } = window.SVTData;
-  const { shuffle, buildChoices, tierFor } = window.QuizLogic;
+  const { shuffle, buildChoices, buildYearChoices, buildAlbumChoices, tierFor } =
+    window.QuizLogic;
 
   // ── 설정 ──
   const CONFIG = {
@@ -94,10 +95,11 @@
     el.progress.textContent = `${state.round + 1} / ${state.deck.length}`;
     el.score.textContent = state.score;
 
+    // 근접 오답으로 난이도를 살린다(동유형·인접연도 앨범, 근접 연도).
     renderQuestion("q-album", "이 자켓의 앨범은?", album.title,
-      buildChoices(album.title, ALBUMS.map((a) => a.title), CONFIG.choices));
+      buildAlbumChoices(album, ALBUMS, CONFIG.choices));
     renderQuestion("q-year", "이 앨범의 발매 연도는?", album.year,
-      buildChoices(album.year, ALBUM_YEARS, CONFIG.choices));
+      buildYearChoices(album.year, ALBUM_YEARS, CONFIG.choices));
     renderQuestion("q-track", "이 앨범의 타이틀곡은?", album.titleTrack,
       buildChoices(album.titleTrack, ALBUMS.map((a) => a.titleTrack), CONFIG.choices));
 
