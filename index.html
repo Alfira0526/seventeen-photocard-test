@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SEVENTEEN 포토카드 퀴즈</title>
+    <meta
+      name="description"
+      content="세븐틴 포토카드를 보고 멤버·앨범·발매연도를 맞히는 퀴즈 게임"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <!-- 시작 화면 -->
+      <section id="screen-start" class="screen active">
+        <div class="hero">
+          <h1 class="logo">SEVENTEEN<br /><span>PHOTOCARD QUIZ</span></h1>
+          <p class="tagline">
+            포토카드를 보고 <b>멤버 · 앨범 · 발매연도</b>를 맞혀보세요.
+          </p>
+          <ul class="rules">
+            <li>카드 1장당 3문제 (멤버 / 앨범 / 연도)</li>
+            <li>총 8장, 문제당 10점</li>
+            <li>정답률에 따라 캐럿 등급이 매겨집니다</li>
+          </ul>
+          <button id="btn-start" class="btn primary">게임 시작</button>
+        </div>
+      </section>
+
+      <!-- 플레이 화면 -->
+      <section id="screen-play" class="screen">
+        <header class="hud">
+          <span class="hud-progress">CARD <b id="progress">1 / 8</b></span>
+          <span class="hud-score">SCORE <b id="score">0</b></span>
+        </header>
+
+        <div class="play-grid">
+          <div class="card-stage">
+            <div id="card-art" class="card-art"></div>
+          </div>
+
+          <div class="questions">
+            <div id="q-member" class="question"></div>
+            <div id="q-album" class="question"></div>
+            <div id="q-year" class="question"></div>
+
+            <p id="feedback" class="feedback"></p>
+            <button id="btn-next" class="btn primary" disabled>다음 카드 →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 결과 화면 -->
+      <section id="screen-result" class="screen">
+        <div class="result">
+          <h2>결과</h2>
+          <p id="result-score" class="result-score">0 / 0 점</p>
+          <div id="result-detail" class="result-detail"></div>
+          <button id="btn-restart" class="btn primary">다시 하기</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-foot">
+      <small
+        >팬메이드 비영리 데모 · 포토카드 이미지는 각 저작권자에게 있습니다.</small
+      >
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/game.js"></script>
+  </body>
+</html>
