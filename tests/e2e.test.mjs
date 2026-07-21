@@ -1,0 +1,89 @@
+/**
+ * 브라우저 E2E 테스트 (node:test + Playwright).
+ * 실행:  node --test tests/e2e.test.mjs
+ *
+ * - Playwright 미설치 시 전체 skip (유닛 테스트만으로도 CI 통과 가능).
+ * - 브라우저 바이너리 경로가 특수한 환경은 SVT_CHROMIUM_PATH 로 지정 가능.
+ */
+import test from "node:test";
+import assert from "node:assert/strict";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { dirname, resolve } from "node:path";
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const pageUrl = pathToFileURL(resolve(root, "index.html")).href;
+
+let chromium = null;
+try { ({ chromium } = await import("playwright")); } catch { /* 미설치 → skip */ }
+
+const launchOpts = process.env.SVT_CHROMIUM_PATH
+  ? { executablePath: process.env.SVT_CHROMIUM_PATH }
+  : {};
+
+async function withPage(fn) {
+  const browser = await chromium.launch(launchOpts);
+  try {
+    const page = await browser.newPage({ viewport: { width: 1040, height: 800 } });
+    await page.goto(pageUrl);
+    return await fn(page);
+  } finally {
+    await browser.close();
+  }
+}
+
+async function playThrough(page, pick = "first-child") {
+  await page.waitForSelector("#screen-play.active");
+  for (let r = 0; r < 8; r++) {
+    for (const q of ["#q-album", "#q-year", "#q-track"]) {
+      await page.click(`${q} .choice:${pick}`);
+    }
+    await page.waitForSelector("#btn-next:not([disabled])");
+    await page.click("#btn-next");
+    if (await page.$("#screen-result.active")) break;
+  }
+  await page.waitForSelector("#screen-result.active");
+}
+
+test("일반 모드: 8라운드 완주 → 결과·공유카드 렌더", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.click('.mode-btn[data-mode="normal"]');
+    await playThrough(page);
+    const score = await page.textContent("#result-score");
+    assert.match(score, /\/\s*240/);
+    const drawn = await page.evaluate(() => {
+      const cv = document.getElementById("result-canvas");
+      const d = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data;
+      for (let i = 0; i < d.length; i += 4) if (d[i] || d[i + 1] || d[i + 2]) return true;
+      return false;
+    });
+    assert.ok(drawn, "공유 카드가 비어 있음");
+    // 다시하기 → 시작화면 복귀
+    await page.click("#btn-restart");
+    await page.waitForSelector("#screen-start.active");
+  });
+});
+
+test("데일리 모드: 동일 날짜엔 결정론적(같은 덱/보기)", { skip: !chromium }, async () => {
+  async function firstChoices() {
+    return withPage(async (page) => {
+      await page.click('.mode-btn[data-mode="daily"]');
+      await page.waitForSelector("#screen-play.active");
+      const a = await page.$$eval("#q-album .choice", (e) => e.map((x) => x.textContent).join("|"));
+      const y = await page.$$eval("#q-year .choice", (e) => e.map((x) => x.textContent).join("|"));
+      return a + "||" + y;
+    });
+  }
+  assert.equal(await firstChoices(), await firstChoices());
+});
+
+test("오답 복습: 오답 발생 후 복습 모드 활성화", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.click('.mode-btn[data-mode="normal"]');
+    await playThrough(page, "last-child"); // 마지막 보기만 골라 오답 유도
+    assert.ok(await page.isVisible("#btn-review"), "결과의 복습 버튼 미표시");
+    await page.click("#btn-restart");
+    await page.waitForSelector("#screen-start.active");
+    const enabled = await page.$eval("#mode-review", (b) => !b.disabled);
+    assert.ok(enabled, "시작화면 복습 모드 비활성");
+  });
+});

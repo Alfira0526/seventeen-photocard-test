@@ -10,6 +10,7 @@
   const { ALBUMS, albumById, ALBUM_YEARS } = window.SVTData;
   const { shuffle, buildChoices, buildYearChoices, buildAlbumChoices, tierFor } =
     window.QuizLogic;
+  const T = window.I18N.t; // UI 문자열(i18n-lite)
 
   const CONFIG = { rounds: 8, pointsPerCorrect: 10, choices: 4 };
   const LS = { theme: "svt-theme", wrong: "svt-wrong", daily: "svt-daily", streak: "svt-streak" };
@@ -93,7 +94,7 @@
     }
     state.round = 0; state.score = 0; state.displayScore = 0; state.answers = [];
     el.score.textContent = "0";
-    el["hud-mode"].textContent = { normal: "🎲 일반", daily: "📅 데일리", review: "🔁 복습" }[mode] || "";
+    el["hud-mode"].textContent = T.hudMode[mode] || "";
     show("screen-play");
     renderRound();
   }
@@ -109,28 +110,28 @@
       el["card-caption"].textContent = "";
       const img = document.createElement("img");
       img.alt = "앨범 자켓";
-      img.addEventListener("load", () => { img.classList.add("loaded"); stage.classList.remove("loading"); el["card-caption"].textContent = "© 저작권자 · Apple Music"; });
-      img.addEventListener("error", () => { stage.classList.remove("loading"); stage.innerHTML = placeholderArt(album); el["card-caption"].textContent = "이미지 미로드 · 자켓 상상 모드"; });
+      img.addEventListener("load", () => { img.classList.add("loaded"); stage.classList.remove("loading"); el["card-caption"].textContent = T.caption.loaded; });
+      img.addEventListener("error", () => { stage.classList.remove("loading"); stage.innerHTML = placeholderArt(album); el["card-caption"].textContent = T.caption.error; });
       img.src = album.art;
       stage.appendChild(img);
     } else {
       stage.classList.remove("loading");
       stage.innerHTML = placeholderArt(album);
-      el["card-caption"].textContent = "이미지 미로드 · scripts/fetch-art.mjs 실행 시 표시";
+      el["card-caption"].textContent = T.caption.noArt;
     }
 
     el.progress.textContent = `${state.round + 1} / ${state.deck.length}`;
 
-    renderQuestion("q-album", "이 자켓의 앨범은?", album.title,
+    renderQuestion("q-album", T.q.album, album.title,
       buildAlbumChoices(album, ALBUMS, CONFIG.choices, state.rng));
-    renderQuestion("q-year", "이 앨범의 발매 연도는?", album.year,
+    renderQuestion("q-year", T.q.year, album.year,
       buildYearChoices(album.year, ALBUM_YEARS, CONFIG.choices, state.rng));
-    renderQuestion("q-track", "이 앨범의 타이틀곡은?", album.titleTrack,
+    renderQuestion("q-track", T.q.track, album.titleTrack,
       buildChoices(album.titleTrack, ALBUMS.map((a) => a.titleTrack), CONFIG.choices, state.rng));
 
     el.feedback.textContent = ""; el.feedback.className = "feedback";
     el["btn-next"].disabled = true;
-    el["btn-next"].textContent = state.round + 1 === state.deck.length ? "결과 보기" : "다음 자켓 →";
+    el["btn-next"].textContent = state.round + 1 === state.deck.length ? T.next.result : T.next.more;
   }
 
   function renderQuestion(containerId, label, correct, choices) {
@@ -184,7 +185,7 @@
     };
     state.answers.push({ albumId: album.id, got });
     const hit = Object.values(got).filter(Boolean).length;
-    el.feedback.textContent = hit === 3 ? "🎉 3문제 모두 정답!" : `이 자켓에서 ${hit} / 3 정답`;
+    el.feedback.textContent = hit === 3 ? T.feedback.allCorrect : T.feedback.partial(hit);
     el.feedback.className = "feedback " + (hit === 3 ? "good" : "mid");
     el["btn-next"].disabled = false; el["btn-next"].focus();
   }
@@ -205,8 +206,8 @@
 
   function showResult() {
     const st = computeStats();
-    el["result-score"].textContent = `${state.score} / ${st.max} 점`;
-    el["result-detail"].innerHTML = `<p class="tier">${st.tier}</p><p class="pct">정답률 ${st.pct}% (${st.hits}/${st.total})</p>`;
+    el["result-score"].textContent = T.result.score(state.score, st.max);
+    el["result-detail"].innerHTML = T.result.detail(st.tier, st.pct, st.hits, st.total);
 
     // 오답 앨범 저장(복습용): 한 문제라도 틀린 앨범
     const wrongIds = state.answers.filter((a) => Object.values(a.got).some((v) => !v)).map((a) => a.albumId);
@@ -246,7 +247,7 @@
     ctx.fillStyle = bar; ctx.fillRect(0, 0, W, 10);
     ctx.textAlign = "center"; ctx.fillStyle = "#f2f2f7";
     ctx.font = "700 40px Pretendard, sans-serif";
-    ctx.fillText("SEVENTEEN 앨범 자켓 퀴즈", W / 2, 130);
+    ctx.fillText(T.share.title, W / 2, 130);
     // 등급
     ctx.font = "800 84px Pretendard, sans-serif";
     ctx.fillStyle = "#ff5c9d"; ctx.fillText(st.tier, W / 2, 300);
@@ -254,7 +255,7 @@
     ctx.fillStyle = "#f2f2f7"; ctx.font = "800 96px Pretendard, sans-serif";
     ctx.fillText(`${state.score} / ${st.max}점`, W / 2, 430);
     ctx.fillStyle = "#9a9ab0"; ctx.font = "500 40px Pretendard, sans-serif";
-    const modeLabel = { normal: "일반", daily: "데일리", review: "복습" }[state.mode] || "";
+    const modeLabel = T.shareMode[state.mode] || "";
     ctx.fillText(`정답률 ${st.pct}% · ${modeLabel} 모드`, W / 2, 500);
     ctx.fillStyle = "#6b6a80"; ctx.font = "400 30px Pretendard, sans-serif";
     ctx.fillText("팬메이드 비영리 데모", W / 2, 580);
@@ -273,7 +274,7 @@
 
   function tweetShare() {
     const st = computeStats();
-    const text = `SEVENTEEN 앨범 자켓 퀴즈 결과\n${st.tier} · ${state.score}점 (정답률 ${st.pct}%)\n#SEVENTEEN #세븐틴 #앨범자켓퀴즈`;
+    const text = T.share.tweet(st.tier, state.score, st.pct);
     const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text);
     window.open(url, "_blank", "noopener");
   }
@@ -282,11 +283,11 @@
   function refreshStart() {
     const wrong = store.get(LS.wrong, []);
     el["mode-review"].disabled = wrong.length === 0;
-    el["review-sub"].textContent = wrong.length ? `직전 오답 ${wrong.length}개 다시 풀기` : "직전 판의 틀린 앨범(먼저 한 판 필요)";
+    el["review-sub"].textContent = wrong.length ? T.start.reviewReady(wrong.length) : T.start.reviewEmpty;
     const daily = store.get(LS.daily, null);
     const streak = store.get(LS.streak, { count: 0 });
-    if (daily && daily.date === todayKey()) el["daily-sub"].textContent = `오늘 완료 · 정답률 ${daily.pct}%${streak.count ? ` · 🔥${streak.count}일` : ""}`;
-    else el["daily-sub"].textContent = "오늘의 8장 · 하루 한 번 같은 문제";
+    if (daily && daily.date === todayKey()) el["daily-sub"].textContent = T.start.dailyDone(daily.pct, streak.count);
+    else el["daily-sub"].textContent = T.start.dailyOpen;
   }
 
   // ── 초기화 ──

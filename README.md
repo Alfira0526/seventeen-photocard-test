@@ -30,32 +30,48 @@ node scripts/fetch-art.mjs
 > 왜 파일을 안 담나요? 자켓도 저작권물이라 **재배포**가 문제입니다. 공식 CDN에서
 > 식별 목적으로 로드하면 리포에 저작물을 담지 않게 되고, 출처/화질도 안정적입니다.
 
-## 게임 규칙
+## 게임 규칙 · 모드
 
 - 자켓 1장당 3문제(앨범 / 발매연도 / 타이틀곡), 각 4지선다
 - 한 판 = 8장, 문제당 10점 (만점 240점)
+- **근접 오답**: 같은 시기·같은 유형 앨범, 가까운 연도를 오답으로 섞어 난이도를 높임
 - 정답률에 따라 캐럿 등급 (관심 → 입덕 준비생 → 진성 캐럿 → 캐럿 마스터)
+- 3가지 모드:
+  - 🎲 **일반** — 랜덤 8장
+  - 📅 **데일리 챌린지** — 날짜 시드 기반, 하루 종일 같은 문제(결정론적) + 연속 참여 스트릭
+  - 🔁 **오답 복습** — 직전 판에서 틀린 앨범만 다시 출제
+- 🌙/☀️ **라이트·다크 테마** 토글(선택 저장), 🖼️ **결과 공유 카드**(PNG 저장 / 트위터 공유)
 
 ## 구조
 
 ```
-index.html            # 화면 구조 (시작 / 플레이 / 결과)
-css/style.css         # 다크 테마 · 반응형
-js/logic.js           # 순수 로직(셔플·보기 생성·등급) — 브라우저/Node 공용, 테스트 대상
+index.html            # 화면 구조 (시작 / 플레이 / 결과) · 테마 부트 스크립트
+css/style.css         # 라이트·다크 테마 · 모션 · 반응형
+js/i18n.js            # UI 문자열 중앙화(i18n-lite) — 브라우저/Node 공용
+js/logic.js           # 순수 로직(셔플·보기 생성·근접 오답·등급) — 공용, 테스트 대상
 js/data.js            # 정답 소스: ALBUMS(제목·연도·유형·타이틀곡) + 무결성 검증
-js/game.js            # 게임 엔진: 라운드 진행 · 채점 · 결과 (DOM 전담)
+js/game.js            # 게임 엔진: 모드·라운드·채점·결과·공유·테마 (DOM 전담)
 js/albumArt.js        # (자동 생성) 앨범 자켓 CDN URL — scripts/fetch-art.mjs 산출물
-scripts/fetch-art.mjs # iTunes 아트워크 수집기
+scripts/fetch-art.mjs # iTunes 아트워크 수집기(+수동 오버라이드 맵)
 tests/quiz.test.mjs   # 순수 로직 + 데이터 무결성 단위 테스트
+tests/e2e.test.mjs    # Playwright E2E (모드·완주·공유·복습)
 ```
 
 ## 테스트
 
 ```bash
-node --test          # 순수 로직 + 데이터 무결성 (9 tests)
+npm test           # 유닛 + 데이터 무결성 (13 tests, 브라우저 불필요)
+npm run test:e2e   # 브라우저 E2E (Playwright 필요; 없으면 자동 skip)
+npm run test:all   # 유닛 + E2E 전체
 ```
 
-브라우저 E2E는 Playwright로 시작→8라운드→채점→결과→재시작 흐름을 검증합니다.
+특수 환경에서 브라우저 경로 지정: `SVT_CHROMIUM_PATH=/path/to/chromium npm run test:e2e`
+
+## 자켓 매칭이 틀릴 때 (수동 오버라이드)
+
+`scripts/fetch-art.mjs` 는 매칭 실패 시 후보를 로그로 출력한다. 틀린 앨범은
+스크립트 상단 `OVERRIDE` 맵에 `앨범id: iTunes_collectionId`(숫자) 또는
+`앨범id: "자켓 URL"`(문자열)로 고정하면 된다.
 
 ## 현재 상태
 

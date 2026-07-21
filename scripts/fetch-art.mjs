@@ -30,6 +30,28 @@ const { ALBUMS } = require(resolve(root, "js/data.js"));
 
 const COUNTRY = process.env.ITUNES_COUNTRY || "kr";
 
+/**
+ * 수동 오버라이드 맵 (B1 대응).
+ * 자동 매칭이 틀리거나 실패한 앨범을 사람이 직접 고정한다. 두 형태 지원:
+ *   - 문자열(URL): 그 URL을 그대로 사용 (예: Apple/기타 CDN의 자켓 URL)
+ *   - 숫자(collectionId): iTunes lookup API로 해당 앨범 아트워크를 가져옴
+ * 미스가 나면 아래 콘솔 로그의 "후보"를 보고 여기에 채워 넣으면 된다.
+ */
+const OVERRIDE = {
+  // 예) goingseventeen: 1160457959,
+  // 예) happyburstday: "https://is1-ssl.mzstatic.com/image/thumb/.../600x600bb.jpg",
+};
+
+async function lookupById(collectionId) {
+  const url = "https://itunes.apple.com/lookup?" +
+    new URLSearchParams({ id: String(collectionId), country: COUNTRY });
+  const res = await fetch(url, { headers: { "User-Agent": "svt-quiz/1.0" } });
+  if (!res.ok) throw new Error(`lookup HTTP ${res.status}`);
+  const json = await res.json();
+  const r = (json.results || []).find((x) => x.artworkUrl100);
+  return r ? r.artworkUrl100 : null;
+}
+
 // 문자열 정규화(대소문자/기호 제거) 후 겹치는 정도로 유사도 측정
 const norm = (s) =>
   String(s).toLowerCase().replace(/[^a-z0-9가-힣]+/g, "");
@@ -87,19 +109,57 @@ function hi(url) {
   return url ? url.replace(/\/\d+x\d+bb\.(jpg|png)/, "/600x600bb.$1") : null;
 }
 
+// 미스 시 사람이 판단할 수 있게 상위 후보를 함께 반환
+function topCandidates(album, results, k = 3) {
+  const svt = results.filter((r) => norm(r.artistName || "") === norm("SEVENTEEN"));
+  const pool = svt.length ? svt : results;
+  return pool
+    .map((r) => ({
+      name: r.collectionName,
+      id: r.collectionId,
+      year: (r.releaseDate || "").slice(0, 4),
+      score: +(similarity(album.title, r.collectionName) +
+        ((r.releaseDate || "").slice(0, 4) === String(album.year) ? 0.25 : 0)).toFixed(2),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, k);
+}
+
 const out = {};
 const misses = [];
 
 for (const album of ALBUMS) {
+  // 1) 수동 오버라이드 우선
+  const ov = OVERRIDE[album.id];
+  if (ov !== undefined) {
+    try {
+      const url = typeof ov === "number" ? await lookupById(ov) : ov;
+      if (url) {
+        out[album.id] = hi(url);
+        console.log(`◎ ${album.id.padEnd(14)} → (오버라이드) ${typeof ov === "number" ? ov : "URL"}`);
+        continue;
+      }
+      console.warn(`✗ ${album.id.padEnd(14)} 오버라이드 실패`);
+      misses.push(album.id);
+      continue;
+    } catch (e) {
+      console.warn(`✗ ${album.id.padEnd(14)} 오버라이드 오류: ${e.message}`);
+      misses.push(album.id);
+      continue;
+    }
+  }
+  // 2) 자동 검색 매칭
   try {
     const results = await search(`SEVENTEEN ${album.itunes}`);
     const match = pickBest(album, results);
     if (match && match.artworkUrl100) {
       out[album.id] = hi(match.artworkUrl100);
-      console.log(`✓ ${album.id.padEnd(14)} → ${match.collectionName}`);
+      console.log(`✓ ${album.id.padEnd(14)} → ${match.collectionName} (${(match.releaseDate||"").slice(0,4)})`);
     } else {
       misses.push(album.id);
-      console.warn(`✗ ${album.id.padEnd(14)} 매칭 실패`);
+      console.warn(`✗ ${album.id.padEnd(14)} 매칭 실패 — 후보:`);
+      topCandidates(album, results).forEach((c) =>
+        console.warn(`    · ${c.name} [${c.year}] id=${c.id} score=${c.score}  → OVERRIDE.${album.id} = ${c.id}`));
     }
   } catch (e) {
     misses.push(album.id);
