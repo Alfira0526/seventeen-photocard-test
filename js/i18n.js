@@ -493,10 +493,10 @@
     }
     return out;
   }
-  function build(code) {
+  function build(code, bilingual) {
     const loc = LOCALES[code] || LOCALES.en;
     const en = LOCALES.en;
-    const bi = code !== "en";
+    const bi = bilingual !== false && code !== "en";
     const t = {};
     for (const k of Object.keys(loc)) {
       if (PLAIN_KEYS[k]) { t[k] = loc[k]; continue; } // 평문(단일언어) 유지
@@ -509,6 +509,7 @@
   const api = {
     t: {},
     locale: "en",
+    bilingual: false, // 현재 병기(영문 보조) 표시 여부
     SUPPORTED,
     LANG_NAMES,
     raw: (code) => LOCALES[code] || LOCALES.en,
@@ -516,12 +517,15 @@
     localeFromCountry,
     _cbs: [],
     onChange(cb) { if (typeof cb === "function") api._cbs.push(cb); },
-    setLocale(code) {
+    // bilingual=false 면 해당 언어 단독 표기(영문 병기 없음).
+    // 기본(자동 감지)은 병기, 사용자가 언어를 직접 고르면 단독으로 호출한다.
+    setLocale(code, bilingual) {
       if (!LOCALES[code]) code = "en";
-      const built = build(code);
+      const built = build(code, bilingual);
       for (const k in api.t) delete api.t[k];
       Object.assign(api.t, built);
       api.locale = code;
+      api.bilingual = bilingual !== false && code !== "en";
       api._cbs.forEach((cb) => { try { cb(code); } catch (e) {} });
       return code;
     },

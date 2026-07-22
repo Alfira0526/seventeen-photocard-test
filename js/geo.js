@@ -59,10 +59,10 @@
   const api = {
     LS_LANG,
     saved() { return store.get(LS_LANG); },
-    // 사용자가 수동 선택 → 저장 + 즉시 반영
+    // 사용자가 수동 선택 → 저장 + 즉시 반영(단독 표기, 영문 병기 제거)
     choose(code) {
       store.set(LS_LANG, code);
-      I18N.setLocale(code);
+      I18N.setLocale(code, false);
       return code;
     },
     // 자동 감지 시작: 즉시 브라우저 언어, 이어서 IP 지역으로 보정(수동선택 없을 때만)
@@ -70,7 +70,7 @@
     async init(onRefine) {
       const manual = store.get(LS_LANG);
       if (manual && I18N.SUPPORTED.indexOf(manual) >= 0) {
-        I18N.setLocale(manual);
+        I18N.setLocale(manual, false); // 직접 고른 언어는 단독 표기(병기 없음)
         return manual;
       }
       // 1) 즉시 브라우저 언어
