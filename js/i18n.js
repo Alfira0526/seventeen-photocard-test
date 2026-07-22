@@ -49,7 +49,7 @@
         reviewEmpty: "직전 판의 틀린 앨범(먼저 한 판 필요)",
         dailyDone: (pct, streak) =>
           `오늘 완료 · 정답률 ${pct}%${streak ? ` · 🔥${streak}일` : ""}`,
-        dailyOpen: "오늘의 8장 · 하루 한 번 같은 문제",
+        dailyOpen: "오늘의 10장 · 하루 한 번 같은 문제",
       },
     },
   };
