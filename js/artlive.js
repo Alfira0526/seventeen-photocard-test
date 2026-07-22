@@ -66,13 +66,10 @@
       new URLSearchParams({ term, entity: "album", country: COUNTRY, limit: "20" });
   }
 
-  // 네트워크 오류만 1회 재시도(매칭 실패는 재시도 무의미)
+  // 1회만 시도(레이트리밋 회피). 실패는 성공 캐시가 안 되므로 다음에 자연히 재시도됨.
   async function fetchResults(term) {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try { const data = await jsonp(searchUrl(term)); return (data && data.results) || []; }
-      catch (e) { if (attempt === 1) return null; }
-    }
-    return null;
+    try { const data = await jsonp(searchUrl(term)); return (data && data.results) || []; }
+    catch (e) { return null; }
   }
 
   // 검색어를 바꿔가며(힌트 → 제목) 매칭 시도

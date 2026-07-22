@@ -97,9 +97,12 @@ npm run serve
 
 우선순위: `js/albumArt.js`(사전 베이크) → **실시간 로딩** → SVG 플레이스홀더(오프라인/차단 시)
 
-- **온라인이면 자동으로 자켓이 뜹니다** (권장, 무설치).
-- (선택) 안정성/오프라인용으로 URL을 미리 고정하려면: `npm run fetch-art`
-  → `js/albumArt.js`에 URL을 베이크(이미지 파일이 아니라 URL만 저장).
+- **자동 베이크(권장):** GitHub Actions **[Bake album cover URLs](.github/workflows/fetch-art.yml)**
+  워크플로가 GitHub 서버에서 커버 URL을 뽑아 `js/albumArt.js`로 커밋합니다.
+  → 배포 사이트는 런타임 API에 의존하지 않아 안정적(오매칭·레이트리밋 없음).
+  실행: 저장소 **Actions 탭 → "Bake album cover URLs" → Run workflow** (또는 데이터 변경 push 시 자동).
+- 로컬에서 직접: `npm run fetch-art`
+- `albumArt.js`에 없는 앨범만 런타임 로딩(엄격 매칭)으로 폴백, 실패 시 플레이스홀더.
 
 > **왜 파일을 안 담나요?** 자켓도 저작권물이라 **재배포**가 쟁점입니다. 공식 CDN에서
 > 식별 목적으로 로드하면 리포에 저작물을 담지 않으면서 출처·화질도 안정적입니다.

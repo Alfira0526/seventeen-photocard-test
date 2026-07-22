@@ -97,8 +97,6 @@
     state.round = 0; state.score = 0; state.displayScore = 0; state.answers = [];
     el.score.textContent = "0";
     el["hud-mode"].textContent = T.hudMode[mode] || "";
-    // 자켓을 미리 불러와 라운드 도달 전에 준비(로딩 실패·지연 완화)
-    if (window.SVTArtLive && window.SVTArtLive.prefetch) window.SVTArtLive.prefetch(state.deck);
     show("screen-play");
     renderRound();
   }
@@ -117,6 +115,10 @@
     el.feedback.textContent = ""; el.feedback.className = "feedback";
     el["btn-next"].disabled = true;
     el["btn-next"].textContent = state.round + 1 === state.deck.length ? T.next.result : T.next.more;
+
+    // 다음 카드 자켓만 미리 살짝 데워둠(레이트리밋 회피: 한 번에 최대 1장 선로딩)
+    const nextAlbum = state.deck[state.round + 1];
+    if (nextAlbum && !nextAlbum.art && window.SVTArtLive) window.SVTArtLive.get(nextAlbum);
 
     // 문제 이동 모션: 카드/문제를 부드럽게 다시 등장시킴
     enterMotion(el["card-art"]);
