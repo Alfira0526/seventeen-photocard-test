@@ -58,6 +58,9 @@ window.SVTCoverMeta = {
   "spillthefeels": {
     "titleOnCover": false
   },
+  "happyburstday": {
+    "titleOnCover": false
+  },
   "directorscut": {
     "titleOnCover": false
   },

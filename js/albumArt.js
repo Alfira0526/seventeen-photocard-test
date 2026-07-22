@@ -20,6 +20,7 @@ window.SVTArt = {
   "17thheaven": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/e3/76/df/e376df28-c05b-00fd-72de-9d42377a306b/196922628580_Cover.jpg/600x600bb.jpg",
   "17isrighthere": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/f0/69/16/f0691679-835f-8b9b-5baa-292b7e49423f/196922894992_Cover.jpg/600x600bb.jpg",
   "spillthefeels": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/9a/30/ec/9a30ec28-9484-eaa3-5c5d-3aa7039ce0c1/198704184437_Cover.jpg/600x600bb.jpg",
+  "happyburstday": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/bc/64/e0/bc64e097-7ab4-5650-ed66-61a6b836370c/198704749377_Cover.jpg/600x600bb.jpg",
   "directorscut": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/bb/52/bc/bb52bcfc-f885-8fc8-0a86-6f8b132f5df6/cover-.jpg/600x600bb.jpg",
   "bss_secondwind": "https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/df/ec/37/dfec37b0-9c39-dfce-fefe-61cfd05e1680/196922266546_Cover.jpg/600x600bb.jpg",
   "hoshi_spider": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/bb/ed/fe/bbedfe76-cb47-0137-e521-7b5b90f3a7a1/192641602863_Cover.jpg/600x600bb.jpg",
