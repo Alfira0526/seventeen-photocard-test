@@ -1,3 +1,30 @@
 // 자동 생성 파일 — scripts/fetch-art.mjs 로 갱신. 직접 편집 금지.
 // iTunes(Apple) 아트워크 CDN URL. 이미지 저작권은 각 저작권자에게 있음.
-window.SVTArt = {};
+window.SVTArt = {
+  "17carat": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/75/7d/b9/757db928-7365-3af7-4a95-22c430d2c10d/cover-.jpg/600x600bb.jpg",
+  "boysbe": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/15/c3/c5/15c3c59b-22ce-699e-dcb1-23f006cf8410/cover-.jpg/600x600bb.jpg",
+  "loveandletter": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/32/cb/c4/32cbc434-82b9-6b8e-8cc8-752b554b49f9/cover-.jpg/600x600bb.jpg",
+  "goingseventeen": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/2e/c0/94/2ec09415-c432-03b6-d032-8854f11dc379/COVER-.jpg/600x600bb.jpg",
+  "al1": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/7e/93/76/7e937672-f339-eda1-8d7b-708a0c16acc4/cover-.jpg/600x600bb.jpg",
+  "teenage": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/71/f1/26/71f1269f-be8a-dafd-b732-a84c58136d06/cover-.jpg/600x600bb.jpg",
+  "youmakemyday": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/8c/67/da/8c67dae9-2134-d43a-a332-ccd4b9e55ccb/192641597718_Cover.jpg/600x600bb.jpg",
+  "youmademydawn": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/d3/c9/4c/d3c94ccd-6c20-af5a-403e-40a14b9f3df5/8804775120695_Cover.jpg/600x600bb.jpg",
+  "anode": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/b5/bd/ae/b5bdaec4-feaa-b8aa-ae7a-769ebf74c187/08809658315847_Cover.jpg/600x600bb.jpg",
+  "henggarae": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/fa/8d/ca/fa8dcafd-2f37-a08b-9a6d-f6b2e68ef5f5/08809704415170_Cover.jpg/600x600bb.jpg",
+  "semicolon": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/55/6a/d1/556ad1b3-31e5-fe56-1219-84bdc0c9ee34/192641581199_Cover.jpg/600x600bb.jpg",
+  "yourchoice": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/a5/4c/16/a54c1600-09f4-74f1-f12a-e5bae364ca42/192641604041_Cover.jpg/600x600bb.jpg",
+  "attacca": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/dd/d4/d4/ddd4d456-4696-06b8-2054-6d1bb6ae6718/192641682551_Cover.jpg/600x600bb.jpg",
+  "facethesun": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/eb/e6/86/ebe686b5-c4a1-24b6-69a4-db9b45f20dd2/196922058202_Cover.jpg/600x600bb.jpg",
+  "sector17": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/69/81/dc/6981dcfb-7a02-7dbf-4564-e48f32e9dcb9/192641872518_Cover.jpg/600x600bb.jpg",
+  "fml": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/d1/66/eb/d166eb7e-7210-b3ff-be39-638cd37bfc89/196922401282_Cover.jpg/600x600bb.jpg",
+  "17thheaven": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/e3/76/df/e376df28-c05b-00fd-72de-9d42377a306b/196922628580_Cover.jpg/600x600bb.jpg",
+  "17isrighthere": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/f0/69/16/f0691679-835f-8b9b-5baa-292b7e49423f/196922894992_Cover.jpg/600x600bb.jpg",
+  "spillthefeels": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/9a/30/ec/9a30ec28-9484-eaa3-5c5d-3aa7039ce0c1/198704184437_Cover.jpg/600x600bb.jpg",
+  "directorscut": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/bb/52/bc/bb52bcfc-f885-8fc8-0a86-6f8b132f5df6/cover-.jpg/600x600bb.jpg",
+  "bss_secondwind": "https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/df/ec/37/dfec37b0-9c39-dfce-fefe-61cfd05e1680/196922266546_Cover.jpg/600x600bb.jpg",
+  "hoshi_spider": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/bb/ed/fe/bbedfe76-cb47-0137-e521-7b5b90f3a7a1/192641602863_Cover.jpg/600x600bb.jpg",
+  "woozi_ruby": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/25/fb/ea/25fbea1f-87c0-4c0c-92e7-43eaafd104f5/192641819964_Cover.jpg/600x600bb.jpg",
+  "vernon_blackeye": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/06/23/3c/06233c72-7f95-9ab8-f884-94f8a318bd15/196922282140_Cover.jpg/600x600bb.jpg",
+  "dino_wait": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/63/6d/a0/636da08d-ae57-f64b-51a7-b4110a2ed872/196922722578_Cover.jpg/600x600bb.jpg",
+  "wonu_mingyu_bittersweet": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/43/f1/3e/43f13eb9-c323-ca37-b43b-549f5d1e4a64/192641603914_Cover.jpg/600x600bb.jpg"
+};
