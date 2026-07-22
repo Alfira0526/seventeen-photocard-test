@@ -13,8 +13,9 @@
 
   const cache = {}; // id -> url (성공만 캐시. 실패는 캐시하지 않아 다음에 재시도)
   const pending = {}; // id -> Promise (동시 중복 요청 방지)
-  const COUNTRY = "kr";
+  const COUNTRY = "us"; // 영문 아티스트명 → 매칭 안정적
   const TIMEOUT = 8000;
+  const ARTIST_ALIASES = { seventeen: ["seventeen", "세븐틴"] };
 
   const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9가-힣]+/g, "");
   function similarity(a, b) {
@@ -45,7 +46,9 @@
   // 부분포함(includes)은 쓰지 않고, 정확일치 또는 접두(예: "wonwoo, mingyu")만 허용.
   function artistOk(resultArtist, albumArtist) {
     const a = norm(resultArtist), b = norm(albumArtist);
-    return a === b || a.startsWith(b);
+    if (a === b || a.startsWith(b)) return true;
+    const aliases = ARTIST_ALIASES[b];
+    return aliases ? aliases.some((x) => { const n = norm(x); return a === n || a.startsWith(n); }) : false;
   }
 
   function pickBest(album, results) {

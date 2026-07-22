@@ -38,7 +38,7 @@ jobs:
 
       - name: Fetch cover art → js/albumArt.js
         env:
-          ITUNES_COUNTRY: kr
+          ITUNES_COUNTRY: us
         run: node scripts/fetch-art.mjs
 
       - name: Commit baked URLs if changed

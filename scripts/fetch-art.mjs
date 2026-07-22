@@ -28,7 +28,7 @@ const { createRequire } = await import("node:module");
 const require = createRequire(import.meta.url);
 const { ALBUMS } = require(resolve(root, "js/data.js"));
 
-const COUNTRY = process.env.ITUNES_COUNTRY || "kr";
+const COUNTRY = process.env.ITUNES_COUNTRY || "us"; // us: 아티스트명이 영문이라 매칭 안정적
 
 /**
  * 수동 오버라이드 맵 (B1 대응).
@@ -37,9 +37,12 @@ const COUNTRY = process.env.ITUNES_COUNTRY || "kr";
  *   - 숫자(collectionId): iTunes lookup API로 해당 앨범 아트워크를 가져옴
  * 미스가 나면 아래 콘솔 로그의 "후보"를 보고 여기에 채워 넣으면 된다.
  */
+// 자동 매칭이 애매한 릴리스는 확인된 iTunes collectionId 로 고정(로그 후보에서 확인).
 const OVERRIDE = {
-  // 예) goingseventeen: 1160457959,
-  // 예) happyburstday: "https://is1-ssl.mzstatic.com/image/thumb/.../600x600bb.jpg",
+  directorscut: 1344751461,            // DIRECTOR'S CUT (2018)
+  bss_secondwind: 1668145592,          // BSS - SECOND WIND (2023)
+  wonu_mingyu_bittersweet: 1568808261, // WONWOO, MINGYU - Bittersweet (feat. LeeHi) (2021)
+  // 믹스테이프(Spider/Ruby/Black Eye/Wait)는 Apple Music 미수록 → 플레이스홀더 유지
 };
 
 async function lookupById(collectionId) {
@@ -84,13 +87,19 @@ async function search(term) {
   return json.results || [];
 }
 
-// 아티스트 정확 매칭(오매칭 방지): 정확일치 또는 접두만 허용
+// 아티스트 별칭(스토어 로케일에 따라 한글/영문 혼재 대비)
+const ARTIST_ALIASES = { seventeen: ["seventeen", "세븐틴"] };
+function artistOk(resultArtist, albumArtist) {
+  const a = norm(resultArtist), b = norm(albumArtist);
+  if (a === b || a.startsWith(b)) return true;
+  const aliases = ARTIST_ALIASES[b];
+  return aliases ? aliases.some((x) => { const n = norm(x); return a === n || a.startsWith(n); }) : false;
+}
+
+// 아티스트 정확 매칭(오매칭 방지): 정확일치/접두/별칭만 허용
 function artistMatch(album, results) {
-  const artist = norm(album.artist || "SEVENTEEN");
-  return results.filter((r) => {
-    const a = norm(r.artistName || "");
-    return a === artist || a.startsWith(artist);
-  });
+  const artist = album.artist || "SEVENTEEN";
+  return results.filter((r) => artistOk(r.artistName || "", artist));
 }
 
 function pickBest(album, results) {
