@@ -56,7 +56,7 @@
   function cacheDom() {
     [
       "screen-start", "screen-play", "screen-result",
-      "btn-restart", "btn-next", "btn-share", "btn-tweet",
+      "btn-restart", "btn-next", "btn-share", "btn-save", "btn-tweet", "btn-insta", "btn-kakao", "share-hint",
       "card-art", "card-caption", "btn-reload", "progress", "progress-fill", "score", "hud-mode",
       "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
@@ -341,32 +341,106 @@
     ctx.fillText("팬메이드 비영리 데모", W / 2, 580);
   }
 
+  // 결과 캔버스를 PNG File 로 변환
+  function resultFile(cb) {
+    el["result-canvas"].toBlob((blob) => {
+      cb(blob ? new File([blob], `svt-quiz-${todayKey()}.png`, { type: "image/png" }) : null);
+    }, "image/png");
+  }
+  function canShareFiles(file) {
+    return !!(navigator.canShare && file && navigator.canShare({ files: [file] }));
+  }
+
+  // 간단 토스트 안내
+  function toast(msg) {
+    let t = document.getElementById("svt-toast");
+    if (!t) { t = document.createElement("div"); t.id = "svt-toast"; t.className = "toast"; document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add("show");
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2400);
+  }
+
+  // 이미지 저장(다운로드)
   function downloadShare() {
-    const cv = el["result-canvas"];
-    cv.toBlob((blob) => {
+    el["result-canvas"].toBlob((blob) => {
       if (!blob) return;
       const url = URL.createObjectURL(blob), a = document.createElement("a");
       a.href = url; a.download = `svt-quiz-${todayKey()}.png`;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }, "image/png");
+    toast(T.share.saved);
+  }
+
+  // 공유하기(Web Share) — 모바일 네이티브 시트: 인스타/카톡/트위터/등
+  function shareMain() {
+    const st = computeStats();
+    const text = T.share.native(st.tier, state.score, st.pct);
+    resultFile(async (file) => {
+      if (navigator.share && canShareFiles(file)) {
+        try { await navigator.share({ files: [file], text }); } catch (e) { /* 취소 무시 */ }
+      } else {
+        downloadShare();
+        toast(T.share.fallback);
+      }
+    });
   }
 
   function tweetShare() {
     const st = computeStats();
     const text = T.share.tweet(st.tier, state.score, st.pct);
-    // 이미지는 인텐트로 첨부 불가 → 카드 PNG를 먼저 내려받아 첨부에 쓰도록 안내
+    // 인텐트는 이미지 첨부 불가 → 카드 PNG를 먼저 저장해 첨부에 쓰도록
     downloadShare();
-    // features 문자열을 주면 브라우저가 '작은 팝업'으로 열어 로그인이 불편함.
-    // anchor 클릭으로 '정상 탭'을 연다(팝업 차단·로그인 세션 문제 회피).
+    // anchor 클릭으로 '정상 탭' 오픈(팝업 차단·로그인 세션 문제 회피)
     const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text);
     const a = document.createElement("a");
-    a.href = url;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  // 인스타그램: 웹 게시 API가 없어 Web Share(모바일) 또는 저장+안내
+  function instaShare() {
+    resultFile(async (file) => {
+      if (navigator.share && canShareFiles(file)) {
+        try { await navigator.share({ files: [file], text: "#SEVENTEEN #세븐틴 #앨범자켓퀴즈" }); return; } catch (e) {}
+      }
+      downloadShare();
+      toast(T.share.insta);
+    });
+  }
+
+  // 카카오톡: Kakao SDK(키 설정 시) 링크 공유, 아니면 Web Share/저장 안내
+  function kakaoShare() {
+    const st = computeStats();
+    if (window.Kakao && window.Kakao.isInitialized && Kakao.isInitialized()) {
+      try {
+        Kakao.Share.sendDefault({
+          objectType: "feed",
+          content: {
+            title: T.share.title,
+            description: `${st.tier} · ${state.score}점 (정답률 ${st.pct}%)`,
+            imageUrl: new URL("docs/img/share-card.png", location.href).href,
+            link: { mobileWebUrl: location.href, webUrl: location.href },
+          },
+          buttons: [{ title: "나도 해보기", link: { mobileWebUrl: location.href, webUrl: location.href } }],
+        });
+        return;
+      } catch (e) {}
+    }
+    resultFile(async (file) => {
+      if (navigator.share && canShareFiles(file)) { try { await navigator.share({ files: [file], text: T.share.native(st.tier, state.score, st.pct) }); return; } catch (e) {} }
+      downloadShare();
+      toast(T.share.kakao);
+    });
+  }
+
+  // 카카오 SDK는 키가 있을 때만 로드/초기화(개발자센터 JavaScript 키)
+  const KAKAO_JS_KEY = ""; // 예: "xxxxxxxxxxxxxxxx" 넣으면 카카오톡 공유 활성화
+  function initKakao() {
+    if (!KAKAO_JS_KEY) return;
+    const s = document.createElement("script");
+    s.src = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js";
+    s.onload = () => { try { if (window.Kakao && !Kakao.isInitialized()) Kakao.init(KAKAO_JS_KEY); } catch (e) {} };
+    document.head.appendChild(s);
   }
 
   // ── 시작화면 상태 갱신(데일리 완료 표시) ──
@@ -385,9 +459,13 @@
       b.addEventListener("click", () => { if (!b.disabled) startMode(b.dataset.mode); }));
     el["btn-next"].addEventListener("click", nextRound);
     el["btn-restart"].addEventListener("click", () => { refreshStart(); show("screen-start"); });
-    el["btn-share"].addEventListener("click", downloadShare);
+    el["btn-share"].addEventListener("click", shareMain);
+    el["btn-save"].addEventListener("click", downloadShare);
     el["btn-tweet"].addEventListener("click", tweetShare);
+    el["btn-insta"].addEventListener("click", instaShare);
+    el["btn-kakao"].addEventListener("click", kakaoShare);
     el["btn-reload"].addEventListener("click", reloadArt);
+    initKakao();
     refreshStart();
     show("screen-start");
   }

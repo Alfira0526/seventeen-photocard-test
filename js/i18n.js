@@ -63,6 +63,12 @@
         title: "SEVENTEEN 앨범 자켓 퀴즈",
         tweet: (tier, score, pct) =>
           `나 세븐틴 앨범 자켓 퀴즈에서 ${tier} 나왔어요!\n${score}점 · 정답률 ${pct}%\n너도 한번 해볼래?\n#SEVENTEEN #세븐틴 #앨범자켓퀴즈`,
+        native: (tier, score, pct) =>
+          `SEVENTEEN 앨범 자켓 퀴즈 결과\n${tier} · ${score}점 (정답률 ${pct}%)\n#SEVENTEEN #세븐틴 #앨범자켓퀴즈`,
+        saved: "이미지를 저장했어요 🖼️",
+        fallback: "이미지를 저장했어요! SNS 앱에서 올려주세요 😊",
+        insta: "이미지를 저장했어요! 인스타 스토리·피드에 올려주세요 📷",
+        kakao: "이미지를 저장했어요! 카카오톡에 올려주세요 💬",
       },
       start: {
         dailyDone: (pct, streak) =>

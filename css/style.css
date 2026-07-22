@@ -216,8 +216,31 @@ body {
 .result-detail .tier { font-size: 26px; font-weight: 800; margin: 0 0 6px; }
 .result-detail .pct { color: var(--muted); margin: 0 0 18px; }
 .result-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 6px; }
-.share-hint { color: var(--muted); font-size: 13px; margin: 14px 0 0; }
+.share-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  max-width: 440px; margin: 16px auto 0;
+}
+.share-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 12px 6px; border-radius: 14px; border: 1px solid var(--line);
+  background: var(--bg-soft); color: var(--text); font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: transform 0.12s ease, border-color 0.12s ease;
+}
+.share-btn .ic { font-size: 22px; line-height: 1; }
+.share-btn:hover { transform: translateY(-2px); border-color: var(--accent); }
+.share-hint { color: var(--muted); font-size: 13px; margin: 16px auto 0; max-width: 440px; }
 #result-canvas { display: none; }
+@media (max-width: 480px) { .share-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* 토스트 */
+.toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px);
+  background: #1c1c28; color: #fff; padding: 12px 20px; border-radius: 999px;
+  font-size: 14px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; z-index: 50;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
 
 /* 푸터 */
 .site-foot { text-align: center; padding: 20px; color: var(--muted); opacity: 0.7; }

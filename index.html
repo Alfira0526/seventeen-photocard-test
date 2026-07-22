@@ -97,11 +97,16 @@
           <p id="result-score" class="result-score">0 / 0 점</p>
           <div id="result-detail" class="result-detail"></div>
           <div class="result-actions">
-            <button id="btn-restart" class="btn primary">한 판 더!</button>
-            <button id="btn-share" class="btn ghost">🖼️ 이미지로 저장</button>
-            <button id="btn-tweet" class="btn ghost">🐦 트위터에 자랑하기</button>
+            <button id="btn-share" class="btn primary">📤 공유하기</button>
+            <button id="btn-restart" class="btn ghost">한 판 더!</button>
           </div>
-          <p class="share-hint">트위터로 자랑하면 결과 이미지가 자동으로 저장돼요 — 트윗에 붙여주세요!</p>
+          <div class="share-grid">
+            <button id="btn-save" class="share-btn" type="button"><span class="ic">🖼️</span>이미지 저장</button>
+            <button id="btn-tweet" class="share-btn" type="button"><span class="ic">🐦</span>트위터</button>
+            <button id="btn-insta" class="share-btn" type="button"><span class="ic">📷</span>인스타</button>
+            <button id="btn-kakao" class="share-btn" type="button"><span class="ic">💬</span>카카오톡</button>
+          </div>
+          <p class="share-hint" id="share-hint">‘공유하기’를 누르면 결과 이미지를 인스타·카톡·트위터 어디든 바로 올릴 수 있어요 (모바일).</p>
           <canvas id="result-canvas" width="1200" height="630"></canvas>
         </div>
       </section>
