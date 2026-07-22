@@ -159,6 +159,21 @@ ALBUMS.forEach((a) => {
   if (CM[a.id] && typeof CM[a.id].titleOnCover === "boolean") a.titleOnCover = CM[a.id].titleOnCover;
 });
 
+// ── 멤버 사진 병합: memberPhotos.js(Commons 수집) 가 있으면 photo 주입 ──
+const MP = (typeof window !== "undefined" && window.SVTMemberPhotos) || {};
+MEMBERS.forEach((m) => {
+  if (MP[m.id] && MP[m.id].url) m.photo = MP[m.id].url;
+});
+
+// ── 유닛곡 집계: 앨범 tracks의 unit 태그를 유닛별로 모음(멤버 노래 문제용) ──
+const UNIT_SONGS = { vocal: [], hiphop: [], performance: [] };
+ALBUMS.forEach((a) =>
+  (a.tracks || []).forEach((tk) => {
+    if (tk.unit && UNIT_SONGS[tk.unit]) UNIT_SONGS[tk.unit].push(tk.title);
+  })
+);
+Object.keys(UNIT_SONGS).forEach((u) => (UNIT_SONGS[u] = [...new Set(UNIT_SONGS[u])]));
+
 // ── 조회 헬퍼 ──
 const albumById = Object.fromEntries(ALBUMS.map((a) => [a.id, a]));
 const memberById = Object.fromEntries(MEMBERS.map((m) => [m.id, m]));
@@ -179,9 +194,9 @@ const ALBUM_YEARS = [...new Set(ALBUMS.map((a) => a.year))].sort((x, y) => x - y
 
 // 전역 노출
 if (typeof window !== "undefined") {
-  window.SVTData = { MEMBERS, ALBUMS, albumById, memberById, ALBUM_YEARS };
+  window.SVTData = { MEMBERS, ALBUMS, albumById, memberById, ALBUM_YEARS, UNIT_SONGS };
 }
 // Node(테스트/스크립트)에서 재사용
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { MEMBERS, ALBUMS, albumById, memberById, ALBUM_YEARS };
+  module.exports = { MEMBERS, ALBUMS, albumById, memberById, ALBUM_YEARS, UNIT_SONGS };
 }
