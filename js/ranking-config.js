@@ -6,4 +6,4 @@
  *   window.SVTRankingConfig = { firebase: "https://<프로젝트>-default-rtdb.firebaseio.com" };
  * (Firebase Realtime Database를 만들고, 규칙에서 rankings 읽기/쓰기를 공개로 열면 됨)
  */
-window.SVTRankingConfig = {};
+window.SVTRankingConfig = { firebase: "https://svt-pctest-default-rtdb.firebaseio.com" };
