@@ -35,32 +35,35 @@
     </script>
   </head>
   <body>
-    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="테마 전환" title="라이트/다크 전환">🌙</button>
+    <div class="top-controls">
+      <select id="lang-select" class="lang-select" aria-label="Language"></select>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="테마 전환" data-i18n-attr="title:themeTitle" title="라이트/다크 전환">🌙</button>
+    </div>
     <main class="app">
       <!-- 시작 화면 -->
       <section id="screen-start" class="screen active">
         <div class="hero">
           <h1 class="logo">SEVENTEEN<br /><span>ALBUM COVER QUIZ</span></h1>
-          <p class="tagline">
+          <p class="tagline" data-i18n="tagline">
             자켓만 보고 <b>앨범 · 연도 · 타이틀곡</b>까지, 다 맞힐 수 있어요?
           </p>
           <ul class="rules">
-            <li>한 문제씩, 총 <b>20문제</b>를 풀어요</li>
-            <li>문제마다 <b>난이도(쉬움~최상)</b>가 표시돼요</li>
-            <li>다 풀면 <b>캐럿 등급</b>이 나와요 · 결과는 자랑해도 좋아요 😎</li>
+            <li data-i18n="rule1">한 문제씩, 총 <b>20문제</b>를 풀어요</li>
+            <li data-i18n="rule2">문제마다 <b>난이도(쉬움~최상)</b>가 표시돼요</li>
+            <li data-i18n="rule3">다 풀면 <b>캐럿 등급</b>이 나와요 · 결과는 자랑해도 좋아요 😎</li>
           </ul>
           <div class="modes">
             <button class="mode-btn" data-mode="normal">
-              <b>🎲 그냥 한 판</b>
-              <small>랜덤 20문제 · 100점 만점</small>
+              <b data-i18n="modeNormalT">🎲 그냥 한 판</b>
+              <small data-i18n="modeNormalS">랜덤 20문제 · 100점 만점</small>
             </button>
             <button class="mode-btn" data-mode="endless">
-              <b>♾️ 무한 모드</b>
-              <small>틀리면 끝! 몇 개까지 갈까요?</small>
+              <b data-i18n="modeEndlessT">♾️ 무한 모드</b>
+              <small data-i18n="modeEndlessS">틀리면 끝! 몇 개까지 갈까요?</small>
             </button>
             <button class="mode-btn" data-mode="timeattack">
-              <b>⏱️ 타임어택</b>
-              <small>60초 안에 최대한 · 목숨 3개</small>
+              <b data-i18n="modeTimeT">⏱️ 타임어택</b>
+              <small data-i18n="modeTimeS">60초 안에 최대한 · 목숨 3개</small>
             </button>
           </div>
         </div>
@@ -98,34 +101,34 @@
       <!-- 결과 화면 -->
       <section id="screen-result" class="screen">
         <div class="result">
-          <h2>오늘의 결과예요</h2>
+          <h2 data-i18n="resultHeading">오늘의 결과예요</h2>
           <p id="result-score" class="result-score">0 / 0 점</p>
           <div id="result-detail" class="result-detail"></div>
           <div class="rank-box">
             <div class="rank-entry">
-              <input id="rank-name" type="text" maxlength="12" placeholder="이름을 정해 랭킹에 올려요" />
-              <button id="btn-rank" class="btn ghost" type="button">등록</button>
+              <input id="rank-name" type="text" maxlength="12" data-i18n-attr="placeholder:rankPlaceholder" placeholder="이름을 정해 랭킹에 올려요" />
+              <button id="btn-rank" class="btn ghost" type="button" data-i18n="rankBtn">등록</button>
             </div>
             <ol id="rank-list" class="rank-list"></ol>
           </div>
           <div class="result-actions">
-            <button id="btn-share" class="btn primary">📤 공유하기</button>
-            <button id="btn-restart" class="btn ghost">한 판 더!</button>
+            <button id="btn-share" class="btn primary" data-i18n="shareBtn">📤 공유하기</button>
+            <button id="btn-restart" class="btn ghost" data-i18n="restartBtn">한 판 더!</button>
           </div>
           <div class="share-grid">
-            <button id="btn-save" class="share-btn" type="button"><span class="ic">🖼️</span>이미지 저장</button>
-            <button id="btn-tweet" class="share-btn" type="button"><span class="ic">🐦</span>트위터</button>
-            <button id="btn-insta" class="share-btn" type="button"><span class="ic">📷</span>인스타</button>
-            <button id="btn-kakao" class="share-btn" type="button"><span class="ic">💬</span>카카오톡</button>
+            <button id="btn-save" class="share-btn" type="button"><span class="ic">🖼️</span><span data-i18n="saveBtn">이미지 저장</span></button>
+            <button id="btn-tweet" class="share-btn" type="button"><span class="ic">🐦</span><span data-i18n="tweetBtn">트위터</span></button>
+            <button id="btn-insta" class="share-btn" type="button"><span class="ic">📷</span><span data-i18n="instaBtn">인스타</span></button>
+            <button id="btn-kakao" class="share-btn" type="button"><span class="ic">💬</span><span data-i18n="kakaoBtn">카카오톡</span></button>
           </div>
-          <p class="share-hint" id="share-hint">‘공유하기’를 누르면 결과 이미지를 인스타·카톡·트위터 어디든 바로 올릴 수 있어요 (모바일).</p>
+          <p class="share-hint" id="share-hint" data-i18n="shareHint">‘공유하기’를 누르면 결과 이미지를 인스타·카톡·트위터 어디든 바로 올릴 수 있어요 (모바일).</p>
           <canvas id="result-canvas" width="1200" height="630"></canvas>
         </div>
       </section>
     </main>
 
     <footer class="site-foot">
-      <small
+      <small data-i18n="footer"
         >팬메이드 비영리 데모 · 앨범 자켓 이미지의 저작권은 각 저작권자(플레디스 등)에게
         있으며, 식별 목적으로 Apple Music CDN에서 로드합니다.</small
       >
@@ -136,6 +139,7 @@
     <script src="js/coverMeta.js"></script>
     <script src="js/memberPhotos.js"></script>
     <script src="js/i18n.js"></script>
+    <script src="js/geo.js"></script>
     <script src="js/logic.js"></script>
     <script src="js/data.js"></script>
     <script src="js/questions.js"></script>

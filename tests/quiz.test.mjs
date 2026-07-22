@@ -18,6 +18,7 @@ const { UNIT_SONGS } = require(resolve(root, "js/data.js"));
 const MCTX = {
   members: MEMBERS, unitSongs: UNIT_SONGS, albums: ALBUMS, n: 4, rng: Math.random,
   memberName: (id) => (memberById[id] ? memberById[id].name : id),
+  nameOf: (id) => (memberById[id] ? memberById[id].name : id),
 };
 const catOf = (t) => (/미니/.test(t) ? "미니 앨범" : /정규/.test(t) ? "정규 앨범" : t);
 const otherUnits = (u) => Object.keys(UNIT_SONGS).filter((x) => x !== u).flatMap((x) => UNIT_SONGS[x]);
@@ -25,6 +26,7 @@ const otherUnits = (u) => Object.keys(UNIT_SONGS).filter((x) => x !== u).flatMap
 const QCTX = {
   albums: ALBUMS, years: ALBUM_YEARS, members: MEMBERS, n: 4, rng: Math.random,
   memberName: (id) => (memberById[id] ? memberById[id].name : id),
+  nameOf: (id) => (memberById[id] ? memberById[id].name : id),
 };
 
 test("buildChoices: 항상 정답을 포함한다", () => {

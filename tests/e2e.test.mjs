@@ -80,7 +80,7 @@ test("무한 모드: 시작 시 목숨 표시 + 자동 진행(다음 버튼 숨�
     await page.click('.mode-btn[data-mode="endless"]');
     await page.waitForSelector("#screen-play.active");
     const mode = await page.textContent("#hud-mode");
-    assert.match(mode, /무한/);
+    assert.match(mode, /♾️/); // 로케일 무관(이모지)
     // 무한/타임어택은 '다음 문제' 버튼을 숨기고 자동 진행
     const nextHidden = await page.$eval("#btn-next", (b) => b.hidden);
     assert.ok(nextHidden, "무한 모드에선 다음 버튼이 숨겨져야 함");
@@ -95,6 +95,32 @@ test("타임어택 모드: 타이머와 목숨(❤️) 표시", { skip: !chromiu
     assert.match(progress, /\d+s/);
     const lives = await page.textContent("#hud-lives");
     assert.match(lives, /❤️/);
+  });
+});
+
+test("다국어: 언어 전환 시 정적 문구 + 문제 라벨이 병기(영문 포함)", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.waitForSelector("#lang-select");
+    // 한국어로 고정 → 병기 보조(영문) 노출 확인
+    await page.selectOption("#lang-select", "ko");
+    const tagHtml = await page.$eval('[data-i18n="tagline"]', (e) => e.innerHTML);
+    assert.match(tagHtml, /i18n-sub/, "정적 문구에 영문 병기가 없음");
+    // 플레이 라벨도 병기
+    await page.click('.mode-btn[data-mode="normal"]');
+    await page.waitForSelector("#screen-play.active");
+    const q = await page.$eval(".q-label", (e) => e.innerHTML);
+    assert.match(q, /i18n-sub/, "문제 라벨에 영문 병기가 없음");
+  });
+});
+
+test("다국어: 영어 선택 시 단일 언어(병기 없음)", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.waitForSelector("#lang-select");
+    await page.selectOption("#lang-select", "en");
+    const tagHtml = await page.$eval('[data-i18n="tagline"]', (e) => e.innerHTML);
+    assert.doesNotMatch(tagHtml, /i18n-sub/, "영어 단일인데 병기 스팬이 있음");
+    const modeT = await page.textContent('[data-i18n="modeNormalT"]');
+    assert.match(modeT, /One Round/);
   });
 });
 

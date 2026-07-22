@@ -11,20 +11,21 @@
  */
 
 // ── 멤버(참고용): 자켓 모드 문제엔 쓰지 않지만 하이브리드 확장 대비로 유지 ──
+// name: 한글 표기(정답·한국어 로케일), en: 로마자 표기(영문·기타 로케일 병기용)
 const MEMBERS = [
-  { id: "scoups",    name: "에스쿱스",   unit: "hiphop" },
-  { id: "jeonghan",  name: "정한",       unit: "vocal" },
-  { id: "joshua",    name: "조슈아",     unit: "vocal" },
-  { id: "jun",       name: "준",         unit: "performance" },
-  { id: "hoshi",     name: "호시",       unit: "performance" },
-  { id: "wonwoo",    name: "원우",       unit: "hiphop" },
-  { id: "woozi",     name: "우지",       unit: "vocal" },
-  { id: "dk",        name: "도겸",       unit: "vocal" },
-  { id: "mingyu",    name: "민규",       unit: "hiphop" },
-  { id: "the8",      name: "디에잇",     unit: "performance" },
-  { id: "seungkwan", name: "승관",       unit: "vocal" },
-  { id: "vernon",    name: "버논",       unit: "hiphop" },
-  { id: "dino",      name: "디노",       unit: "performance" },
+  { id: "scoups",    name: "에스쿱스",   en: "S.Coups",   unit: "hiphop" },
+  { id: "jeonghan",  name: "정한",       en: "Jeonghan",  unit: "vocal" },
+  { id: "joshua",    name: "조슈아",     en: "Joshua",    unit: "vocal" },
+  { id: "jun",       name: "준",         en: "Jun",       unit: "performance" },
+  { id: "hoshi",     name: "호시",       en: "Hoshi",     unit: "performance" },
+  { id: "wonwoo",    name: "원우",       en: "Wonwoo",    unit: "hiphop" },
+  { id: "woozi",     name: "우지",       en: "Woozi",     unit: "vocal" },
+  { id: "dk",        name: "도겸",       en: "DK",        unit: "vocal" },
+  { id: "mingyu",    name: "민규",       en: "Mingyu",    unit: "hiphop" },
+  { id: "the8",      name: "디에잇",     en: "The8",      unit: "performance" },
+  { id: "seungkwan", name: "승관",       en: "Seungkwan", unit: "vocal" },
+  { id: "vernon",    name: "버논",       en: "Vernon",    unit: "hiphop" },
+  { id: "dino",      name: "디노",       en: "Dino",      unit: "performance" },
 ];
 
 /**

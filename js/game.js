@@ -9,24 +9,34 @@
   "use strict";
 
   const { ALBUMS, albumById, memberById, MEMBERS, ALBUM_YEARS, UNIT_SONGS } = window.SVTData;
-  const { shuffle, tierFor } = window.QuizLogic;
+  const { shuffle } = window.QuizLogic;
   const { buildQuestion, buildMemberQuestion, availableMemberTypes } = window.QuizQuestions;
-  const T = window.I18N.t; // UI 문자열(i18n-lite)
+  const I18N = window.I18N;
+  const T = I18N.t; // UI 문자열(병기 i18n) — 내용은 setLocale 로 in-place 갱신됨
 
   const CONFIG = { rounds: 20, pointsPerCorrect: 5, choices: 4, taSeconds: 60, taLives: 3 };
+
+  // 멤버 이름: 라벨용은 {loc,en} 객체(병기), 보기용은 로케일 평문
+  function nameObj(id) {
+    const m = memberById[id];
+    if (!m) return { loc: String(id), en: String(id) };
+    const loc = I18N.locale === "ko" ? m.name : (m.en || m.name);
+    return { loc, en: m.en || m.name };
+  }
+  const nameOf = (id) => nameObj(id).loc;
 
   // 앨범 문제 컨텍스트
   function qctx(rng) {
     return {
       albums: ALBUMS, years: ALBUM_YEARS, members: MEMBERS, n: CONFIG.choices, rng,
-      memberName: (id) => (memberById[id] ? memberById[id].name : id),
+      memberName: nameObj, nameOf,
     };
   }
   // 멤버 문제 컨텍스트
   function mctx(rng) {
     return {
       members: MEMBERS, unitSongs: UNIT_SONGS, albums: ALBUMS, n: CONFIG.choices, rng,
-      memberName: (id) => (memberById[id] ? memberById[id].name : id),
+      memberName: nameObj, nameOf,
     };
   }
   const LS = { theme: "svt-theme", ranking: "svt-ranking", name: "svt-name" };
@@ -68,7 +78,7 @@
       "rank-name", "btn-rank", "rank-list",
       "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
-      "theme-toggle",
+      "theme-toggle", "lang-select",
     ].forEach((id) => (el[id] = document.getElementById(id)));
   }
   function show(screen) {
@@ -174,11 +184,11 @@
       : buildQuestion(card.ref, qctx(state.rng));
     renderQuestion(q);
 
-    el.feedback.textContent = ""; el.feedback.className = "feedback";
+    el.feedback.innerHTML = ""; el.feedback.className = "feedback";
     el["btn-next"].disabled = true;
     // 무한/타임어택은 자동 진행 → '다음 문제' 버튼 숨김
     el["btn-next"].hidden = !state.limited;
-    el["btn-next"].textContent = state.round + 1 === state.deck.length ? T.next.result : T.next.more;
+    el["btn-next"].innerHTML = state.round + 1 === state.deck.length ? T.next.result : T.next.more;
 
     const next = state.deck[state.round + 1];
     if (next && next.kind === "album" && !next.ref.art && window.SVTArtLive) window.SVTArtLive.get(next.ref);
@@ -240,7 +250,7 @@
     img.alt = isMember ? "멤버 사진" : "앨범 자켓";
     img.addEventListener("load", () => {
       img.classList.add("loaded"); stage.classList.remove("loading");
-      el["card-caption"].textContent = isMember ? "© Wikimedia Commons" : T.caption.loaded;
+      el["card-caption"].innerHTML = isMember ? "© Wikimedia Commons" : T.caption.loaded;
       el["btn-reload"].hidden = true;
     });
     img.addEventListener("error", () => {
@@ -256,7 +266,7 @@
   function showPlaceholder(stage, card, isError) {
     stage.classList.remove("loading");
     stage.innerHTML = placeholderArt(card.ref);
-    el["card-caption"].textContent = isError ? T.caption.error : T.caption.noArt;
+    el["card-caption"].innerHTML = isError ? T.caption.error : T.caption.noArt;
     el["btn-reload"].hidden = false;
   }
 
@@ -288,7 +298,7 @@
       q.choices.map((v) => `<button type="button" class="choice" data-value="${escapeHtml(v)}">${escapeHtml(v)}</button>`).join("") +
       `</div>`;
     c.querySelectorAll(".choice").forEach((btn) => btn.addEventListener("click", () => selectChoice(btn, q.correct)));
-    el["question-note"].textContent = q.note || "";
+    el["question-note"].innerHTML = q.note || "";
   }
 
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])); }
@@ -336,7 +346,7 @@
       if (state.lives <= 0) ended = true;
     }
 
-    el.feedback.textContent = isCorrect ? T.feedback.correct
+    el.feedback.innerHTML = isCorrect ? T.feedback.correct
       : (ended ? T.feedback.over : T.feedback.wrong);
     el.feedback.className = "feedback " + (isCorrect ? "good" : "mid");
 
@@ -367,39 +377,33 @@
     showResult();
   }
 
-  // ── 결과 ──
-  function countTier(n) {
-    if (n >= 20) return "🏆 찐 캐럿, 인정!";
-    if (n >= 12) return "💎 진성 캐럿이네요";
-    if (n >= 6) return "🌱 입덕 준비 완료";
-    return "👀 이제 입덕각이에요";
-  }
-
-  // 모드별 결과 뷰(화면·공유카드·랭킹 공용)
+  // ── 결과 ── 모드별 결과 뷰(화면=병기 HTML, 공유카드=평문)
   function buildResultView() {
     const hits = state.correct;
+    const RA = I18N.raw(I18N.locale);
+    const modeText = RA.shareMode[state.mode] || "";
     if (state.mode === "normal") {
       const total = state.deck.length, pct = total ? Math.round((hits / total) * 100) : 0;
       return {
-        tier: tierFor(pct), rankScore: state.score, mode: "일반",
-        scoreHtml: `${state.score}<span class="score-max"> / 100점</span>`,
-        scoreLine: `${state.score} / 100점`,
-        sub: `${total}문제 중 ${hits}개 맞혔어요 · 정답률 ${pct}%`,
+        rankScore: state.score, modeText,
+        scoreHtml: T.resScore.normal(state.score),
+        tierHtml: T.tier.normal(pct), subHtml: T.resSub.normal(total, hits, pct),
+        tierText: RA.tier.normal(pct), scoreLine: RA.resLine.normal(state.score),
       };
     }
     if (state.mode === "endless") {
       return {
-        tier: countTier(hits), rankScore: hits, mode: "무한",
-        scoreHtml: `${hits}<span class="score-max"> 연속</span>`,
-        scoreLine: `${hits}연속 정답`,
-        sub: `무한 모드 · ${hits}문제 연속으로 맞혔어요`,
+        rankScore: hits, modeText,
+        scoreHtml: T.resScore.endless(hits),
+        tierHtml: T.tier.count(hits), subHtml: T.resSub.endless(hits),
+        tierText: RA.tier.count(hits), scoreLine: RA.resLine.endless(hits),
       };
     }
     return {
-      tier: countTier(hits), rankScore: hits, mode: "타임어택",
-      scoreHtml: `${hits}<span class="score-max"> 개</span>`,
-      scoreLine: `${hits}개 정답`,
-      sub: `타임어택 ${CONFIG.taSeconds}초 · ${hits}개 맞혔어요`,
+      rankScore: hits, modeText,
+      scoreHtml: T.resScore.time(hits),
+      tierHtml: T.tier.count(hits), subHtml: T.resSub.time(CONFIG.taSeconds, hits),
+      tierText: RA.tier.count(hits), scoreLine: RA.resLine.time(hits),
     };
   }
 
@@ -408,7 +412,7 @@
     const res = buildResultView();
     state.lastRes = res;
     el["result-score"].innerHTML = res.scoreHtml;
-    el["result-detail"].innerHTML = `<p class="tier">${res.tier}</p><p class="pct">${res.sub}</p>`;
+    el["result-detail"].innerHTML = `<p class="tier">${res.tierHtml}</p><p class="pct">${res.subHtml}</p>`;
     el["rank-name"].value = store.get(LS.name, "");
     el["btn-rank"].disabled = false;
     renderRankList();
@@ -459,19 +463,20 @@
     const bar = ctx.createLinearGradient(0, 0, W, 0);
     bar.addColorStop(0, "#7b5cff"); bar.addColorStop(1, "#ff5c9d");
     ctx.fillStyle = bar; ctx.fillRect(0, 0, W, 10);
+    const RA = I18N.raw(I18N.locale);
     ctx.textAlign = "center"; ctx.fillStyle = "#f2f2f7";
     ctx.font = "700 40px Pretendard, sans-serif";
-    ctx.fillText(T.share.title, W / 2, 130);
-    // 등급
+    ctx.fillText(RA.share.title, W / 2, 130);
+    // 등급(평문)
     ctx.font = "800 84px Pretendard, sans-serif";
-    ctx.fillStyle = "#ff5c9d"; ctx.fillText(res.tier, W / 2, 300);
-    // 점수(모드별 표현)
+    ctx.fillStyle = "#ff5c9d"; ctx.fillText(res.tierText, W / 2, 300);
+    // 점수(모드별 표현, 평문)
     ctx.fillStyle = "#f2f2f7"; ctx.font = "800 96px Pretendard, sans-serif";
     ctx.fillText(res.scoreLine, W / 2, 430);
     ctx.fillStyle = "#9a9ab0"; ctx.font = "500 40px Pretendard, sans-serif";
-    ctx.fillText(`${res.mode} 모드`, W / 2, 500);
+    ctx.fillText(res.modeText, W / 2, 500);
     ctx.fillStyle = "#6b6a80"; ctx.font = "400 30px Pretendard, sans-serif";
-    ctx.fillText("팬메이드 비영리 데모", W / 2, 580);
+    ctx.fillText("fan-made demo · #SEVENTEEN", W / 2, 580);
   }
 
   // 결과 캔버스를 PNG File 로 변환
@@ -488,7 +493,7 @@
   function toast(msg) {
     let t = document.getElementById("svt-toast");
     if (!t) { t = document.createElement("div"); t.id = "svt-toast"; t.className = "toast"; document.body.appendChild(t); }
-    t.textContent = msg; t.classList.add("show");
+    t.innerHTML = msg; t.classList.add("show");
     clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2400);
   }
 
@@ -507,7 +512,7 @@
   // 공유하기(Web Share) — 모바일 네이티브 시트: 인스타/카톡/트위터/등
   function shareMain() {
     const res = state.lastRes || buildResultView();
-    const text = T.share.native(res.tier, res.scoreLine);
+    const text = T.share.native(res.tierText, res.scoreLine);
     resultFile(async (file) => {
       if (navigator.share && canShareFiles(file)) {
         try { await navigator.share({ files: [file], text }); } catch (e) { /* 취소 무시 */ }
@@ -520,7 +525,7 @@
 
   function tweetShare() {
     const res = state.lastRes || buildResultView();
-    const text = T.share.tweet(res.tier, res.scoreLine);
+    const text = T.share.tweet(res.tierText, res.scoreLine);
     // 인텐트는 이미지 첨부 불가 → 카드 PNG를 먼저 저장해 첨부에 쓰도록
     downloadShare();
     // anchor 클릭으로 '정상 탭' 오픈(팝업 차단·로그인 세션 문제 회피)
@@ -550,7 +555,7 @@
           objectType: "feed",
           content: {
             title: T.share.title,
-            description: `${res.tier} · ${res.scoreLine}`,
+            description: `${res.tierText} · ${res.scoreLine}`,
             imageUrl: new URL("docs/img/share-card.png", location.href).href,
             link: { mobileWebUrl: location.href, webUrl: location.href },
           },
@@ -560,7 +565,7 @@
       } catch (e) {}
     }
     resultFile(async (file) => {
-      if (navigator.share && canShareFiles(file)) { try { await navigator.share({ files: [file], text: T.share.native(res.tier, res.scoreLine) }); return; } catch (e) {} }
+      if (navigator.share && canShareFiles(file)) { try { await navigator.share({ files: [file], text: T.share.native(res.tierText, res.scoreLine) }); return; } catch (e) {} }
       downloadShare();
       toast(T.share.kakao);
     });
@@ -576,10 +581,44 @@
     document.head.appendChild(s);
   }
 
+  // ── 다국어: 정적 화면 문자열 적용(병기) + 언어 선택기 ──
+  function applyStatic() {
+    const R = I18N.raw(I18N.locale);
+    document.querySelectorAll("[data-i18n]").forEach((node) => {
+      const k = node.getAttribute("data-i18n");
+      if (T.ui[k] != null) node.innerHTML = T.ui[k];
+    });
+    // 속성(placeholder/title 등)은 병기 불가 → 지역 언어 평문으로
+    document.querySelectorAll("[data-i18n-attr]").forEach((node) => {
+      node.getAttribute("data-i18n-attr").split(",").forEach((pair) => {
+        const i = pair.indexOf(":");
+        const attr = pair.slice(0, i).trim(), k = pair.slice(i + 1).trim();
+        if (R.ui[k] != null) node.setAttribute(attr, R.ui[k]);
+      });
+    });
+    try { document.title = R.share.title; } catch (e) {}
+    if (el["hud-mode"]) el["hud-mode"].textContent = T.hudMode[state.mode] || "";
+  }
+
+  function buildLangUI() {
+    const sel = el["lang-select"];
+    if (!sel) return;
+    sel.innerHTML = I18N.SUPPORTED.map((c) => `<option value="${c}">${I18N.LANG_NAMES[c]}</option>`).join("");
+    sel.value = I18N.locale;
+    sel.addEventListener("change", () => {
+      if (window.SVTGeo) window.SVTGeo.choose(sel.value);
+      else I18N.setLocale(sel.value);
+    });
+  }
+  function syncLangUI() { if (el["lang-select"]) el["lang-select"].value = I18N.locale; }
+
   // ── 초기화 ──
   function init() {
     cacheDom();
     initTheme();
+    buildLangUI();
+    applyStatic();
+    I18N.onChange(() => { applyStatic(); syncLangUI(); });
     document.querySelectorAll(".mode-btn").forEach((b) =>
       b.addEventListener("click", () => { if (!b.disabled) startMode(b.dataset.mode); }));
     el["btn-next"].addEventListener("click", nextRound);
@@ -594,6 +633,12 @@
     el["btn-reload"].addEventListener("click", reloadArt);
     initKakao();
     show("screen-start");
+    // 접속 지역(IP) 기반 로케일 보정 — 시작화면에서만 적용
+    if (window.SVTGeo) {
+      window.SVTGeo.init((code) => {
+        if (el["screen-start"].classList.contains("active")) I18N.setLocale(code);
+      });
+    }
   }
 
   document.addEventListener("DOMContentLoaded", init);

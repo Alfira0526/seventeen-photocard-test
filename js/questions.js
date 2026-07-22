@@ -69,7 +69,7 @@
         const correctId = L.shuffle(credited, c.rng)[0];
         const nonCredited = c.members.map((m) => m.id).filter((id) => !credited.includes(id));
         const distractIds = L.shuffle(nonCredited, c.rng).slice(0, 3);
-        const name = (id) => c.memberName(id);
+        const name = (id) => (c.nameOf ? c.nameOf(id) : c.memberName(id));
         return { label: t.q.lyricist(al.titleTrack), correct: name(correctId), note: t.note.lyricist,
           choices: L.shuffle([correctId, ...distractIds].map(name), c.rng) };
       },
@@ -84,7 +84,7 @@
         const correct = L.shuffle(al.tracks.filter((x) => x.unit === unit), c.rng)[0].title;
         const others = al.tracks.filter((x) => x.title !== correct).map((x) => x.title);
         const distract = L.shuffle(others, c.rng).slice(0, 3);
-        return { label: t.q.unitSong(t.unit[unit] || unit), correct, note: t.note.unitSong,
+        return { label: t.q.unitSong(unit), correct, note: t.note.unitSong,
           choices: L.shuffle([correct, ...distract], c.rng) };
       },
     },
@@ -197,8 +197,9 @@
         return same.length >= 3 && other.length >= 1;
       },
       make: (m, c) => {
-        const same = c.members.filter((x) => x.unit === m.unit && x.id !== m.id).map((x) => x.name);
-        const other = c.members.filter((x) => x.unit !== m.unit).map((x) => x.name);
+        const nameOf = (x) => (c.nameOf ? c.nameOf(x.id) : x.name);
+        const same = c.members.filter((x) => x.unit === m.unit && x.id !== m.id).map(nameOf);
+        const other = c.members.filter((x) => x.unit !== m.unit).map(nameOf);
         const correct = L.shuffle(other, c.rng)[0];
         return { label: t.qm.roster(c.memberName(m.id)), correct, note: t.note.roster,
           choices: L.shuffle([correct, ...L.shuffle(same, c.rng).slice(0, 3)], c.rng) };
