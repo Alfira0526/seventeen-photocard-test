@@ -52,7 +52,7 @@ const ALBUMS = [
   { id: "al1",           title: "Al1",                year: 2017, type: "미니 4집",  titleTrack: "울고 싶지 않아 (Don't Wanna Cry)", itunes: "Al1" },
   { id: "teenage",       title: "TEEN, AGE",          year: 2017, type: "정규 2집",  titleTrack: "박수 (CLAP)",            itunes: "TEEN AGE" },
   { id: "youmakemyday",  title: "You Make My Day",    year: 2018, type: "미니 5집",  titleTrack: "어쩌나 (Oh My!)",        itunes: "You Make My Day" },
-  { id: "youmademydawn", title: "You Made My Dawn",   year: 2019, type: "미니 6집",  titleTrack: "고맙다 (Home)",          itunes: "You Made My Dawn" },
+  { id: "youmademydawn", title: "You Made My Dawn",   year: 2019, type: "미니 6집",  titleTrack: "Home",                   itunes: "You Made My Dawn" },
   { id: "anode",         title: "An Ode",             year: 2019, type: "정규 3집",  titleTrack: "독 (Fear)",              itunes: "An Ode" },
   { id: "henggarae",     title: "Heng:garæ",          year: 2020, type: "미니 7집",  titleTrack: "좋아 (Left & Right)",    itunes: "Heng garae" },
   { id: "semicolon",     title: "; [Semicolon]",      year: 2020, type: "스페셜 앨범", titleTrack: "HOME;RUN",              itunes: "Semicolon" },
