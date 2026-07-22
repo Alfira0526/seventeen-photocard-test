@@ -17,6 +17,12 @@
         unitSong: (unit) => `이 앨범에서 <b>${unit} 유닛</b>이 부른 곡은?`,
       },
       unit: { vocal: "보컬", hiphop: "힙합", performance: "퍼포먼스" },
+      difficulty: {
+        1: { label: "쉬움", stars: "★" },
+        2: { label: "보통", stars: "★★" },
+        3: { label: "어려움", stars: "★★★" },
+        4: { label: "최상", stars: "★★★★" },
+      },
       note: {
         notInAlbum: "힌트: 나머지 셋은 이 앨범 수록곡이에요.",
         lyricist: "힌트: 세븐틴은 멤버들이 직접 작사에 참여해요.",
@@ -49,7 +55,7 @@
         reviewEmpty: "직전 판의 틀린 앨범(먼저 한 판 필요)",
         dailyDone: (pct, streak) =>
           `오늘 완료 · 정답률 ${pct}%${streak ? ` · 🔥${streak}일` : ""}`,
-        dailyOpen: "오늘의 10장 · 하루 한 번 같은 문제",
+        dailyOpen: "오늘의 20문제 · 하루 한 번 같은 문제",
       },
     },
   };

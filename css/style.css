@@ -168,8 +168,18 @@ body {
 
 /* 문제 */
 .question { background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 15px 18px; margin-bottom: 12px; }
-.q-label { margin: 0 0 11px; font-weight: 700; font-size: 16px; }
+.q-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 11px; }
+.q-label { margin: 0; font-weight: 700; font-size: 16px; }
 .q-label b { color: var(--accent-2); }
+.q-diff {
+  flex: none; font-size: 12px; font-weight: 700; white-space: nowrap;
+  padding: 3px 9px; border-radius: 999px; letter-spacing: -0.3px;
+  border: 1px solid var(--line); background: var(--choice-bg); color: var(--muted);
+}
+.q-diff.diff-1 { color: #34c759; border-color: color-mix(in srgb, #34c759 45%, var(--line)); }
+.q-diff.diff-2 { color: #0a84ff; border-color: color-mix(in srgb, #0a84ff 45%, var(--line)); }
+.q-diff.diff-3 { color: #ff9500; border-color: color-mix(in srgb, #ff9500 45%, var(--line)); }
+.q-diff.diff-4 { color: #ff375f; border-color: color-mix(in srgb, #ff375f 50%, var(--line)); }
 .q-note { color: var(--muted); font-size: 13px; margin: 8px 2px 14px; min-height: 16px; }
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice {

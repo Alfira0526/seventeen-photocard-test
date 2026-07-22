@@ -46,17 +46,17 @@
           </p>
           <ul class="rules">
             <li>자켓 1장당 <b>랜덤 유형 1문제</b> (앨범/연도/타이틀곡/수록곡/작사/유닛)</li>
-            <li>총 10장 · 문제당 10점 · 정답률에 따라 캐럿 등급</li>
-            <li>근접 오답 + 고난도 유형으로 난이도를 높였습니다</li>
+            <li>총 20문제 · 문제당 10점 · 정답률에 따라 캐럿 등급</li>
+            <li>문제마다 <b>난이도(쉬움~최상)</b> 표기 · 근접 오답 + 고난도 유형</li>
           </ul>
           <div class="modes">
             <button class="mode-btn" data-mode="normal">
               <b>🎲 일반 모드</b>
-              <small>랜덤 10장. 가볍게 즐기기</small>
+              <small>랜덤 20문제. 가볍게 즐기기</small>
             </button>
             <button class="mode-btn" data-mode="daily">
               <b>📅 데일리 챌린지</b>
-              <small id="daily-sub">오늘의 10장 · 하루 한 번 같은 문제</small>
+              <small id="daily-sub">오늘의 20문제 · 하루 한 번 같은 문제</small>
             </button>
           </div>
         </div>
@@ -65,7 +65,7 @@
       <!-- 플레이 화면 -->
       <section id="screen-play" class="screen">
         <header class="hud">
-          <span class="hud-progress">CARD <b id="progress">1 / 10</b></span>
+          <span class="hud-progress">CARD <b id="progress">1 / 20</b></span>
           <span class="hud-mode" id="hud-mode"></span>
           <span class="hud-score">SCORE <b id="score">0</b></span>
         </header>
@@ -115,6 +115,7 @@
 
     <!-- albumArt.js 는 scripts/fetch-art.mjs 로 생성됨(없으면 플레이스홀더로 동작) -->
     <script src="js/albumArt.js"></script>
+    <script src="js/coverMeta.js"></script>
     <script src="js/i18n.js"></script>
     <script src="js/logic.js"></script>
     <script src="js/data.js"></script>

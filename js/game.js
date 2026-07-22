@@ -12,7 +12,7 @@
   const { buildQuestion } = window.QuizQuestions;
   const T = window.I18N.t; // UI 문자열(i18n-lite)
 
-  const CONFIG = { rounds: 10, pointsPerCorrect: 10, choices: 4 };
+  const CONFIG = { rounds: 20, pointsPerCorrect: 10, choices: 4 };
 
   // 문제 생성에 넘길 컨텍스트(카드당 1문제, 랜덤 유형)
   function qctx(rng) {
@@ -188,7 +188,9 @@
   function renderQuestion(q) {
     const c = el["question"];
     c.dataset.answered = "false";
-    c.innerHTML = `<p class="q-label">${q.label}</p>` +
+    const d = T.difficulty[q.difficulty] || T.difficulty[1];
+    const badge = `<span class="q-diff diff-${q.difficulty}" title="난이도">${d.stars} ${d.label}</span>`;
+    c.innerHTML = `<div class="q-head"><p class="q-label">${q.label}</p>${badge}</div>` +
       `<div class="choices" role="group">` +
       q.choices.map((v) => `<button type="button" class="choice" data-value="${escapeHtml(v)}">${escapeHtml(v)}</button>`).join("") +
       `</div>`;

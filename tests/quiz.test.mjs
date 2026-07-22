@@ -117,10 +117,22 @@ test("buildQuestion: 모든 앨범에서 정답 포함·4지선다·중복없음
 });
 
 test("questions: 데이터 없는 앨범은 기본 3유형만 가용", () => {
-  const bare = ALBUMS.find((a) => !a.tracks && !a.titleLyricists);
+  const bare = ALBUMS.find((a) => !a.tracks && !a.titleLyricists && !a.titleOnCover);
   assert.ok(bare, "데이터 없는 앨범 예시 존재");
   const ids = availableTypes(bare, QCTX).map((t) => t.id).sort();
   assert.deepEqual(ids, ["album", "titleTrack", "year"]);
+});
+
+test("questions: titleOnCover 앨범은 album 유형 제외", () => {
+  const sample = { id: "x", title: "FML", year: 2023, type: "미니", titleTrack: "Super", titleOnCover: true };
+  const ids = availableTypes(sample, QCTX).map((t) => t.id);
+  assert.ok(!ids.includes("album"), "titleOnCover인데 album 유형이 남음");
+  assert.ok(ids.includes("year") && ids.includes("titleTrack"));
+});
+
+test("buildQuestion: 결과에 difficulty 포함", () => {
+  const q = buildQuestion(ALBUMS[0], QCTX);
+  assert.ok([1, 2, 3, 4].includes(q.difficulty), `difficulty 없음: ${q.difficulty}`);
 });
 
 test("questions: tracks 있는 앨범은 notInAlbum 가용", () => {

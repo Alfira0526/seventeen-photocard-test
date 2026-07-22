@@ -152,6 +152,13 @@ ALBUMS.forEach((a) => {
   a.art = ART[a.id] || null;
 });
 
+// ── 커버 메타 병합: coverMeta.js(OCR 산출) 가 있으면 titleOnCover 주입 ──
+// 자켓에 앨범명이 인쇄돼 있으면 titleOnCover=true → '앨범 맞히기' 문제에서 제외.
+const CM = (typeof window !== "undefined" && window.SVTCoverMeta) || {};
+ALBUMS.forEach((a) => {
+  if (CM[a.id] && typeof CM[a.id].titleOnCover === "boolean") a.titleOnCover = CM[a.id].titleOnCover;
+});
+
 // ── 조회 헬퍼 ──
 const albumById = Object.fromEntries(ALBUMS.map((a) => [a.id, a]));
 const memberById = Object.fromEntries(MEMBERS.map((m) => [m.id, m]));

@@ -33,7 +33,7 @@ async function withPage(fn) {
 
 async function playThrough(page, pick = "first-child") {
   await page.waitForSelector("#screen-play.active");
-  for (let r = 0; r < 12; r++) {
+  for (let r = 0; r < 22; r++) {
     await page.click(`#question .choice:${pick}`); // 카드당 1문제
     await page.waitForSelector("#btn-next:not([disabled])");
     await page.click("#btn-next");

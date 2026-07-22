@@ -20,28 +20,30 @@
 
   const TYPES = [
     {
-      id: "album", weight: 1, available: () => true,
+      id: "album", weight: 1, difficulty: 1,
+      // 자켓에 앨범명이 적혀 있으면(titleOnCover) 읽으면 되므로 출제 제외
+      available: (al) => !al.titleOnCover,
       make: (al, c) => ({
         label: t.q.album, correct: al.title,
         choices: L.buildAlbumChoices(al, c.albums, c.n, c.rng),
       }),
     },
     {
-      id: "year", weight: 1, available: () => true,
+      id: "year", weight: 1, difficulty: 1, available: () => true,
       make: (al, c) => ({
         label: t.q.year, correct: String(al.year),
         choices: L.buildYearChoices(al.year, c.years, c.n, c.rng),
       }),
     },
     {
-      id: "titleTrack", weight: 1, available: () => true,
+      id: "titleTrack", weight: 1, difficulty: 2, available: () => true,
       make: (al, c) => ({
         label: t.q.track, correct: al.titleTrack,
         choices: L.buildChoices(al.titleTrack, c.albums.map((a) => a.titleTrack), c.n, c.rng),
       }),
     },
     {
-      id: "notInAlbum", weight: 1.6,
+      id: "notInAlbum", weight: 1.6, difficulty: 3,
       available: (al) => Array.isArray(al.tracks) && al.tracks.length >= 3,
       make: (al, c) => {
         const inTitles = al.tracks.map((x) => x.title);
@@ -58,7 +60,7 @@
       },
     },
     {
-      id: "lyricist", weight: 1.8,
+      id: "lyricist", weight: 1.8, difficulty: 3,
       available: (al, c) =>
         Array.isArray(al.titleLyricists) && al.titleLyricists.length >= 1 &&
         c && c.members && (c.members.length - al.titleLyricists.length) >= 3,
@@ -73,7 +75,7 @@
       },
     },
     {
-      id: "unitSong", weight: 1.6,
+      id: "unitSong", weight: 1.6, difficulty: 4,
       available: (al) =>
         Array.isArray(al.tracks) && al.tracks.length >= 4 && al.tracks.some((x) => x.unit),
       make: (al, c) => {
@@ -101,7 +103,7 @@
   function buildQuestion(al, ctx) {
     const c = Object.assign({ n: 4, rng: Math.random }, ctx);
     const ty = weightedPick(availableTypes(al, c), c.rng);
-    return Object.assign({ typeId: ty.id }, ty.make(al, c));
+    return Object.assign({ typeId: ty.id, difficulty: ty.difficulty }, ty.make(al, c));
   }
 
   const api = { TYPES, availableTypes, buildQuestion };
