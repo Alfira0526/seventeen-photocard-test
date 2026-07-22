@@ -6,7 +6,11 @@
 
 설치·빌드 불필요 · 순수 HTML/CSS/JS · 라이트/다크 · 데일리 챌린지 · 결과 공유 카드
 
-<sub>Vanilla JS · 의존성 0 · 단위 19 + E2E 3 테스트 · 웹서치 검증 데이터</sub>
+### ▶ **[지금 바로 플레이하기](https://alfira0526.github.io/seventeen-photocard-test/)**
+
+<sub>https://alfira0526.github.io/seventeen-photocard-test/ · 폰·PC 어디서나</sub>
+
+<sub>Vanilla JS · 의존성 0 · 단위 19 + E2E 4 테스트 · 웹서치 검증 데이터</sub>
 
 </div>
 
@@ -41,12 +45,16 @@ npm run serve
 #   index.html 더블클릭 (일부 브라우저는 로컬 파일 제약이 있어 방법 1 권장)
 ```
 
+### 🌐 라이브 데모
+
+**→ https://alfira0526.github.io/seventeen-photocard-test/**
+
 ### GitHub Pages로 배포 (무설치, 초보자용)
 
 1. 저장소 **Settings → Pages** 이동
 2. **Build and deployment → Source: “Deploy from a branch”**
 3. 브랜치를 이 프로젝트 브랜치로, 폴더는 **`/ (root)`** 로 지정 후 **Save**
-4. 1~2분 뒤 생성되는 `https://<user>.github.io/<repo>/` 주소로 접속
+4. 1~2분 뒤 `https://alfira0526.github.io/seventeen-photocard-test/` 로 접속
 
 ---
 
