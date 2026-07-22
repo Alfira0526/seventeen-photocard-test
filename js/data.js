@@ -55,7 +55,7 @@ const ALBUMS = [
   { id: "youmakemyday",  title: "You Make My Day",    year: 2018, type: "미니 5집",  titleTrack: "어쩌나 (Oh My!)",        itunes: "You Make My Day" },
   { id: "youmademydawn", title: "You Made My Dawn",   year: 2019, type: "미니 6집",  titleTrack: "Home",                   itunes: "You Made My Dawn" },
   { id: "anode",         title: "An Ode",             year: 2019, type: "정규 3집",  titleTrack: "독 (Fear)",              itunes: "An Ode" },
-  { id: "henggarae",     title: "Heng:garæ",          year: 2020, type: "미니 7집",  titleTrack: "좋아 (Left & Right)",    itunes: "Heng garae" },
+  { id: "henggarae",     title: "Heng:garæ",          year: 2020, type: "미니 7집",  titleTrack: "Left & Right",           itunes: "Heng garae" },
   { id: "semicolon",     title: "; [Semicolon]",      year: 2020, type: "스페셜 앨범", titleTrack: "HOME;RUN",              itunes: "Semicolon" },
   { id: "yourchoice",    title: "Your Choice",        year: 2021, type: "미니 8집",  titleTrack: "Ready to love",          itunes: "Your Choice" },
   { id: "attacca",       title: "Attacca",            year: 2021, type: "미니 9집",  titleTrack: "Rock with you",          itunes: "Attacca" },
