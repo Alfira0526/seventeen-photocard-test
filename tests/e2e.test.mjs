@@ -75,17 +75,27 @@ test("트위터 공유: 인텐트 URL을 새 탭으로 연다(팝업 아님)", {
   });
 });
 
-test("데일리 모드: 동일 날짜엔 결정론적(같은 덱/보기)", { skip: !chromium }, async () => {
-  async function firstChoices() {
-    return withPage(async (page) => {
-      await page.click('.mode-btn[data-mode="daily"]');
-      await page.waitForSelector("#screen-play.active");
-      const label = await page.textContent(".q-label");
-      const choices = await page.$$eval("#question .choice", (e) => e.map((x) => x.textContent).join("|"));
-      return label + "::" + choices;
-    });
-  }
-  assert.equal(await firstChoices(), await firstChoices());
+test("무한 모드: 시작 시 목숨 표시 + 자동 진행(다음 버튼 숨김)", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.click('.mode-btn[data-mode="endless"]');
+    await page.waitForSelector("#screen-play.active");
+    const mode = await page.textContent("#hud-mode");
+    assert.match(mode, /무한/);
+    // 무한/타임어택은 '다음 문제' 버튼을 숨기고 자동 진행
+    const nextHidden = await page.$eval("#btn-next", (b) => b.hidden);
+    assert.ok(nextHidden, "무한 모드에선 다음 버튼이 숨겨져야 함");
+  });
+});
+
+test("타임어택 모드: 타이머와 목숨(❤️) 표시", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.click('.mode-btn[data-mode="timeattack"]');
+    await page.waitForSelector("#screen-play.active");
+    const progress = await page.textContent("#progress");
+    assert.match(progress, /\d+s/);
+    const lives = await page.textContent("#hud-lives");
+    assert.match(lives, /❤️/);
+  });
 });
 
 test("다시 하기: 결과에서 시작화면으로 복귀", { skip: !chromium }, async () => {
@@ -94,8 +104,8 @@ test("다시 하기: 결과에서 시작화면으로 복귀", { skip: !chromium 
     await playThrough(page);
     await page.click("#btn-restart");
     await page.waitForSelector("#screen-start.active");
-    // 모드 버튼은 2개(일반/데일리)만 남아야 함
+    // 모드 버튼은 3개(일반/무한/타임어택)여야 함
     const modes = await page.$$eval(".mode-btn", (els) => els.map((e) => e.dataset.mode));
-    assert.deepEqual(modes.sort(), ["daily", "normal"]);
+    assert.deepEqual(modes.sort(), ["endless", "normal", "timeattack"]);
   });
 });

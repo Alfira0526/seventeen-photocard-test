@@ -42,6 +42,7 @@ const OVERRIDE = {
   directorscut: 1344751461,            // DIRECTOR'S CUT (2018)
   bss_secondwind: 1668145592,          // BSS - SECOND WIND (2023)
   wonu_mingyu_bittersweet: 1568808261, // WONWOO, MINGYU - Bittersweet (feat. LeeHi) (2021)
+  happyburstday: 1846801259,           // SEVENTEEN 5th Album HAPPY BURSTDAY (2025)
   // 믹스테이프(Spider/Ruby/Black Eye/Wait)는 Apple Music 미수록 → 플레이스홀더 유지
 };
 

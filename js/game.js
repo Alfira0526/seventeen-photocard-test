@@ -1,8 +1,9 @@
 /**
  * SEVENTEEN Album-Cover Quiz — 게임 엔진 (DOM 전담)
  *
- * 모드: normal(랜덤) / daily(날짜 시드 결정론) / review(직전 오답 복습)
- * 라운드 = 앨범 자켓 1장 + 3문제(앨범/발매연도/타이틀곡), 각 4지선다.
+ * 모드: normal(랜덤 20문제·100점) / endless(무한, 틀리면 끝) /
+ *       timeattack(60초·목숨 3개, 맞힌 개수 집계)
+ * 라운드 = 앨범 자켓 또는 멤버 사진 1장 + 카드당 1문제(랜덤 유형), 4지선다.
  */
 (function () {
   "use strict";
@@ -12,7 +13,7 @@
   const { buildQuestion, buildMemberQuestion, availableMemberTypes } = window.QuizQuestions;
   const T = window.I18N.t; // UI 문자열(i18n-lite)
 
-  const CONFIG = { rounds: 20, pointsPerCorrect: 10, choices: 4 };
+  const CONFIG = { rounds: 20, pointsPerCorrect: 5, choices: 4, taSeconds: 60, taLives: 3 };
 
   // 앨범 문제 컨텍스트
   function qctx(rng) {
@@ -28,16 +29,22 @@
       memberName: (id) => (memberById[id] ? memberById[id].name : id),
     };
   }
-  const LS = { theme: "svt-theme", wrong: "svt-wrong", daily: "svt-daily", streak: "svt-streak" };
+  const LS = { theme: "svt-theme", ranking: "svt-ranking", name: "svt-name" };
 
   const state = {
     mode: "normal",
-    rng: Math.random, // 모드별 난수원(daily는 시드 고정)
+    rng: Math.random,
+    pool: [],       // 카드 풀(무한/타임어택에서 덱 확장에 사용)
     deck: [],
     round: 0,
-    score: 0,
-    displayScore: 0, // 카운트업 표시용
-    answers: [], // [{ albumId, got:{album,year,track} }]
+    score: 0,       // normal=점수, endless/timeattack=맞힌 개수
+    correct: 0,     // 맞힌 개수(항상)
+    lives: Infinity,
+    timeLeft: 0,
+    timerId: null,
+    limited: true,  // true=고정 20문제, false=무한 진행
+    over: false,
+    answers: [],
   };
 
   // ── 로컬스토리지 헬퍼(사파리 프라이빗 등 예외 방어) ──
@@ -57,10 +64,11 @@
     [
       "screen-start", "screen-play", "screen-result",
       "btn-restart", "btn-next", "btn-share", "btn-save", "btn-tweet", "btn-insta", "btn-kakao", "share-hint",
-      "card-art", "card-caption", "btn-reload", "progress", "progress-fill", "score", "hud-mode",
+      "card-art", "card-caption", "btn-reload", "progress", "progress-fill", "score", "hud-mode", "hud-lives",
+      "rank-name", "btn-rank", "rank-list",
       "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
-      "theme-toggle", "daily-sub",
+      "theme-toggle",
     ].forEach((id) => (el[id] = document.getElementById(id)));
   }
   function show(screen) {
@@ -93,29 +101,72 @@
 
   // ── 시작: 모드 선택 ──
   function startMode(mode) {
+    stopTimer();
     state.mode = mode;
-    state.rng = mode === "daily" ? mulberry32(hashStr("svt-daily-" + todayKey())) : Math.random;
-    // 덱 = 앨범 카드 + 멤버 카드(문제 낼 수 있는 멤버만) 섞기
+    state.rng = Math.random;
     const albumCards = ALBUMS.map((a) => ({ kind: "album", ref: a }));
     const memberCards = MEMBERS
       .filter((m) => availableMemberTypes(m, mctx(state.rng)).length >= 1)
       .map((m) => ({ kind: "member", ref: m }));
-    const pool = albumCards.concat(memberCards);
-    state.deck = shuffle(pool, state.rng).slice(0, Math.min(CONFIG.rounds, pool.length));
-    state.round = 0; state.score = 0; state.displayScore = 0; state.answers = [];
+    state.pool = albumCards.concat(memberCards);
+
+    state.round = 0; state.score = 0; state.correct = 0; state.over = false; state.answers = [];
     el.score.textContent = "0";
     el["hud-mode"].textContent = T.hudMode[mode] || "";
+
+    if (mode === "endless") {
+      state.limited = false; state.lives = 1;
+      state.deck = shuffle(state.pool, state.rng);
+    } else if (mode === "timeattack") {
+      state.limited = false; state.lives = CONFIG.taLives;
+      state.deck = shuffle(state.pool, state.rng);
+      startTimer();
+    } else {
+      state.limited = true; state.lives = Infinity;
+      state.deck = shuffle(state.pool, state.rng).slice(0, Math.min(CONFIG.rounds, state.pool.length));
+    }
     show("screen-play");
     renderRound();
   }
 
+  // ── 타임어택 타이머 ──
+  function startTimer() {
+    state.timeLeft = CONFIG.taSeconds;
+    updateHud();
+    state.timerId = setInterval(() => {
+      state.timeLeft--;
+      updateHud();
+      if (state.timeLeft <= 0) { stopTimer(); gameOver(); }
+    }, 1000);
+  }
+  function stopTimer() { if (state.timerId) { clearInterval(state.timerId); state.timerId = null; } }
+
+  // ── HUD(진행/타이머/목숨) 갱신 ──
+  function updateHud() {
+    if (state.mode === "timeattack") {
+      el.progress.textContent = `⏱ ${state.timeLeft}s`;
+      el["progress-fill"].style.width = `${(state.timeLeft / CONFIG.taSeconds) * 100}%`;
+      el["hud-lives"].textContent = "❤️".repeat(Math.max(0, state.lives));
+    } else if (state.mode === "endless") {
+      el.progress.textContent = `🔥 ${state.correct}연속`;
+      el["progress-fill"].style.width = `100%`;
+      el["hud-lives"].textContent = "❤️";
+    } else {
+      el.progress.textContent = `${state.round + 1} / ${state.deck.length}`;
+      el["progress-fill"].style.width = `${((state.round + 1) / state.deck.length) * 100}%`;
+      el["hud-lives"].textContent = "";
+    }
+  }
+
   // ── 라운드 렌더 ──
   function renderRound() {
+    // 무한/타임어택: 덱이 떨어지면 풀을 다시 섞어 이어붙임
+    if (!state.limited && state.round >= state.deck.length - 1) {
+      state.deck = state.deck.concat(shuffle(state.pool, state.rng));
+    }
     const card = state.deck[state.round];
     renderCardArt(card);
-
-    el.progress.textContent = `${state.round + 1} / ${state.deck.length}`;
-    el["progress-fill"].style.width = `${((state.round + 1) / state.deck.length) * 100}%`;
+    updateHud();
 
     // 카드당 1문제: 멤버 카드면 멤버 문제, 앨범 카드면 앨범 문제
     const q = card.kind === "member"
@@ -125,9 +176,10 @@
 
     el.feedback.textContent = ""; el.feedback.className = "feedback";
     el["btn-next"].disabled = true;
+    // 무한/타임어택은 자동 진행 → '다음 문제' 버튼 숨김
+    el["btn-next"].hidden = !state.limited;
     el["btn-next"].textContent = state.round + 1 === state.deck.length ? T.next.result : T.next.more;
 
-    // 다음 앨범 카드 자켓만 미리 살짝 데워둠(레이트리밋 회피)
     const next = state.deck[state.round + 1];
     if (next && next.kind === "album" && !next.ref.art && window.SVTArtLive) window.SVTArtLive.get(next.ref);
 
@@ -244,10 +296,14 @@
   // ── 보기 선택(카드당 1문제) ──
   function selectChoice(btn, correct) {
     const c = el["question"];
-    if (c.dataset.answered === "true") return;
+    if (c.dataset.answered === "true" || state.over) return;
     c.dataset.answered = "true";
     const isCorrect = String(btn.dataset.value) === String(correct);
-    if (isCorrect) animateScore(state.score, (state.score += CONFIG.pointsPerCorrect));
+    if (isCorrect) {
+      state.correct++;
+      const gain = state.mode === "normal" ? CONFIG.pointsPerCorrect : 1;
+      animateScore(state.score, (state.score += gain));
+    }
     c.querySelectorAll(".choice").forEach((b) => {
       b.disabled = true; b.setAttribute("aria-disabled", "true");
       if (String(b.dataset.value) === String(correct)) { b.classList.add("correct"); b.setAttribute("aria-label", b.textContent + " (정답)"); }
@@ -270,52 +326,130 @@
 
   function finishRound(isCorrect) {
     state.answers.push({ correct: isCorrect });
-    el.feedback.textContent = isCorrect ? T.feedback.correct : T.feedback.wrong;
+    updateHud();
+
+    // 목숨 처리(무한=1, 타임어택=3)
+    let ended = false;
+    if (!isCorrect && state.lives !== Infinity) {
+      state.lives--;
+      updateHud();
+      if (state.lives <= 0) ended = true;
+    }
+
+    el.feedback.textContent = isCorrect ? T.feedback.correct
+      : (ended ? T.feedback.over : T.feedback.wrong);
     el.feedback.className = "feedback " + (isCorrect ? "good" : "mid");
-    el["btn-next"].disabled = false; el["btn-next"].focus();
-  }
 
-  function nextRound() {
-    if (state.round + 1 < state.deck.length) { state.round++; renderRound(); }
-    else showResult();
-  }
-
-  // ── 결과 ──
-  function computeStats() {
-    const total = state.deck.length; // 카드당 1문제
-    const max = total * CONFIG.pointsPerCorrect;
-    const hits = state.answers.reduce((a, x) => a + (x.correct ? 1 : 0), 0);
-    const pct = total ? Math.round((hits / total) * 100) : 0;
-    return { max, hits, total, pct, tier: tierFor(pct) };
-  }
-
-  function showResult() {
-    const st = computeStats();
-    el["result-score"].innerHTML = T.result.score(state.score, st.max);
-    el["result-detail"].innerHTML = T.result.detail(st.tier, st.pct, st.hits, st.total);
-
-    // 데일리 기록 + 스트릭
-    if (state.mode === "daily") updateDaily(st.pct);
-
-    drawShareCard(st);
-    show("screen-result");
-  }
-
-  function updateDaily(pct) {
-    const today = todayKey();
-    store.set(LS.daily, { date: today, pct });
-    const streak = store.get(LS.streak, { count: 0, lastDate: null });
-    if (streak.lastDate !== today) {
-      const y = new Date(); y.setDate(y.getDate() - 1);
-      const yKey = `${y.getFullYear()}-${String(y.getMonth() + 1).padStart(2, "0")}-${String(y.getDate()).padStart(2, "0")}`;
-      streak.count = streak.lastDate === yKey ? streak.count + 1 : 1;
-      streak.lastDate = today;
-      store.set(LS.streak, streak);
+    if (state.limited) {
+      el["btn-next"].disabled = false; el["btn-next"].focus();
+    } else if (ended) {
+      setTimeout(() => gameOver(), 900);
+    } else {
+      // 무한/타임어택: 잠깐 정답 보여주고 자동 진행
+      setTimeout(() => { if (!state.over) nextRound(); }, 800);
     }
   }
 
+  function nextRound() {
+    if (state.over) return;
+    if (state.limited) {
+      if (state.round + 1 < state.deck.length) { state.round++; renderRound(); }
+      else showResult();
+    } else {
+      state.round++; renderRound(); // 덱은 renderRound에서 확장
+    }
+  }
+
+  function gameOver() {
+    if (state.over) return;
+    state.over = true;
+    stopTimer();
+    showResult();
+  }
+
+  // ── 결과 ──
+  function countTier(n) {
+    if (n >= 20) return "🏆 찐 캐럿, 인정!";
+    if (n >= 12) return "💎 진성 캐럿이네요";
+    if (n >= 6) return "🌱 입덕 준비 완료";
+    return "👀 이제 입덕각이에요";
+  }
+
+  // 모드별 결과 뷰(화면·공유카드·랭킹 공용)
+  function buildResultView() {
+    const hits = state.correct;
+    if (state.mode === "normal") {
+      const total = state.deck.length, pct = total ? Math.round((hits / total) * 100) : 0;
+      return {
+        tier: tierFor(pct), rankScore: state.score, mode: "일반",
+        scoreHtml: `${state.score}<span class="score-max"> / 100점</span>`,
+        scoreLine: `${state.score} / 100점`,
+        sub: `${total}문제 중 ${hits}개 맞혔어요 · 정답률 ${pct}%`,
+      };
+    }
+    if (state.mode === "endless") {
+      return {
+        tier: countTier(hits), rankScore: hits, mode: "무한",
+        scoreHtml: `${hits}<span class="score-max"> 연속</span>`,
+        scoreLine: `${hits}연속 정답`,
+        sub: `무한 모드 · ${hits}문제 연속으로 맞혔어요`,
+      };
+    }
+    return {
+      tier: countTier(hits), rankScore: hits, mode: "타임어택",
+      scoreHtml: `${hits}<span class="score-max"> 개</span>`,
+      scoreLine: `${hits}개 정답`,
+      sub: `타임어택 ${CONFIG.taSeconds}초 · ${hits}개 맞혔어요`,
+    };
+  }
+
+  function showResult() {
+    stopTimer();
+    const res = buildResultView();
+    state.lastRes = res;
+    el["result-score"].innerHTML = res.scoreHtml;
+    el["result-detail"].innerHTML = `<p class="tier">${res.tier}</p><p class="pct">${res.sub}</p>`;
+    el["rank-name"].value = store.get(LS.name, "");
+    el["btn-rank"].disabled = false;
+    renderRankList();
+    drawShareCard(res);
+    show("screen-result");
+  }
+
+  // ── 랭킹(로컬 기기 저장) ──
+  function registerRank() {
+    if (!state.lastRes) return;
+    const name = (el["rank-name"].value || "익명").trim().slice(0, 12) || "익명";
+    store.set(LS.name, name);
+    const list = store.get(LS.ranking, []);
+    const entry = { name, score: state.lastRes.rankScore, mode: state.mode, ts: nowStamp() };
+    list.push(entry);
+    list.sort((a, b) => b.score - a.score);
+    store.set(LS.ranking, list.slice(0, 100));
+    el["btn-rank"].disabled = true;
+    renderRankList(entry);
+    toast(T.rank.saved);
+  }
+
+  function renderRankList(highlight) {
+    const list = store.get(LS.ranking, [])
+      .filter((e) => e.mode === state.mode)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+    const unit = state.mode === "normal" ? "점" : "개";
+    el["rank-list"].innerHTML = list.length
+      ? list.map((e, i) => {
+          const me = highlight && e.ts === highlight.ts;
+          return `<li class="${me ? "me" : ""}"><span class="rk">${i + 1}</span>` +
+            `<span class="nm">${escapeHtml(e.name)}</span><span class="sc">${e.score}${unit}</span></li>`;
+        }).join("")
+      : `<li class="empty">${T.rank.empty}</li>`;
+  }
+
+  function nowStamp() { try { return Date.now(); } catch (e) { return Math.random(); } }
+
   // ── 공유 카드(canvas) ──
-  function drawShareCard(st) {
+  function drawShareCard(res) {
     const cv = el["result-canvas"], ctx = cv.getContext("2d");
     const W = cv.width, H = cv.height;
     const g = ctx.createLinearGradient(0, 0, W, H);
@@ -330,13 +464,12 @@
     ctx.fillText(T.share.title, W / 2, 130);
     // 등급
     ctx.font = "800 84px Pretendard, sans-serif";
-    ctx.fillStyle = "#ff5c9d"; ctx.fillText(st.tier, W / 2, 300);
-    // 점수/정답률
+    ctx.fillStyle = "#ff5c9d"; ctx.fillText(res.tier, W / 2, 300);
+    // 점수(모드별 표현)
     ctx.fillStyle = "#f2f2f7"; ctx.font = "800 96px Pretendard, sans-serif";
-    ctx.fillText(`${state.score} / ${st.max}점`, W / 2, 430);
+    ctx.fillText(res.scoreLine, W / 2, 430);
     ctx.fillStyle = "#9a9ab0"; ctx.font = "500 40px Pretendard, sans-serif";
-    const modeLabel = T.shareMode[state.mode] || "";
-    ctx.fillText(`정답률 ${st.pct}% · ${modeLabel} 모드`, W / 2, 500);
+    ctx.fillText(`${res.mode} 모드`, W / 2, 500);
     ctx.fillStyle = "#6b6a80"; ctx.font = "400 30px Pretendard, sans-serif";
     ctx.fillText("팬메이드 비영리 데모", W / 2, 580);
   }
@@ -373,8 +506,8 @@
 
   // 공유하기(Web Share) — 모바일 네이티브 시트: 인스타/카톡/트위터/등
   function shareMain() {
-    const st = computeStats();
-    const text = T.share.native(st.tier, state.score, st.pct);
+    const res = state.lastRes || buildResultView();
+    const text = T.share.native(res.tier, res.scoreLine);
     resultFile(async (file) => {
       if (navigator.share && canShareFiles(file)) {
         try { await navigator.share({ files: [file], text }); } catch (e) { /* 취소 무시 */ }
@@ -386,8 +519,8 @@
   }
 
   function tweetShare() {
-    const st = computeStats();
-    const text = T.share.tweet(st.tier, state.score, st.pct);
+    const res = state.lastRes || buildResultView();
+    const text = T.share.tweet(res.tier, res.scoreLine);
     // 인텐트는 이미지 첨부 불가 → 카드 PNG를 먼저 저장해 첨부에 쓰도록
     downloadShare();
     // anchor 클릭으로 '정상 탭' 오픈(팝업 차단·로그인 세션 문제 회피)
@@ -410,14 +543,14 @@
 
   // 카카오톡: Kakao SDK(키 설정 시) 링크 공유, 아니면 Web Share/저장 안내
   function kakaoShare() {
-    const st = computeStats();
+    const res = state.lastRes || buildResultView();
     if (window.Kakao && window.Kakao.isInitialized && Kakao.isInitialized()) {
       try {
         Kakao.Share.sendDefault({
           objectType: "feed",
           content: {
             title: T.share.title,
-            description: `${st.tier} · ${state.score}점 (정답률 ${st.pct}%)`,
+            description: `${res.tier} · ${res.scoreLine}`,
             imageUrl: new URL("docs/img/share-card.png", location.href).href,
             link: { mobileWebUrl: location.href, webUrl: location.href },
           },
@@ -427,7 +560,7 @@
       } catch (e) {}
     }
     resultFile(async (file) => {
-      if (navigator.share && canShareFiles(file)) { try { await navigator.share({ files: [file], text: T.share.native(st.tier, state.score, st.pct) }); return; } catch (e) {} }
+      if (navigator.share && canShareFiles(file)) { try { await navigator.share({ files: [file], text: T.share.native(res.tier, res.scoreLine) }); return; } catch (e) {} }
       downloadShare();
       toast(T.share.kakao);
     });
@@ -443,14 +576,6 @@
     document.head.appendChild(s);
   }
 
-  // ── 시작화면 상태 갱신(데일리 완료 표시) ──
-  function refreshStart() {
-    const daily = store.get(LS.daily, null);
-    const streak = store.get(LS.streak, { count: 0 });
-    if (daily && daily.date === todayKey()) el["daily-sub"].textContent = T.start.dailyDone(daily.pct, streak.count);
-    else el["daily-sub"].textContent = T.start.dailyOpen;
-  }
-
   // ── 초기화 ──
   function init() {
     cacheDom();
@@ -458,7 +583,9 @@
     document.querySelectorAll(".mode-btn").forEach((b) =>
       b.addEventListener("click", () => { if (!b.disabled) startMode(b.dataset.mode); }));
     el["btn-next"].addEventListener("click", nextRound);
-    el["btn-restart"].addEventListener("click", () => { refreshStart(); show("screen-start"); });
+    el["btn-restart"].addEventListener("click", () => { stopTimer(); show("screen-start"); });
+    el["btn-rank"].addEventListener("click", registerRank);
+    el["rank-name"].addEventListener("keydown", (e) => { if (e.key === "Enter") registerRank(); });
     el["btn-share"].addEventListener("click", shareMain);
     el["btn-save"].addEventListener("click", downloadShare);
     el["btn-tweet"].addEventListener("click", tweetShare);
@@ -466,7 +593,6 @@
     el["btn-kakao"].addEventListener("click", kakaoShare);
     el["btn-reload"].addEventListener("click", reloadArt);
     initKakao();
-    refreshStart();
     show("screen-start");
   }
 

@@ -52,11 +52,15 @@
           <div class="modes">
             <button class="mode-btn" data-mode="normal">
               <b>🎲 그냥 한 판</b>
-              <small>랜덤 20문제, 부담 없이 즐겨요</small>
+              <small>랜덤 20문제 · 100점 만점</small>
             </button>
-            <button class="mode-btn" data-mode="daily">
-              <b>📅 오늘의 챌린지</b>
-              <small id="daily-sub">오늘의 20문제, 준비해뒀어요</small>
+            <button class="mode-btn" data-mode="endless">
+              <b>♾️ 무한 모드</b>
+              <small>틀리면 끝! 몇 개까지 갈까요?</small>
+            </button>
+            <button class="mode-btn" data-mode="timeattack">
+              <b>⏱️ 타임어택</b>
+              <small>60초 안에 최대한 · 목숨 3개</small>
             </button>
           </div>
         </div>
@@ -67,6 +71,7 @@
         <header class="hud">
           <span class="hud-progress"><b id="progress">1 / 20</b></span>
           <span class="hud-mode" id="hud-mode"></span>
+          <span class="hud-lives" id="hud-lives"></span>
           <span class="hud-score">SCORE <b id="score">0</b></span>
         </header>
         <div class="progress-bar" aria-hidden="true"><div id="progress-fill" class="progress-fill"></div></div>
@@ -96,6 +101,13 @@
           <h2>오늘의 결과예요</h2>
           <p id="result-score" class="result-score">0 / 0 점</p>
           <div id="result-detail" class="result-detail"></div>
+          <div class="rank-box">
+            <div class="rank-entry">
+              <input id="rank-name" type="text" maxlength="12" placeholder="이름을 정해 랭킹에 올려요" />
+              <button id="btn-rank" class="btn ghost" type="button">등록</button>
+            </div>
+            <ol id="rank-list" class="rank-list"></ol>
+          </div>
           <div class="result-actions">
             <button id="btn-share" class="btn primary">📤 공유하기</button>
             <button id="btn-restart" class="btn ghost">한 판 더!</button>

@@ -6,6 +6,15 @@
 (function (root) {
   "use strict";
 
+  // 한글 받침 여부 → 조사 자동 선택(이/가, 와/과)
+  function hasBatchim(s) {
+    const c = String(s).charCodeAt(s.length - 1);
+    if (c < 0xac00 || c > 0xd7a3) return null; // 한글 아님
+    return (c - 0xac00) % 28 !== 0;
+  }
+  const ig = (s) => (hasBatchim(s) == null ? "가" : hasBatchim(s) ? "이" : "가");
+  const wg = (s) => (hasBatchim(s) == null ? "와" : hasBatchim(s) ? "과" : "와");
+
   const LOCALES = {
     ko: {
       q: {
@@ -21,10 +30,10 @@
       },
       // 멤버 사진 라운드
       qm: {
-        unitSong: (name) => `<b>${name}</b>가 부른 <b>유닛곡</b>은?`,
-        notSong: (name) => `<b>${name}</b>가 부르지 <b>않은</b> 곡은?`,
-        roster: (name) => `<b>${name}</b>와 <b>다른 유닛</b>인 멤버는?`,
-        lyricist: (name) => `<b>${name}</b>가 <b>작사</b>한 타이틀곡은?`,
+        unitSong: (name) => `<b>${name}</b>${ig(name)} 부른 <b>유닛곡</b>은?`,
+        notSong: (name) => `<b>${name}</b>${ig(name)} 부르지 <b>않은</b> 곡은?`,
+        roster: (name) => `<b>${name}</b>${wg(name)} <b>다른 유닛</b>인 멤버는?`,
+        lyricist: (name) => `<b>${name}</b>${ig(name)} <b>작사</b>한 타이틀곡은?`,
       },
       unit: { vocal: "보컬", hiphop: "힙합", performance: "퍼포먼스" },
       difficulty: {
@@ -45,6 +54,11 @@
       feedback: {
         correct: "딩동댕, 맞았어요! 🎉",
         wrong: "앗, 아쉬워요 🥲",
+        over: "여기까지예요! 수고했어요 🫠",
+      },
+      rank: {
+        saved: "랭킹에 올렸어요! 🏆",
+        empty: "아직 기록이 없어요 · 1등의 주인공이 되어봐요",
       },
       next: { result: "결과 보러 가기", more: "다음 문제 →" },
       caption: {
@@ -52,28 +66,18 @@
         error: "자켓을 못 불러왔어요 · 상상해서 맞혀봐요",
         noArt: "자켓을 못 불러왔어요 · 인터넷을 확인해 주세요",
       },
-      hudMode: { normal: "🎲 일반", daily: "📅 데일리", review: "🔁 복습" },
-      shareMode: { normal: "일반", daily: "데일리", review: "복습" },
-      result: {
-        detail: (tier, pct, hits, total) =>
-          `<p class="tier">${tier}</p><p class="pct">${total}문제 중 ${hits}개 맞혔어요 · 정답률 ${pct}%</p>`,
-        score: (score, max) => `${score}<span class="score-max"> / ${max}점</span>`,
-      },
+      hudMode: { normal: "🎲 일반", endless: "♾️ 무한", timeattack: "⏱️ 타임어택" },
+      shareMode: { normal: "일반", endless: "무한", timeattack: "타임어택" },
       share: {
         title: "SEVENTEEN 앨범 자켓 퀴즈",
-        tweet: (tier, score, pct) =>
-          `나 세븐틴 앨범 자켓 퀴즈에서 ${tier} 나왔어요!\n${score}점 · 정답률 ${pct}%\n너도 한번 해볼래?\n#SEVENTEEN #세븐틴 #앨범자켓퀴즈`,
-        native: (tier, score, pct) =>
-          `SEVENTEEN 앨범 자켓 퀴즈 결과\n${tier} · ${score}점 (정답률 ${pct}%)\n#SEVENTEEN #세븐틴 #앨범자켓퀴즈`,
+        tweet: (tier, line) =>
+          `나 세븐틴 앨범 자켓 퀴즈에서 ${tier} 나왔어요!\n${line}\n너도 한번 해볼래?\n#SEVENTEEN #세븐틴 #앨범자켓퀴즈`,
+        native: (tier, line) =>
+          `SEVENTEEN 앨범 자켓 퀴즈 결과\n${tier} · ${line}\n#SEVENTEEN #세븐틴 #앨범자켓퀴즈`,
         saved: "이미지를 저장했어요 🖼️",
         fallback: "이미지를 저장했어요! SNS 앱에서 올려주세요 😊",
         insta: "이미지를 저장했어요! 인스타 스토리·피드에 올려주세요 📷",
         kakao: "이미지를 저장했어요! 카카오톡에 올려주세요 💬",
-      },
-      start: {
-        dailyDone: (pct, streak) =>
-          `오늘은 벌써 풀었어요! 정답률 ${pct}%${streak ? ` · 🔥${streak}일 연속` : ""}`,
-        dailyOpen: "오늘의 20문제, 준비해뒀어요",
       },
     },
   };
