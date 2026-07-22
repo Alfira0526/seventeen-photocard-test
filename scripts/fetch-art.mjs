@@ -84,11 +84,17 @@ async function search(term) {
   return json.results || [];
 }
 
+function artistMatch(album, results) {
+  const artist = norm(album.artist || "SEVENTEEN");
+  return results.filter((r) => {
+    const a = norm(r.artistName || "");
+    return a === artist || a.includes(artist) || artist.includes(a);
+  });
+}
+
 function pickBest(album, results) {
-  const svt = results.filter(
-    (r) => norm(r.artistName || "") === norm("SEVENTEEN")
-  );
-  const pool = svt.length ? svt : results;
+  const matched = artistMatch(album, results);
+  const pool = matched.length ? matched : results;
   let best = null;
   let bestScore = 0;
   for (const r of pool) {
@@ -111,8 +117,8 @@ function hi(url) {
 
 // 미스 시 사람이 판단할 수 있게 상위 후보를 함께 반환
 function topCandidates(album, results, k = 3) {
-  const svt = results.filter((r) => norm(r.artistName || "") === norm("SEVENTEEN"));
-  const pool = svt.length ? svt : results;
+  const matched = artistMatch(album, results);
+  const pool = matched.length ? matched : results;
   return pool
     .map((r) => ({
       name: r.collectionName,
@@ -150,7 +156,7 @@ for (const album of ALBUMS) {
   }
   // 2) 자동 검색 매칭
   try {
-    const results = await search(`SEVENTEEN ${album.itunes}`);
+    const results = await search(`${album.artist || "SEVENTEEN"} ${album.itunes}`);
     const match = pickBest(album, results);
     if (match && match.artworkUrl100) {
       out[album.id] = hi(match.artworkUrl100);

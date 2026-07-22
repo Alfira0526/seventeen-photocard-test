@@ -66,6 +66,15 @@ const ALBUMS = [
   { id: "17isrighthere", title: "17 IS RIGHT HERE",   year: 2024, type: "베스트 앨범", titleTrack: "MAESTRO",               itunes: "17 IS RIGHT HERE" },
   { id: "spillthefeels", title: "SPILL THE FEELS",    year: 2024, type: "미니 12집", titleTrack: "LOVE, MONEY, FAME",      itunes: "SPILL THE FEELS" },
   { id: "happyburstday", title: "HAPPY BURSTDAY",     year: 2025, type: "정규 5집",  titleTrack: "Thunder",                itunes: "HAPPY BURSTDAY" },
+
+  // ── 스페셜/유닛/디지털 싱글/믹스테이프 (artist 가 SEVENTEEN이 아니면 명시) ──
+  { id: "directorscut",  title: "Director's Cut",     year: 2018, type: "스페셜 앨범", titleTrack: "고맙다 (THANKS)",       itunes: "Director's Cut" },
+  { id: "bss_secondwind", title: "SECOND WIND",       year: 2023, type: "유닛 싱글",  titleTrack: "파이팅 해야지 (Fighting)", itunes: "SECOND WIND", artist: "BSS" },
+  { id: "hoshi_spider",  title: "Spider",             year: 2021, type: "믹스테이프", titleTrack: "Spider",                 itunes: "Spider", artist: "HOSHI" },
+  { id: "woozi_ruby",    title: "Ruby",               year: 2022, type: "믹스테이프", titleTrack: "Ruby",                   itunes: "Ruby", artist: "WOOZI" },
+  { id: "vernon_blackeye", title: "Black Eye",        year: 2022, type: "믹스테이프", titleTrack: "Black Eye",              itunes: "Black Eye", artist: "VERNON" },
+  { id: "dino_wait",     title: "Wait",               year: 2023, type: "믹스테이프", titleTrack: "Wait",                   itunes: "Wait", artist: "DINO" },
+  { id: "wonu_mingyu_bittersweet", title: "Bittersweet", year: 2021, type: "디지털 싱글", titleTrack: "Bittersweet (feat. 이하이)", itunes: "Bittersweet", artist: "WONWOO" },
 ];
 
 /**

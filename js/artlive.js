@@ -42,8 +42,12 @@
   }
 
   function pickBest(album, results) {
-    const svt = results.filter((r) => norm(r.artistName || "") === norm("SEVENTEEN"));
-    const pool = svt.length ? svt : results;
+    const artist = norm(album.artist || "SEVENTEEN");
+    const byArtist = results.filter((r) => {
+      const a = norm(r.artistName || "");
+      return a === artist || a.includes(artist) || artist.includes(a);
+    });
+    const pool = byArtist.length ? byArtist : results;
     let best = null, bestScore = 0;
     for (const r of pool) {
       let score = similarity(album.title, r.collectionName || "");
@@ -69,9 +73,10 @@
 
   // 검색어를 바꿔가며(힌트 → 제목) 매칭 시도
   async function resolve(album) {
+    const artist = album.artist || "SEVENTEEN";
     const terms = [];
-    if (album.itunes) terms.push("SEVENTEEN " + album.itunes);
-    terms.push("SEVENTEEN " + album.title);
+    if (album.itunes) terms.push(artist + " " + album.itunes);
+    terms.push(artist + " " + album.title);
     for (const term of terms) {
       const results = await fetchResults(term);
       if (results) { const m = pickBest(album, results); if (m) return hi(m.artworkUrl100); }

@@ -3,6 +3,15 @@
 이 프로젝트의 주요 변화를 버전별로 정리합니다. 상세 작업 로그는
 [PROGRESS.md](PROGRESS.md), 개선 분석은 [ANALYSIS.md](ANALYSIS.md) 참고.
 
+## v0.4.2 — 릴리스 확장(스페셜/유닛/믹스테이프/싱글) + 버그픽스
+- 앨범 20 → **27개** 추가(모두 웹 검증):
+  - 스페셜: Director's Cut(2018, 고맙다/THANKS)
+  - 유닛: BSS SECOND WIND(2023, 파이팅 해야지)
+  - 믹스테이프: Hoshi Spider(2021)·Woozi Ruby(2022)·Vernon Black Eye(2022)·Dino Wait(2023)
+  - 디지털 싱글: Wonwoo·Mingyu Bittersweet(2021)
+- 솔로/유닛 자켓 로딩 위해 `artist` 필드 지원(artlive·fetch-art 매칭에 반영)
+- 🐛 시작화면 "8장" → "10장" 오기 수정 / You Made My Dawn 타이틀곡 `Home` 정정
+
 ## v0.4.1 — 공유·이미지 로딩 버그픽스
 - 🐦 **트위터 공유**: `window.open`의 features 인자로 작은 팝업 창이 떠 로그인이
   불편하던 문제 → **anchor(target=_blank) 클릭으로 정상 탭** 오픈. 공유 시 결과 이미지도
