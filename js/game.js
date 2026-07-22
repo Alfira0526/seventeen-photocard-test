@@ -49,11 +49,11 @@
   function cacheDom() {
     [
       "screen-start", "screen-play", "screen-result",
-      "btn-restart", "btn-next", "btn-share", "btn-tweet", "btn-review",
+      "btn-restart", "btn-next", "btn-share", "btn-tweet",
       "card-art", "card-caption", "btn-reload", "progress", "score", "hud-mode",
       "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
-      "theme-toggle", "mode-review", "review-sub", "daily-sub",
+      "theme-toggle", "daily-sub",
     ].forEach((id) => (el[id] = document.getElementById(id)));
   }
   function show(screen) {
@@ -90,12 +90,6 @@
     if (mode === "daily") {
       state.rng = mulberry32(hashStr("svt-daily-" + todayKey()));
       state.deck = shuffle(ALBUMS, state.rng).slice(0, Math.min(CONFIG.rounds, ALBUMS.length));
-    } else if (mode === "review") {
-      const ids = store.get(LS.wrong, []);
-      const albums = ids.map((id) => albumById[id]).filter(Boolean);
-      if (!albums.length) return; // 방어(버튼 비활성 상태여야 함)
-      state.rng = Math.random;
-      state.deck = shuffle(albums, state.rng).slice(0, CONFIG.rounds);
     } else {
       state.rng = Math.random;
       state.deck = shuffle(ALBUMS, state.rng).slice(0, Math.min(CONFIG.rounds, ALBUMS.length));
@@ -256,11 +250,6 @@
     el["result-score"].textContent = T.result.score(state.score, st.max);
     el["result-detail"].innerHTML = T.result.detail(st.tier, st.pct, st.hits, st.total);
 
-    // 오답 앨범 저장(복습용): 틀린 카드
-    const wrongIds = state.answers.filter((a) => !a.correct).map((a) => a.albumId);
-    store.set(LS.wrong, wrongIds);
-    el["btn-review"].hidden = wrongIds.length === 0;
-
     // 데일리 기록 + 스트릭
     if (state.mode === "daily") updateDaily(st.pct);
 
@@ -336,11 +325,8 @@
     a.remove();
   }
 
-  // ── 시작화면 상태 갱신(복습 가능 여부, 데일리 완료 표시) ──
+  // ── 시작화면 상태 갱신(데일리 완료 표시) ──
   function refreshStart() {
-    const wrong = store.get(LS.wrong, []);
-    el["mode-review"].disabled = wrong.length === 0;
-    el["review-sub"].textContent = wrong.length ? T.start.reviewReady(wrong.length) : T.start.reviewEmpty;
     const daily = store.get(LS.daily, null);
     const streak = store.get(LS.streak, { count: 0 });
     if (daily && daily.date === todayKey()) el["daily-sub"].textContent = T.start.dailyDone(daily.pct, streak.count);
@@ -357,7 +343,6 @@
     el["btn-restart"].addEventListener("click", () => { refreshStart(); show("screen-start"); });
     el["btn-share"].addEventListener("click", downloadShare);
     el["btn-tweet"].addEventListener("click", tweetShare);
-    el["btn-review"].addEventListener("click", () => startMode("review"));
     el["btn-reload"].addEventListener("click", reloadArt);
     refreshStart();
     show("screen-start");

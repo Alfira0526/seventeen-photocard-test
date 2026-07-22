@@ -84,30 +84,30 @@ async function search(term) {
   return json.results || [];
 }
 
+// 아티스트 정확 매칭(오매칭 방지): 정확일치 또는 접두만 허용
 function artistMatch(album, results) {
   const artist = norm(album.artist || "SEVENTEEN");
   return results.filter((r) => {
     const a = norm(r.artistName || "");
-    return a === artist || a.includes(artist) || artist.includes(a);
+    return a === artist || a.startsWith(artist);
   });
 }
 
 function pickBest(album, results) {
   const matched = artistMatch(album, results);
-  const pool = matched.length ? matched : results;
+  if (!matched.length) return null; // 아티스트 불일치 → 매칭 실패
   let best = null;
   let bestScore = 0;
-  for (const r of pool) {
+  for (const r of matched) {
     let score = similarity(album.title, r.collectionName);
-    // 발매연도 일치하면 가산점
     const year = (r.releaseDate || "").slice(0, 4);
-    if (year === String(album.year)) score += 0.25;
+    if (year === String(album.year)) score += 0.3;
     if (score > bestScore) {
       bestScore = score;
       best = r;
     }
   }
-  return bestScore >= 0.45 ? best : null;
+  return bestScore >= 0.6 ? best : null;
 }
 
 function hi(url) {

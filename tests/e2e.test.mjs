@@ -88,14 +88,14 @@ test("데일리 모드: 동일 날짜엔 결정론적(같은 덱/보기)", { ski
   assert.equal(await firstChoices(), await firstChoices());
 });
 
-test("오답 복습: 오답 발생 후 복습 모드 활성화", { skip: !chromium }, async () => {
+test("다시 하기: 결과에서 시작화면으로 복귀", { skip: !chromium }, async () => {
   await withPage(async (page) => {
     await page.click('.mode-btn[data-mode="normal"]');
-    await playThrough(page, "last-child"); // 마지막 보기만 골라 오답 유도
-    assert.ok(await page.isVisible("#btn-review"), "결과의 복습 버튼 미표시");
+    await playThrough(page);
     await page.click("#btn-restart");
     await page.waitForSelector("#screen-start.active");
-    const enabled = await page.$eval("#mode-review", (b) => !b.disabled);
-    assert.ok(enabled, "시작화면 복습 모드 비활성");
+    // 모드 버튼은 2개(일반/데일리)만 남아야 함
+    const modes = await page.$$eval(".mode-btn", (els) => els.map((e) => e.dataset.mode));
+    assert.deepEqual(modes.sort(), ["daily", "normal"]);
   });
 });

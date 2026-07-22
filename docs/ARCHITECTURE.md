@@ -93,12 +93,12 @@ SVTArtLive.get(album) ┘   실패/차단/오프라인 → SVG 플레이스홀�
 ## 7. 상태 & 저장
 
 - 게임 상태는 `game.js`의 `state` 객체(덱/라운드/점수/정답기록)에 보관(DOM과 분리).
-- `localStorage`: 테마(`svt-theme`), 직전 오답(`svt-wrong`), 데일리 기록/스트릭
-  (`svt-daily`/`svt-streak`). 사파리 프라이빗 등 예외는 조용히 무시.
+- `localStorage`: 테마(`svt-theme`), 데일리 기록/스트릭(`svt-daily`/`svt-streak`).
+  사파리 프라이빗 등 예외는 조용히 무시.
 
 ## 8. 테스트 전략
 
 - **단위(`quiz.test.mjs`)**: 순수 로직·문제 엔진·데이터 무결성. 브라우저 불필요, 빠름.
   대량 시행으로 "정답 항상 포함·4지선다·중복 0"과 유형별 사실성(정답이 실제 비수록곡인지 등) 검증.
-- **E2E(`e2e.test.mjs`)**: Playwright로 완주·데일리 결정론·오답 복습·공유 카드 렌더 확인.
+- **E2E(`e2e.test.mjs`)**: Playwright로 완주·데일리 결정론·트위터 공유·공유 카드 렌더 확인.
   Playwright 미설치 시 자동 skip.

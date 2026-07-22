@@ -41,20 +41,24 @@
     });
   }
 
+  // 아티스트 정확 매칭(오매칭 방지). "vernon"이 "nicholas vernon"에 붙지 않도록
+  // 부분포함(includes)은 쓰지 않고, 정확일치 또는 접두(예: "wonwoo, mingyu")만 허용.
+  function artistOk(resultArtist, albumArtist) {
+    const a = norm(resultArtist), b = norm(albumArtist);
+    return a === b || a.startsWith(b);
+  }
+
   function pickBest(album, results) {
-    const artist = norm(album.artist || "SEVENTEEN");
-    const byArtist = results.filter((r) => {
-      const a = norm(r.artistName || "");
-      return a === artist || a.includes(artist) || artist.includes(a);
-    });
-    const pool = byArtist.length ? byArtist : results;
+    const artist = album.artist || "SEVENTEEN";
+    const byArtist = results.filter((r) => artistOk(r.artistName || "", artist));
+    if (!byArtist.length) return null; // 아티스트 일치 없으면 매칭 실패(placeholder)
     let best = null, bestScore = 0;
-    for (const r of pool) {
+    for (const r of byArtist) {
       let score = similarity(album.title, r.collectionName || "");
-      if ((r.releaseDate || "").slice(0, 4) === String(album.year)) score += 0.25;
+      if ((r.releaseDate || "").slice(0, 4) === String(album.year)) score += 0.3;
       if (score > bestScore) { bestScore = score; best = r; }
     }
-    return bestScore >= 0.45 && best ? best : null;
+    return bestScore >= 0.6 && best ? best : null; // 임계값 상향(오매칭 방지)
   }
 
   function searchUrl(term) {
@@ -77,6 +81,8 @@
     const terms = [];
     if (album.itunes) terms.push(artist + " " + album.itunes);
     terms.push(artist + " " + album.title);
+    // 솔로/유닛은 'SEVENTEEN' 문맥을 더해 정확한 릴리스 노출 확률↑(결과 필터는 엄격 유지)
+    if (artist !== "SEVENTEEN") terms.push("SEVENTEEN " + artist + " " + (album.itunes || album.title));
     for (const term of terms) {
       const results = await fetchResults(term);
       if (results) { const m = pickBest(album, results); if (m) return hi(m.artworkUrl100); }
