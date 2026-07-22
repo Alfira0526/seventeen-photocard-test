@@ -283,7 +283,7 @@
         return;
       }
       img.classList.add("loaded"); stage.classList.remove("loading");
-      el["card-caption"].innerHTML = isYt ? "© YouTube" : isMember ? "© Wikimedia Commons" : T.caption.loaded;
+      el["card-caption"].innerHTML = isYt ? "© YouTube" : isMember ? "© kpop.fandom" : T.caption.loaded;
       el["btn-reload"].hidden = true;
     });
     img.addEventListener("error", () => {
@@ -496,31 +496,43 @@
   function refreshHall() {
     stopHall();
     if (!RANK || !el["hall"]) return;
-    RANK.counts(MODES).then((counts) => {
-      hallModes = MODES.filter((m) => (counts[m] || 0) >= HALL_MIN);
-      if (!hallModes.length) { el["hall"].hidden = true; return; }
-      el["hall"].hidden = false;
-      hallIdx = 0;
-      showHallMode(hallModes[0]);
-      if (hallModes.length > 1) {
-        hallTimer = setInterval(() => {
-          hallIdx = (hallIdx + 1) % hallModes.length;
-          showHallMode(hallModes[hallIdx]);
-        }, 8000);
-      }
-    });
+    // 로컬 기준으로 즉시 판정/표시(원격 대기로 지연되지 않게)
+    applyHall(MODES.filter((m) => RANK.localList(m).length >= HALL_MIN));
+    // 원격 저장소가 있으면 병합 결과로 재판정
+    if (RANK.remote) {
+      RANK.counts(MODES).then((counts) => {
+        applyHall(MODES.filter((m) => (counts[m] || 0) >= HALL_MIN));
+      });
+    }
+  }
+  function applyHall(modes) {
+    stopHall();
+    hallModes = modes;
+    if (!hallModes.length) { el["hall"].hidden = true; return; }
+    el["hall"].hidden = false;
+    hallIdx = 0;
+    showHallMode(hallModes[0]);
+    if (hallModes.length > 1) {
+      hallTimer = setInterval(() => {
+        hallIdx = (hallIdx + 1) % hallModes.length;
+        showHallMode(hallModes[hallIdx]);
+      }, 8000);
+    }
+  }
+  function paintHall(mode, list) {
+    el["hall-mode"].textContent = T.hudMode[mode] || "";
+    const unit = mode === "normal" ? "점" : "개";
+    const rows = list.map((e, i) =>
+      `<li><span class="rk">${i + 1}</span><span class="nm">${escapeHtml(e.name)}</span>` +
+      `<span class="sc">${e.score}${unit}</span></li>`).join("");
+    // 마퀴: 항목을 두 번 이어붙여 끊김 없는 세로 스크롤
+    el["hall-list"].innerHTML = rows + rows;
+    el["hall-list"].style.animationDuration = Math.max(9, list.length * 1.6) + "s";
   }
   function showHallMode(mode) {
-    RANK.list(mode).then((all) => {
-      const list = all.slice(0, 10);
-      el["hall-mode"].textContent = T.hudMode[mode] || "";
-      const unit = mode === "normal" ? "점" : "개";
-      const rows = list.map((e, i) =>
-        `<li><span class="rk">${i + 1}</span><span class="nm">${escapeHtml(e.name)}</span>` +
-        `<span class="sc">${e.score}${unit}</span></li>`).join("");
-      // 마퀴: 항목을 두 번 이어붙여 끊김 없는 세로 스크롤
-      el["hall-list"].innerHTML = rows + rows;
-      el["hall-list"].style.animationDuration = Math.max(9, list.length * 1.6) + "s";
+    paintHall(mode, RANK.localList(mode).slice(0, 10)); // 로컬 즉시
+    if (RANK.remote) RANK.list(mode).then((all) => {
+      if (hallModes[hallIdx] === mode) paintHall(mode, all.slice(0, 10)); // 원격 병합 갱신
     });
   }
 
@@ -545,10 +557,24 @@
     // 점수(모드별 표현, 평문)
     ctx.fillStyle = "#f2f2f7"; ctx.font = "800 96px Pretendard, sans-serif";
     ctx.fillText(res.scoreLine, W / 2, 430);
-    ctx.fillStyle = "#9a9ab0"; ctx.font = "500 40px Pretendard, sans-serif";
-    ctx.fillText(res.modeText, W / 2, 500);
-    ctx.fillStyle = "#6b6a80"; ctx.font = "400 30px Pretendard, sans-serif";
-    ctx.fillText("fan-made demo · #SEVENTEEN", W / 2, 580);
+    ctx.fillStyle = "#9a9ab0"; ctx.font = "500 38px Pretendard, sans-serif";
+    ctx.fillText(res.modeText, W / 2, 492);
+    // 태그·링크를 이미지에 새겨, 텍스트를 지우는 앱(인스타·카톡)에서도 보이게 함
+    ctx.fillStyle = "#b9a7ff"; ctx.font = "700 30px Pretendard, sans-serif";
+    ctx.fillText("#SEVENTEEN #세븐틴 #앨범자켓퀴즈", W / 2, 552);
+    ctx.fillStyle = "#8a8aa0"; ctx.font = "400 28px Pretendard, sans-serif";
+    ctx.fillText(siteUrl(), W / 2, 596);
+  }
+
+  // 공유·이미지에 넣을 사이트 주소(짧게)
+  function siteUrl() {
+    try { return (location.host + location.pathname).replace(/\/+$/, "") || location.host; }
+    catch (e) { return "SEVENTEEN Album Cover Quiz"; }
+  }
+  // 클립보드 복사(사용자 제스처 내에서 호출해야 함)
+  function copyText(s) {
+    try { if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(s); } catch (e) {}
+    return Promise.resolve();
   }
 
   // 결과 캔버스를 PNG File 로 변환
@@ -605,25 +631,36 @@
     });
   }
 
+  // 트위터(X): 모바일은 네이티브 공유로 이미지+캡션(링크 포함) 첨부,
+  //            데스크톱은 인텐트(text+url 링크) + 이미지 저장.
   function tweetShare() {
     const res = state.lastRes || buildResultView();
     const text = T.share.tweet(res.tierText, res.scoreLine);
-    // 인텐트는 이미지 첨부 불가 → 카드 PNG를 먼저 저장해 첨부에 쓰도록
-    downloadShare();
-    // anchor 클릭으로 '정상 탭' 오픈(팝업 차단·로그인 세션 문제 회피)
-    const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text);
-    const a = document.createElement("a");
-    a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
-    document.body.appendChild(a); a.click(); a.remove();
+    const link = location.href;
+    resultFile(async (file) => {
+      const payload = { files: [file], text: text + "\n" + link };
+      if (file && navigator.canShare && navigator.canShare(payload)) {
+        try { await navigator.share(payload); return; } catch (e) { if (e && e.name === "AbortError") return; }
+      }
+      // 데스크톱 폴백: 인텐트에 url 파라미터로 링크 포함(이미지는 인텐트 첨부 불가 → 저장 후 수동)
+      downloadShare();
+      const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text) + "&url=" + encodeURIComponent(link);
+      const a = document.createElement("a");
+      a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
+      document.body.appendChild(a); a.click(); a.remove();
+    });
   }
 
-  // 인스타그램: 웹 게시 API가 없어 Web Share(모바일, 이미지+링크) 또는 저장+안내
+  // 인스타그램: 스토리는 텍스트/링크를 못 받음 → 이미지에 태그·URL을 새겨두고,
+  //            링크·태그는 클립보드에 복사해 스토리 텍스트에 붙여넣게 안내.
   function instaShare() {
     const res = state.lastRes || buildResultView();
     const text = T.share.native(res.tierText, res.scoreLine);
+    copyText(text + "\n" + location.href); // 사용자 제스처 내 복사
     resultFile(async (file) => {
       const ok = await webShare(file, text);
-      if (!ok) { downloadShare(); toast(T.share.insta); }
+      toast(ok ? T.share.copied : T.share.insta);
+      if (!ok) downloadShare();
     });
   }
 
@@ -645,9 +682,12 @@
         return;
       } catch (e) {}
     }
+    const text = T.share.native(res.tierText, res.scoreLine);
+    copyText(text + "\n" + location.href); // 카톡이 텍스트를 지워도 붙여넣을 수 있게 복사
     resultFile(async (file) => {
-      const ok = await webShare(file, T.share.native(res.tierText, res.scoreLine));
-      if (!ok) { downloadShare(); toast(T.share.kakao); }
+      const ok = await webShare(file, text);
+      toast(ok ? T.share.copied : T.share.kakao);
+      if (!ok) downloadShare();
     });
   }
 

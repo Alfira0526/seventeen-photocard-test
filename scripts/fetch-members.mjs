@@ -17,8 +17,20 @@ globalThis.window = {};
 const { createRequire } = await import("node:module");
 const require = createRequire(import.meta.url);
 const { MEMBERS } = require(resolve(root, "js/data.js"));
+// 기존 사진을 보존(다른 멤버는 그대로 두고 지정 멤버만 교체)
+let existing = {};
+try { require(resolve(root, "js/memberPhotos.js")); existing = globalThis.window.SVTMemberPhotos || {}; } catch (e) {}
 
 const API = "https://kpop.fandom.com/api.php";
+const SITE = "https://kpop.fandom.com";
+
+// 특정 멤버는 대표(lead) 이미지 대신 페이지 이미지 목록에서 "다른" 솔로 사진을 고른다.
+//  - exclude: 현재 쓰던 사진 등 제외 패턴 / prefer: 우선 선택 패턴
+const ALT_PICK = {
+  wonwoo: { name: "Wonwoo", exclude: /happy.?burstday/i, prefer: /concept|profile|teaser/i },
+};
+// 이번 실행에서 새로 교체할 멤버(나머지는 기존 URL 보존)
+const REFRESH = new Set(Object.keys(ALT_PICK));
 // "SEVENTEEN" 문맥으로 검색해 동명이인 충돌을 줄인다.
 const SEARCH = {
   scoups: "S.Coups Seventeen", jeonghan: "Jeonghan Seventeen", joshua: "Joshua Seventeen",
@@ -44,20 +56,55 @@ async function pageImage(query) {
   return p ? { title: p.title, url: p.original.source } : null;
 }
 
+// 페이지 이미지 목록에서 조건에 맞는 "다른" 파일을 골라 Special:FilePath 로 핫링크
+async function pageImageAlt(query, cfg) {
+  const url = API + "?" + new URLSearchParams({
+    action: "query", format: "json", generator: "search",
+    gsrsearch: query, gsrlimit: "1", gsrnamespace: "0",
+    prop: "images", imlimit: "80",
+  });
+  const res = await fetch(url, { headers: { "User-Agent": "svt-quiz/1.0 (fan quiz)" } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  const pages = json.query && json.query.pages ? Object.values(json.query.pages) : [];
+  const imgs = (pages[0] && pages[0].images ? pages[0].images : [])
+    .map((x) => x.title.replace(/^File:/, ""))
+    .filter((f) => /\.(png|jpe?g)$/i.test(f))
+    .filter((f) => new RegExp(cfg.name, "i").test(f))
+    .filter((f) => !cfg.exclude || !cfg.exclude.test(f))
+    .filter((f) => !/logo|icon|award|signature|thumb|banner/i.test(f));
+  console.log(`   후보 ${imgs.length}개: ${imgs.slice(0, 8).join(" | ")}`);
+  const preferred = imgs.find((f) => cfg.prefer && cfg.prefer.test(f)) || imgs[0];
+  if (!preferred) return null;
+  const fileUrl = `${SITE}/wiki/Special:FilePath/${encodeURIComponent(preferred)}`;
+  return { title: preferred, url: fileUrl };
+}
+
 const out = {};
 for (const m of MEMBERS) {
+  // 교체 대상이 아니고 기존 URL이 있으면 그대로 보존
+  if (!REFRESH.has(m.id) && existing[m.id] && existing[m.id].url) {
+    out[m.id] = existing[m.id];
+    console.log(`= ${m.id.padEnd(10)} (기존 유지) ${existing[m.id].url}`);
+    continue;
+  }
   try {
-    const picked = OVERRIDE[m.id]
-      ? { title: "(override)", url: OVERRIDE[m.id] }
-      : await pageImage(SEARCH[m.id] || `${m.name} Seventeen`);
+    let picked;
+    if (ALT_PICK[m.id]) picked = await pageImageAlt(SEARCH[m.id] || `${m.name} Seventeen`, ALT_PICK[m.id]);
+    else if (OVERRIDE[m.id]) picked = { title: "(override)", url: OVERRIDE[m.id] };
+    else picked = await pageImage(SEARCH[m.id] || `${m.name} Seventeen`);
     if (picked && picked.url) {
       out[m.id] = { url: picked.url, source: picked.title };
       console.log(`✓ ${m.id.padEnd(10)} ${picked.title}  ${picked.url}`);
+    } else if (existing[m.id]) {
+      out[m.id] = existing[m.id]; // 실패 시 기존 유지
+      console.warn(`! ${m.id.padEnd(10)} 새 이미지 못 찾음 → 기존 유지`);
     } else {
       console.warn(`✗ ${m.id.padEnd(10)} (이미지 없음)`);
     }
   } catch (e) {
-    console.warn(`✗ ${m.id.padEnd(10)} ${e.message}`);
+    if (existing[m.id]) out[m.id] = existing[m.id];
+    console.warn(`✗ ${m.id.padEnd(10)} ${e.message}${existing[m.id] ? " → 기존 유지" : ""}`);
   }
   await new Promise((r) => setTimeout(r, 250));
 }
