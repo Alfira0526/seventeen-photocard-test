@@ -35,6 +35,20 @@ async function withPage(fn, opts = {}) {
         try { localStorage.setItem("svt-ranking", JSON.stringify(rows)); } catch (e) {}
       }, opts.seedRanking);
     }
+    if (opts.mockShare) {
+      await page.addInitScript(() => {
+        window.__shared = null;
+        navigator.canShare = () => true;
+        navigator.share = async (d) => {
+          window.__shared = {
+            hasFiles: !!(d.files && d.files.length),
+            fileType: d.files && d.files[0] && d.files[0].type,
+            text: d.text || "",
+            url: d.url || null,
+          };
+        };
+      });
+    }
     await page.goto(pageUrl);
     return await fn(page);
   } finally {
@@ -84,6 +98,21 @@ test("트위터 공유: 인텐트 URL을 새 탭으로 연다(팝업 아님)", {
     // (오프라인 샌드박스에선 twitter 로드가 막혀 chrome-error가 될 수 있음).
     assert.ok(popup, "공유 시 새 탭이 열리지 않음");
   });
+});
+
+test("공유하기: 이미지(파일) + 링크(캡션)를 함께 전송, url 필드로 파일공유 깨지지 않음", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.click('.mode-btn[data-mode="normal"]');
+    await playThrough(page);
+    await page.click("#btn-share");
+    await page.waitForTimeout(400);
+    const shared = await page.evaluate(() => window.__shared);
+    const href = await page.evaluate(() => location.href);
+    assert.ok(shared, "navigator.share가 호출되지 않음");
+    assert.ok(shared.hasFiles && shared.fileType === "image/png", "이미지 파일이 공유에 없음");
+    assert.ok(shared.text.includes(href), "링크가 캡션에 포함되지 않음");
+    assert.equal(shared.url, null, "files와 함께 url 필드가 들어가 파일 공유가 깨질 수 있음");
+  }, { mockShare: true });
 });
 
 test("무한 모드: 시작 시 목숨 표시 + 자동 진행(다음 버튼 숨김)", { skip: !chromium }, async () => {

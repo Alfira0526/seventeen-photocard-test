@@ -557,14 +557,17 @@
       cb(blob ? new File([blob], `svt-quiz-${todayKey()}.png`, { type: "image/png" }) : null);
     }, "image/png");
   }
-  // Web Share: 이미지 + 설명 + 링크를 함께 공유(대상 앱이 지원하는 범위에서 최대치로).
-  // 파일 공유가 안 되면 최소한 텍스트+링크라도 공유되게 폴백한다.
+  // Web Share: 이미지(파일) + 링크를 함께 전송.
+  // ⚠️ 다수 플랫폼(안드로이드 Chrome 등)은 files 와 url 을 "동시에" 못 보낸다
+  //    → files 와 함께 url 필드를 넣으면 canShare 가 false 가 되어 이미지가 빠진다.
+  //    그래서 링크는 캡션(text) 안에 넣어 이미지와 같이 전달한다.
   async function webShare(file, text) {
     const link = location.href;
-    const full = { files: [file], text, url: link };        // 이미지 + 텍스트 + 링크
-    const noFile = { text: text + "\n" + link, url: link };  // 파일 미지원 → 텍스트 + 링크
+    const caption = text + "\n" + link;                 // 링크를 캡션에 포함 → 이미지와 함께 전달
+    const withFile = { files: [file], text: caption };  // 이미지 + (링크 포함 캡션), url 필드는 넣지 않음
+    const noFile = { text: caption, url: link };         // 파일 미지원 기기 → 텍스트+링크
     try {
-      if (file && navigator.canShare && navigator.canShare(full)) { await navigator.share(full); return true; }
+      if (file && navigator.canShare && navigator.canShare(withFile)) { await navigator.share(withFile); return true; }
       if (navigator.share) { await navigator.share(noFile); return true; }
     } catch (e) {
       if (e && e.name === "AbortError") return true; // 사용자가 취소한 것은 성공으로 간주
