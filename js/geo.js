@@ -20,10 +20,12 @@
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
   };
 
-  // 무료 IP 지역 조회 엔드포인트(순차 폴백). country_code 만 뽑아 쓴다.
+  // 무료 IP 지역 조회 엔드포인트(순차 폴백). 국가코드만 뽑아 쓴다.
+  // CORS 허용 + 키 불필요한 곳 우선. 하나라도 성공하면 그 결과를 사용.
   const IP_ENDPOINTS = [
-    { url: "https://ipapi.co/json/", pick: (j) => j && j.country_code },
+    { url: "https://api.country.is/", pick: (j) => j && j.country },
     { url: "https://ipwho.is/", pick: (j) => j && j.country_code },
+    { url: "https://ipapi.co/json/", pick: (j) => j && j.country_code },
     { url: "https://get.geojs.io/v1/ip/country.json", pick: (j) => j && j.country },
   ];
 
@@ -39,7 +41,7 @@
     for (const ep of IP_ENDPOINTS) {
       try {
         const ctrl = new AbortController();
-        const to = setTimeout(() => ctrl.abort(), 3500);
+        const to = setTimeout(() => ctrl.abort(), 2500);
         const res = await fetch(ep.url, { signal: ctrl.signal, headers: { Accept: "application/json" } });
         clearTimeout(to);
         if (!res.ok) continue;

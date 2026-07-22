@@ -168,6 +168,14 @@ body {
 }
 .card-art svg, .card-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .card-art.member { box-shadow: 0 10px 30px rgba(123, 92, 255, 0.35); }
+/* 유튜브 MV 썸네일: 재생 배지로 영상임을 표시 */
+.card-art.yt { box-shadow: 0 10px 30px rgba(255, 0, 0, 0.22); }
+.card-art.yt::after {
+  content: "▶"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 62px; height: 62px; display: grid; place-items: center;
+  background: rgba(0, 0, 0, 0.55); color: #fff; border-radius: 50%;
+  font-size: 22px; padding-left: 4px; pointer-events: none;
+}
 /* 이미지 블러업: 로드 완료 전 흐릿→선명 */
 .card-art img { opacity: 0; filter: blur(12px); transition: opacity 0.4s ease, filter 0.4s ease; }
 .card-art img.loaded { opacity: 1; filter: blur(0); }

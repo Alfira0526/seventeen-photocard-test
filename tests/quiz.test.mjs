@@ -13,8 +13,9 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const { shuffle, buildChoices, buildYearChoices, buildAlbumChoices, tierFor } =
   require(resolve(root, "js/logic.js"));
 const { ALBUMS, ALBUM_YEARS, MEMBERS, memberById } = require(resolve(root, "js/data.js"));
-const { buildQuestion, availableTypes, buildMemberQuestion } = require(resolve(root, "js/questions.js"));
-const { UNIT_SONGS } = require(resolve(root, "js/data.js"));
+const { buildQuestion, availableTypes, buildMemberQuestion, buildYtQuestion } = require(resolve(root, "js/questions.js"));
+const { UNIT_SONGS, YT_SONGS } = require(resolve(root, "js/data.js"));
+const YTCTX = { ytSongs: YT_SONGS, albums: ALBUMS, years: ALBUM_YEARS, n: 4, rng: Math.random };
 const MCTX = {
   members: MEMBERS, unitSongs: UNIT_SONGS, albums: ALBUMS, n: 4, rng: Math.random,
   memberName: (id) => (memberById[id] ? memberById[id].name : id),
@@ -168,6 +169,28 @@ test("questions: lyricist 정답은 크레딧 멤버, 오답은 비크레딧 멤
     for (const d of distractors) assert.ok(!names.includes(d), `오답이 크레딧 멤버임: ${d}`);
   }
   assert.ok(sawLyricist, "lyricist 유형이 한 번도 안 나옴");
+});
+
+test("YouTube 솔로곡: 데이터 무결성 + 문제 정답/오답 사실성", () => {
+  // 모든 YT 곡은 11자 영상 ID와 멤버 매핑을 가진다
+  for (const s of YT_SONGS) {
+    assert.match(s.yt, /^[\w-]{11}$/, `영상 ID 형식 오류: ${s.id}`);
+    assert.ok(memberById[s.member], `멤버 매핑 없음: ${s.id}`);
+    assert.ok(s.title && Number.isInteger(s.year));
+  }
+  const titles = new Set(YT_SONGS.map((s) => s.title));
+  for (let i = 0; i < 800; i++) {
+    const s = YT_SONGS[i % YT_SONGS.length];
+    const q = buildYtQuestion(s, YTCTX);
+    assert.ok(q.choices.includes(q.correct) && new Set(q.choices).size === q.choices.length);
+    if (q.typeId === "ytSong") {
+      assert.equal(q.correct, s.title, "곡 정답 불일치");
+      // 오답에 정답과 같은 곡이 중복되지 않음
+      assert.equal(q.choices.filter((c) => c === s.title).length, 1);
+    }
+    if (q.typeId === "ytYear") assert.equal(q.correct, String(s.year));
+  }
+  assert.ok(titles.size >= 4, "YT 곡이 4개 이상이어야 보기 구성이 안정적");
 });
 
 test("notInAlbum: 정답은 실제로 그 앨범 수록곡이 아님", () => {

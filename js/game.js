@@ -8,9 +8,10 @@
 (function () {
   "use strict";
 
-  const { ALBUMS, albumById, memberById, MEMBERS, ALBUM_YEARS, UNIT_SONGS } = window.SVTData;
+  const { ALBUMS, albumById, memberById, MEMBERS, ALBUM_YEARS, UNIT_SONGS, YT_SONGS } = window.SVTData;
   const { shuffle } = window.QuizLogic;
-  const { buildQuestion, buildMemberQuestion, availableMemberTypes } = window.QuizQuestions;
+  const { buildQuestion, buildMemberQuestion, availableMemberTypes, buildYtQuestion } = window.QuizQuestions;
+  const YTS = YT_SONGS || [];
   const I18N = window.I18N;
   const T = I18N.t; // UI 문자열(병기 i18n) — 내용은 setLocale 로 in-place 갱신됨
 
@@ -38,6 +39,10 @@
       members: MEMBERS, unitSongs: UNIT_SONGS, albums: ALBUMS, n: CONFIG.choices, rng,
       memberName: nameObj, nameOf,
     };
+  }
+  // 유튜브 솔로곡 문제 컨텍스트
+  function ytctx(rng) {
+    return { ytSongs: YTS, albums: ALBUMS, years: ALBUM_YEARS, n: CONFIG.choices, rng };
   }
   const LS = { theme: "svt-theme", ranking: "svt-ranking", name: "svt-name" };
 
@@ -118,7 +123,8 @@
     const memberCards = MEMBERS
       .filter((m) => availableMemberTypes(m, mctx(state.rng)).length >= 1)
       .map((m) => ({ kind: "member", ref: m }));
-    state.pool = albumCards.concat(memberCards);
+    const ytCards = YTS.map((s) => ({ kind: "yt", ref: s }));
+    state.pool = albumCards.concat(memberCards, ytCards);
 
     state.round = 0; state.score = 0; state.correct = 0; state.over = false; state.answers = [];
     el.score.textContent = "0";
@@ -178,10 +184,12 @@
     renderCardArt(card);
     updateHud();
 
-    // 카드당 1문제: 멤버 카드면 멤버 문제, 앨범 카드면 앨범 문제
+    // 카드당 1문제: 카드 종류에 맞는 문제 생성
     const q = card.kind === "member"
       ? buildMemberQuestion(card.ref, mctx(state.rng))
-      : buildQuestion(card.ref, qctx(state.rng));
+      : card.kind === "yt"
+        ? buildYtQuestion(card.ref, ytctx(state.rng))
+        : buildQuestion(card.ref, qctx(state.rng));
     renderQuestion(q);
 
     el.feedback.innerHTML = ""; el.feedback.className = "feedback";
@@ -204,16 +212,26 @@
     node.classList.add("enter");
   }
 
-  // ── 카드 렌더: 앨범(자켓) 또는 멤버(사진) ──
+  // 유튜브 썸네일 URL(고화질 → 실패 시 hq 로 폴백)
+  function ytThumb(id, q) {
+    return `https://img.youtube.com/vi/${id}/${q === "hq" ? "hqdefault" : "maxresdefault"}.jpg`;
+  }
+
+  // ── 카드 렌더: 앨범(자켓) / 멤버(사진) / 유튜브(MV 썸네일) ──
   function renderCardArt(card) {
     const stage = el["card-art"];
     el["btn-reload"].hidden = true;
     stage.classList.toggle("member", card.kind === "member");
+    stage.classList.toggle("yt", card.kind === "yt");
 
     if (card.kind === "member") {
       const m = card.ref;
       if (m.photo) mountImage(stage, m.photo, card);
       else showMemberPlaceholder(stage, m);
+      return;
+    }
+    if (card.kind === "yt") {
+      mountImage(stage, ytThumb(card.ref.yt, "maxres"), card);
       return;
     }
     // 앨범: 베이크 → 실시간 → 플레이스홀더
@@ -246,15 +264,22 @@
     stage.innerHTML = "";
     el["card-caption"].textContent = "";
     const isMember = card.kind === "member";
+    const isYt = card.kind === "yt";
     const img = document.createElement("img");
-    img.alt = isMember ? "멤버 사진" : "앨범 자켓";
+    img.alt = isYt ? "유튜브 뮤직비디오 썸네일" : isMember ? "멤버 사진" : "앨범 자켓";
     img.addEventListener("load", () => {
+      // 유튜브 maxres 미존재 시 회색 기본이미지(≤120px) → hqdefault 로 폴백
+      if (isYt && url.indexOf("maxresdefault") >= 0 && img.naturalWidth <= 120) {
+        if (isCurrent(card)) mountImage(stage, ytThumb(card.ref.yt, "hq"), card, retried);
+        return;
+      }
       img.classList.add("loaded"); stage.classList.remove("loading");
-      el["card-caption"].innerHTML = isMember ? "© Wikimedia Commons" : T.caption.loaded;
+      el["card-caption"].innerHTML = isYt ? "© YouTube" : isMember ? "© Wikimedia Commons" : T.caption.loaded;
       el["btn-reload"].hidden = true;
     });
     img.addEventListener("error", () => {
       if (!isCurrent(card)) return;
+      if (isYt && url.indexOf("maxresdefault") >= 0) { mountImage(stage, ytThumb(card.ref.yt, "hq"), card, retried); return; }
       if (!retried) { setTimeout(() => { if (isCurrent(card)) mountImage(stage, url, card, true); }, 700); return; }
       if (isMember) showMemberPlaceholder(stage, card.ref, true);
       else showPlaceholder(stage, card, true);
@@ -485,8 +510,19 @@
       cb(blob ? new File([blob], `svt-quiz-${todayKey()}.png`, { type: "image/png" }) : null);
     }, "image/png");
   }
-  function canShareFiles(file) {
-    return !!(navigator.canShare && file && navigator.canShare({ files: [file] }));
+  // Web Share: 이미지 + 설명 + 링크를 함께 공유(대상 앱이 지원하는 범위에서 최대치로).
+  // 파일 공유가 안 되면 최소한 텍스트+링크라도 공유되게 폴백한다.
+  async function webShare(file, text) {
+    const link = location.href;
+    const full = { files: [file], text, url: link };        // 이미지 + 텍스트 + 링크
+    const noFile = { text: text + "\n" + link, url: link };  // 파일 미지원 → 텍스트 + 링크
+    try {
+      if (file && navigator.canShare && navigator.canShare(full)) { await navigator.share(full); return true; }
+      if (navigator.share) { await navigator.share(noFile); return true; }
+    } catch (e) {
+      if (e && e.name === "AbortError") return true; // 사용자가 취소한 것은 성공으로 간주
+    }
+    return false;
   }
 
   // 간단 토스트 안내
@@ -514,12 +550,8 @@
     const res = state.lastRes || buildResultView();
     const text = T.share.native(res.tierText, res.scoreLine);
     resultFile(async (file) => {
-      if (navigator.share && canShareFiles(file)) {
-        try { await navigator.share({ files: [file], text }); } catch (e) { /* 취소 무시 */ }
-      } else {
-        downloadShare();
-        toast(T.share.fallback);
-      }
+      const ok = await webShare(file, text);
+      if (!ok) { downloadShare(); toast(T.share.fallback); }
     });
   }
 
@@ -535,14 +567,13 @@
     document.body.appendChild(a); a.click(); a.remove();
   }
 
-  // 인스타그램: 웹 게시 API가 없어 Web Share(모바일) 또는 저장+안내
+  // 인스타그램: 웹 게시 API가 없어 Web Share(모바일, 이미지+링크) 또는 저장+안내
   function instaShare() {
+    const res = state.lastRes || buildResultView();
+    const text = T.share.native(res.tierText, res.scoreLine);
     resultFile(async (file) => {
-      if (navigator.share && canShareFiles(file)) {
-        try { await navigator.share({ files: [file], text: "#SEVENTEEN #세븐틴 #앨범자켓퀴즈" }); return; } catch (e) {}
-      }
-      downloadShare();
-      toast(T.share.insta);
+      const ok = await webShare(file, text);
+      if (!ok) { downloadShare(); toast(T.share.insta); }
     });
   }
 
@@ -565,9 +596,8 @@
       } catch (e) {}
     }
     resultFile(async (file) => {
-      if (navigator.share && canShareFiles(file)) { try { await navigator.share({ files: [file], text: T.share.native(res.tierText, res.scoreLine) }); return; } catch (e) {} }
-      downloadShare();
-      toast(T.share.kakao);
+      const ok = await webShare(file, T.share.native(res.tierText, res.scoreLine));
+      if (!ok) { downloadShare(); toast(T.share.kakao); }
     });
   }
 
@@ -633,12 +663,9 @@
     el["btn-reload"].addEventListener("click", reloadArt);
     initKakao();
     show("screen-start");
-    // 접속 지역(IP) 기반 로케일 보정 — 시작화면에서만 적용
-    if (window.SVTGeo) {
-      window.SVTGeo.init((code) => {
-        if (el["screen-start"].classList.contains("active")) I18N.setLocale(code);
-      });
-    }
+    // 접속 지역(IP) 기반 로케일 보정 — IP가 브라우저 언어보다 우선(사용자가 직접 고른 경우 제외)
+    // 시작화면이면 정적 문구가 즉시 갱신되고, 플레이 중이면 다음 문제부터 반영됨.
+    if (window.SVTGeo) window.SVTGeo.init((code) => I18N.setLocale(code));
   }
 
   document.addEventListener("DOMContentLoaded", init);

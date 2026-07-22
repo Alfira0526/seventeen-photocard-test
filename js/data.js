@@ -175,6 +175,20 @@ ALBUMS.forEach((a) =>
 );
 Object.keys(UNIT_SONGS).forEach((u) => (UNIT_SONGS[u] = [...new Set(UNIT_SONGS[u])]));
 
+/**
+ * 유튜브 공개 솔로 곡(멤버 믹스테이프) — MV 썸네일을 문제로 낸다.
+ *  - yt      : 유튜브 영상 ID (썸네일 img.youtube.com/vi/<yt>/… 로 로드)
+ *  - member  : 솔로 아티스트(멤버 id) → '누구의 곡?' 문제/보기용
+ *  ✅ 영상 ID는 HYBE LABELS 공식 채널 MV 로 검증(YouTube Data API 확인).
+ *     출처 — youtube.com HYBE LABELS official MV.
+ */
+const YT_SONGS = [
+  { id: "yt_spider",  title: "Spider",    member: "hoshi",  year: 2021, yt: "eOOsAeOx5a0" },
+  { id: "yt_ruby",    title: "Ruby",      member: "woozi",  year: 2022, yt: "oV_2853N4n4" },
+  { id: "yt_blackeye", title: "Black Eye", member: "vernon", year: 2022, yt: "vPQasPdd6fI" },
+  { id: "yt_wait",    title: "Wait",      member: "dino",   year: 2023, yt: "J--BukW5BfQ" },
+];
+
 // ── 조회 헬퍼 ──
 const albumById = Object.fromEntries(ALBUMS.map((a) => [a.id, a]));
 const memberById = Object.fromEntries(MEMBERS.map((m) => [m.id, m]));
@@ -195,9 +209,9 @@ const ALBUM_YEARS = [...new Set(ALBUMS.map((a) => a.year))].sort((x, y) => x - y
 
 // 전역 노출
 if (typeof window !== "undefined") {
-  window.SVTData = { MEMBERS, ALBUMS, albumById, memberById, ALBUM_YEARS, UNIT_SONGS };
+  window.SVTData = { MEMBERS, ALBUMS, albumById, memberById, ALBUM_YEARS, UNIT_SONGS, YT_SONGS };
 }
 // Node(테스트/스크립트)에서 재사용
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { MEMBERS, ALBUMS, albumById, memberById, ALBUM_YEARS, UNIT_SONGS };
+  module.exports = { MEMBERS, ALBUMS, albumById, memberById, ALBUM_YEARS, UNIT_SONGS, YT_SONGS };
 }

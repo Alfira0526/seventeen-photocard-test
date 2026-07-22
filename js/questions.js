@@ -229,7 +229,39 @@
     return Object.assign({ typeId: ty.id, difficulty: ty.difficulty }, ty.make(m, c));
   }
 
-  const api = { TYPES, availableTypes, buildQuestion, MEMBER_TYPES, availableMemberTypes, buildMemberQuestion };
+  // ── 유튜브 솔로 MV 라운드(썸네일을 보고 곡/연도 맞히기) ──
+  const YT_TYPES = [
+    {
+      // 이 MV가 어떤 솔로곡인지 (오답: 다른 솔로곡 + 앨범 타이틀곡)
+      id: "ytSong", weight: 1.5, difficulty: 3,
+      available: (s, c) => Array.isArray(c.ytSongs) && c.ytSongs.length >= 1,
+      make: (s, c) => {
+        const pool = [];
+        (c.ytSongs || []).forEach((x) => { if (x.title !== s.title) pool.push(x.title); });
+        (c.albums || []).forEach((a) => { if (a.titleTrack) pool.push(a.titleTrack); });
+        const distract = L.shuffle([...new Set(pool)].filter((x) => x && x !== s.title), c.rng).slice(0, 3);
+        return { label: t.qyt.song, correct: s.title, note: t.note.yt,
+          choices: L.shuffle([s.title, ...distract], c.rng) };
+      },
+    },
+    {
+      // 이 솔로곡이 언제 나왔는지
+      id: "ytYear", weight: 1, difficulty: 2,
+      available: (s, c) => Array.isArray(c.ytSongs) && c.ytSongs.length >= 1,
+      make: (s, c) => ({
+        label: t.qyt.year, correct: String(s.year), note: t.note.yt,
+        choices: L.buildYearChoices(s.year, c.years, c.n, c.rng),
+      }),
+    },
+  ];
+  function availableYtTypes(s, c) { return YT_TYPES.filter((ty) => ty.available(s, c)); }
+  function buildYtQuestion(s, ctx) {
+    const c = Object.assign({ n: 4, rng: Math.random }, ctx);
+    const ty = weightedPick(availableYtTypes(s, c), c.rng);
+    return Object.assign({ typeId: ty.id, difficulty: ty.difficulty }, ty.make(s, c));
+  }
+
+  const api = { TYPES, availableTypes, buildQuestion, MEMBER_TYPES, availableMemberTypes, buildMemberQuestion, YT_TYPES, availableYtTypes, buildYtQuestion };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (root) root.QuizQuestions = api;
 })(typeof window !== "undefined" ? window : null);
