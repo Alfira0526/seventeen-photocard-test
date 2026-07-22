@@ -80,7 +80,8 @@
       "screen-start", "screen-play", "screen-result",
       "btn-restart", "btn-next", "btn-share", "btn-save", "btn-tweet", "btn-insta", "btn-kakao", "share-hint",
       "card-art", "card-caption", "btn-reload", "progress", "progress-fill", "score", "hud-mode", "hud-lives",
-      "rank-name", "btn-rank", "rank-list",
+      "rank-name", "btn-rank", "rank-list", "btn-home",
+      "hall", "hall-mode", "hall-list",
       "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
       "theme-toggle", "lang-select",
@@ -114,9 +115,17 @@
       <text x="200" y="360" text-anchor="middle" font-size="18" fill="rgba(255,255,255,0.5)" font-family="sans-serif">NO IMAGE · 자켓 미로드</text></svg>`;
   }
 
+  // 시작화면으로 복귀(+ 명예의 전당 갱신)
+  function goHome() {
+    stopTimer();
+    show("screen-start");
+    refreshHall();
+  }
+
   // ── 시작: 모드 선택 ──
   function startMode(mode) {
     stopTimer();
+    stopHall();
     state.mode = mode;
     state.rng = Math.random;
     const albumCards = ALBUMS.map((a) => ({ kind: "album", ref: a }));
@@ -445,30 +454,33 @@
     show("screen-result");
   }
 
-  // ── 랭킹(로컬 기기 저장) ──
+  // ── 랭킹(로컬 즉시 + 원격 공유 병합) — 등록한 모드의 순위만 노출 ──
+  const RANK = window.SVTRanking;
   function registerRank() {
     if (!state.lastRes) return;
     const name = (el["rank-name"].value || "익명").trim().slice(0, 12) || "익명";
     store.set(LS.name, name);
-    const list = store.get(LS.ranking, []);
     const entry = { name, score: state.lastRes.rankScore, mode: state.mode, ts: nowStamp() };
-    list.push(entry);
-    list.sort((a, b) => b.score - a.score);
-    store.set(LS.ranking, list.slice(0, 100));
     el["btn-rank"].disabled = true;
-    renderRankList(entry);
+    RANK.add(entry).then(() => renderRankList(entry));
+    renderRankList(entry); // 낙관적 즉시 반영
     toast(T.rank.saved);
   }
 
+  // 현재 모드의 순위만 그린다(로컬 즉시 → 원격 병합 시 갱신)
   function renderRankList(highlight) {
-    const list = store.get(LS.ranking, [])
-      .filter((e) => e.mode === state.mode)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10);
-    const unit = state.mode === "normal" ? "점" : "개";
-    el["rank-list"].innerHTML = list.length
-      ? list.map((e, i) => {
-          const me = highlight && e.ts === highlight.ts;
+    const mode = state.mode;
+    paintRankList(RANK.localList(mode), highlight, mode);
+    RANK.list(mode).then((list) => {
+      if (state.mode === mode) paintRankList(list, highlight, mode);
+    });
+  }
+  function paintRankList(list, highlight, mode) {
+    const top = list.slice(0, 10);
+    const unit = mode === "normal" ? "점" : "개";
+    el["rank-list"].innerHTML = top.length
+      ? top.map((e, i) => {
+          const me = highlight && e.ts === highlight.ts && e.name === highlight.name;
           return `<li class="${me ? "me" : ""}"><span class="rk">${i + 1}</span>` +
             `<span class="nm">${escapeHtml(e.name)}</span><span class="sc">${e.score}${unit}</span></li>`;
         }).join("")
@@ -476,6 +488,41 @@
   }
 
   function nowStamp() { try { return Date.now(); } catch (e) { return Math.random(); } }
+
+  // ── 명예의 전당(시작화면 롤링): 모드별 기록 10건 이상이면 노출 ──
+  const HALL_MIN = 10, MODES = ["normal", "endless", "timeattack"];
+  let hallTimer = null, hallModes = [], hallIdx = 0;
+  function stopHall() { if (hallTimer) { clearInterval(hallTimer); hallTimer = null; } }
+  function refreshHall() {
+    stopHall();
+    if (!RANK || !el["hall"]) return;
+    RANK.counts(MODES).then((counts) => {
+      hallModes = MODES.filter((m) => (counts[m] || 0) >= HALL_MIN);
+      if (!hallModes.length) { el["hall"].hidden = true; return; }
+      el["hall"].hidden = false;
+      hallIdx = 0;
+      showHallMode(hallModes[0]);
+      if (hallModes.length > 1) {
+        hallTimer = setInterval(() => {
+          hallIdx = (hallIdx + 1) % hallModes.length;
+          showHallMode(hallModes[hallIdx]);
+        }, 8000);
+      }
+    });
+  }
+  function showHallMode(mode) {
+    RANK.list(mode).then((all) => {
+      const list = all.slice(0, 10);
+      el["hall-mode"].textContent = T.hudMode[mode] || "";
+      const unit = mode === "normal" ? "점" : "개";
+      const rows = list.map((e, i) =>
+        `<li><span class="rk">${i + 1}</span><span class="nm">${escapeHtml(e.name)}</span>` +
+        `<span class="sc">${e.score}${unit}</span></li>`).join("");
+      // 마퀴: 항목을 두 번 이어붙여 끊김 없는 세로 스크롤
+      el["hall-list"].innerHTML = rows + rows;
+      el["hall-list"].style.animationDuration = Math.max(9, list.length * 1.6) + "s";
+    });
+  }
 
   // ── 공유 카드(canvas) ──
   function drawShareCard(res) {
@@ -648,11 +695,13 @@
     initTheme();
     buildLangUI();
     applyStatic();
-    I18N.onChange(() => { applyStatic(); syncLangUI(); });
+    I18N.onChange(() => { applyStatic(); syncLangUI(); refreshHall(); });
     document.querySelectorAll(".mode-btn").forEach((b) =>
       b.addEventListener("click", () => { if (!b.disabled) startMode(b.dataset.mode); }));
     el["btn-next"].addEventListener("click", nextRound);
-    el["btn-restart"].addEventListener("click", () => { stopTimer(); show("screen-start"); });
+    // 한 판 더: 방금 한 모드로 바로 재시작 / 처음으로: 시작화면 복귀
+    el["btn-restart"].addEventListener("click", () => { stopTimer(); startMode(state.mode); });
+    el["btn-home"].addEventListener("click", () => { stopTimer(); goHome(); });
     el["btn-rank"].addEventListener("click", registerRank);
     el["rank-name"].addEventListener("keydown", (e) => { if (e.key === "Enter") registerRank(); });
     el["btn-share"].addEventListener("click", shareMain);
@@ -662,7 +711,7 @@
     el["btn-kakao"].addEventListener("click", kakaoShare);
     el["btn-reload"].addEventListener("click", reloadArt);
     initKakao();
-    show("screen-start");
+    goHome();
     // 접속 지역(IP) 기반 로케일 보정 — IP가 브라우저 언어보다 우선(사용자가 직접 고른 경우 제외)
     // 시작화면이면 정적 문구가 즉시 갱신되고, 플레이 중이면 다음 문제부터 반영됨.
     if (window.SVTGeo) window.SVTGeo.init((code) => I18N.setLocale(code));

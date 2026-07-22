@@ -267,6 +267,25 @@ body {
 .rank-list .rk { width: 22px; text-align: center; font-weight: 800; color: var(--accent-2); }
 .rank-list .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .rank-list .sc { font-weight: 800; color: var(--text); }
+
+/* 명예의 전당(시작화면 롤링) */
+.hall { margin-top: 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--bg-soft); padding: 12px 14px; }
+.hall[hidden] { display: none; }
+.hall-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.hall-title { font-weight: 800; font-size: 14px; }
+.hall-mode { font-size: 12px; color: var(--accent-2); font-weight: 700; }
+.hall-viewport {
+  height: 150px; overflow: hidden; position: relative;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent);
+}
+.hall-list { list-style: none; margin: 0; padding: 0; animation: hallroll linear infinite; }
+.hall-list li { display: flex; align-items: center; gap: 10px; padding: 5px 4px; font-size: 14px; }
+.hall-list .rk { width: 20px; text-align: center; font-weight: 800; color: var(--accent-2); }
+.hall-list .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.hall-list .sc { font-weight: 800; color: var(--text); }
+@keyframes hallroll { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+@media (prefers-reduced-motion: reduce) { .hall-list { animation: none; } }
 .share-grid {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
   max-width: 440px; margin: 16px auto 0;

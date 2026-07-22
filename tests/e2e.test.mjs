@@ -30,6 +30,11 @@ async function withPage(fn, opts = {}) {
         Object.defineProperty(navigator, "language", { get: () => langs[0] });
       }, opts.languages);
     }
+    if (opts.seedRanking) {
+      await page.addInitScript((rows) => {
+        try { localStorage.setItem("svt-ranking", JSON.stringify(rows)); } catch (e) {}
+      }, opts.seedRanking);
+    }
     await page.goto(pageUrl);
     return await fn(page);
   } finally {
@@ -62,7 +67,7 @@ test("일반 모드: 완주 → 결과·공유카드 렌더", { skip: !chromium 
     });
     assert.ok(drawn, "공유 카드가 비어 있음");
     // 다시하기 → 시작화면 복귀
-    await page.click("#btn-restart");
+    await page.click("#btn-home");
     await page.waitForSelector("#screen-start.active");
   });
 });
@@ -138,18 +143,52 @@ test("다국어: 영어 선택 시 단일 언어(병기 없음)", { skip: !chrom
     const tagHtml = await page.$eval('[data-i18n="tagline"]', (e) => e.innerHTML);
     assert.doesNotMatch(tagHtml, /i18n-sub/, "영어 단일인데 병기 스팬이 있음");
     const modeT = await page.textContent('[data-i18n="modeNormalT"]');
-    assert.match(modeT, /One Round/);
+    assert.match(modeT, /Quick Round/);
   });
 });
 
-test("다시 하기: 결과에서 시작화면으로 복귀", { skip: !chromium }, async () => {
+test("한 판 더: 방금 한 모드로 바로 재시작(플레이 화면)", { skip: !chromium }, async () => {
   await withPage(async (page) => {
     await page.click('.mode-btn[data-mode="normal"]');
     await playThrough(page);
     await page.click("#btn-restart");
+    await page.waitForSelector("#screen-play.active"); // 시작화면이 아니라 곧장 재시작
+    const progress = await page.textContent("#progress");
+    assert.match(progress, /1 \/ 20/);
+  });
+});
+
+test("처음으로: 결과에서 시작화면으로 복귀 + 모드 3개", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.click('.mode-btn[data-mode="normal"]');
+    await playThrough(page);
+    await page.click("#btn-home");
     await page.waitForSelector("#screen-start.active");
-    // 모드 버튼은 3개(일반/무한/타임어택)여야 함
     const modes = await page.$$eval(".mode-btn", (els) => els.map((e) => e.dataset.mode));
     assert.deepEqual(modes.sort(), ["endless", "normal", "timeattack"]);
   });
+});
+
+test("명예의 전당: 모드 기록 10건 이상이면 시작화면에 롤링 노출", { skip: !chromium }, async () => {
+  const seed = Array.from({ length: 12 }, (_, i) => ({
+    name: `caret${i}`, score: 100 - i * 3, mode: "normal", ts: 1000 + i,
+  }));
+  await withPage(async (page) => {
+    await page.waitForSelector("#screen-start.active");
+    await page.waitForSelector("#hall:not([hidden])", { timeout: 4000 });
+    const items = await page.$$eval("#hall-list li", (els) => els.length);
+    assert.ok(items >= 10, `롤링 목록이 비었음(${items})`);
+    const hallMode = await page.textContent("#hall-mode");
+    assert.match(hallMode, /일반|Normal|通常|普通|Normal/);
+  }, { seedRanking: seed, languages: ["ko-KR", "ko"] });
+});
+
+test("명예의 전당: 기록 10건 미만이면 숨김", { skip: !chromium }, async () => {
+  const seed = Array.from({ length: 5 }, (_, i) => ({ name: `x${i}`, score: 50, mode: "normal", ts: i }));
+  await withPage(async (page) => {
+    await page.waitForSelector("#screen-start.active");
+    await page.waitForTimeout(500);
+    const hidden = await page.$eval("#hall", (e) => e.hidden);
+    assert.ok(hidden, "기록이 적은데 명예의 전당이 보임");
+  }, { seedRanking: seed });
 });

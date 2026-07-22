@@ -66,6 +66,17 @@
               <small data-i18n="modeTimeS">60초 안에 최대한 · 목숨 3개</small>
             </button>
           </div>
+
+          <!-- 명예의 전당: 모드별 기록 10건 이상이면 롤링 노출 -->
+          <section id="hall" class="hall" hidden>
+            <div class="hall-head">
+              <span class="hall-title" data-i18n="hallTitle">🏆 명예의 전당</span>
+              <span class="hall-mode" id="hall-mode"></span>
+            </div>
+            <div class="hall-viewport">
+              <ol id="hall-list" class="hall-list"></ol>
+            </div>
+          </section>
         </div>
       </section>
 
@@ -114,6 +125,7 @@
           <div class="result-actions">
             <button id="btn-share" class="btn primary" data-i18n="shareBtn">📤 공유하기</button>
             <button id="btn-restart" class="btn ghost" data-i18n="restartBtn">한 판 더!</button>
+            <button id="btn-home" class="btn ghost" data-i18n="homeBtn">처음으로</button>
           </div>
           <div class="share-grid">
             <button id="btn-save" class="share-btn" type="button"><span class="ic">🖼️</span><span data-i18n="saveBtn">이미지 저장</span></button>
@@ -140,6 +152,8 @@
     <script src="js/memberPhotos.js"></script>
     <script src="js/i18n.js"></script>
     <script src="js/geo.js"></script>
+    <script src="js/ranking-config.js"></script>
+    <script src="js/ranking.js"></script>
     <script src="js/logic.js"></script>
     <script src="js/data.js"></script>
     <script src="js/questions.js"></script>
