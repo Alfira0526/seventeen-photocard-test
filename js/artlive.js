@@ -97,5 +97,11 @@
     });
   }
 
-  window.SVTArtLive = { get, prefetch };
+  // 캐시/진행 요청을 비워 다음 get()이 새로 시도하게 함(수동 재로딩용)
+  function reload(album) {
+    delete cache[album.id];
+    delete pending[album.id];
+  }
+
+  window.SVTArtLive = { get, prefetch, reload };
 })();

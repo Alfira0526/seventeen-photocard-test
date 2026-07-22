@@ -26,7 +26,7 @@
         correct: "🎉 정답!",
         wrong: "아쉬워요, 오답!",
       },
-      next: { result: "결과 보기", more: "다음 자켓 →" },
+      next: { result: "결과 보기", more: "다음 문제 →" },
       caption: {
         loaded: "© 저작권자 · Apple Music",
         error: "자켓을 표시하지 못했어요 · 자켓 상상 모드",

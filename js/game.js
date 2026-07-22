@@ -50,7 +50,7 @@
     [
       "screen-start", "screen-play", "screen-result",
       "btn-restart", "btn-next", "btn-share", "btn-tweet", "btn-review",
-      "card-art", "card-caption", "progress", "score", "hud-mode",
+      "card-art", "card-caption", "btn-reload", "progress", "score", "hud-mode",
       "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
       "theme-toggle", "mode-review", "review-sub", "daily-sub",
@@ -123,11 +123,23 @@
     el.feedback.textContent = ""; el.feedback.className = "feedback";
     el["btn-next"].disabled = true;
     el["btn-next"].textContent = state.round + 1 === state.deck.length ? T.next.result : T.next.more;
+
+    // 문제 이동 모션: 카드/문제를 부드럽게 다시 등장시킴
+    enterMotion(el["card-art"]);
+    enterMotion(el["question"]);
+  }
+
+  // 애니메이션 재시작(클래스 제거 → 리플로 → 재부여)
+  function enterMotion(node) {
+    node.classList.remove("enter");
+    void node.offsetWidth;
+    node.classList.add("enter");
   }
 
   // ── 자켓 렌더: 베이크(album.art) → 실시간(SVTArtLive) → 플레이스홀더 순 ──
   function renderArt(album) {
     const stage = el["card-art"];
+    el["btn-reload"].hidden = true; // 로딩 시작 시 재로딩 버튼 숨김
     if (album.art) { mountImage(stage, album.art, album); return; }
 
     // 실시간 로딩 시도: 스켈레톤 표시 후 URL 도착 시 교체
@@ -143,6 +155,14 @@
     });
   }
 
+  // 재로딩 버튼: 캐시를 비우고 현재 카드 자켓을 다시 시도
+  function reloadArt() {
+    const album = state.deck[state.round];
+    if (!album) return;
+    if (window.SVTArtLive && window.SVTArtLive.reload) window.SVTArtLive.reload(album);
+    renderArt(album);
+  }
+
   function isCurrent(album) { return state.deck[state.round] === album; }
 
   function mountImage(stage, url, album, retried) {
@@ -151,7 +171,7 @@
     el["card-caption"].textContent = "";
     const img = document.createElement("img");
     img.alt = "앨범 자켓";
-    img.addEventListener("load", () => { img.classList.add("loaded"); stage.classList.remove("loading"); el["card-caption"].textContent = T.caption.loaded; });
+    img.addEventListener("load", () => { img.classList.add("loaded"); stage.classList.remove("loading"); el["card-caption"].textContent = T.caption.loaded; el["btn-reload"].hidden = true; });
     img.addEventListener("error", () => {
       if (!isCurrent(album)) return; // 이미 다음 라운드면 무시
       if (!retried) setTimeout(() => { if (isCurrent(album)) mountImage(stage, url, album, true); }, 700);
@@ -165,6 +185,7 @@
     stage.classList.remove("loading");
     stage.innerHTML = placeholderArt(album);
     el["card-caption"].textContent = isError ? T.caption.error : T.caption.noArt;
+    el["btn-reload"].hidden = false; // 실패 시 재로딩 버튼 노출
   }
 
   // 단일 문제 렌더(label 은 HTML 허용, 보기는 이스케이프)
@@ -337,6 +358,7 @@
     el["btn-share"].addEventListener("click", downloadShare);
     el["btn-tweet"].addEventListener("click", tweetShare);
     el["btn-review"].addEventListener("click", () => startMode("review"));
+    el["btn-reload"].addEventListener("click", reloadArt);
     refreshStart();
     show("screen-start");
   }
