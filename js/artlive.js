@@ -11,10 +11,10 @@
 (function () {
   "use strict";
 
-  const cache = {}; // id -> url|null (완료)
-  const pending = {}; // id -> Promise
+  const cache = {}; // id -> url (성공만 캐시. 실패는 캐시하지 않아 다음에 재시도)
+  const pending = {}; // id -> Promise (동시 중복 요청 방지)
   const COUNTRY = "kr";
-  const TIMEOUT = 6000;
+  const TIMEOUT = 8000;
 
   const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9가-힣]+/g, "");
   function similarity(a, b) {
@@ -53,24 +53,49 @@
     return bestScore >= 0.45 && best ? best : null;
   }
 
-  async function search(album) {
-    const term = "SEVENTEEN " + (album.itunes || album.title);
-    const url = "https://itunes.apple.com/search?" +
+  function searchUrl(term) {
+    return "https://itunes.apple.com/search?" +
       new URLSearchParams({ term, entity: "album", country: COUNTRY, limit: "20" });
-    const data = await jsonp(url);
-    const match = pickBest(album, (data && data.results) || []);
-    return match ? hi(match.artworkUrl100) : null;
   }
 
-  // album -> Promise<url|null>. 앨범별 1회만 요청하고 캐시.
+  // 네트워크 오류만 1회 재시도(매칭 실패는 재시도 무의미)
+  async function fetchResults(term) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try { const data = await jsonp(searchUrl(term)); return (data && data.results) || []; }
+      catch (e) { if (attempt === 1) return null; }
+    }
+    return null;
+  }
+
+  // 검색어를 바꿔가며(힌트 → 제목) 매칭 시도
+  async function resolve(album) {
+    const terms = [];
+    if (album.itunes) terms.push("SEVENTEEN " + album.itunes);
+    terms.push("SEVENTEEN " + album.title);
+    for (const term of terms) {
+      const results = await fetchResults(term);
+      if (results) { const m = pickBest(album, results); if (m) return hi(m.artworkUrl100); }
+    }
+    return null;
+  }
+
+  // album -> Promise<url|null>. 성공한 URL만 캐시(실패는 다음에 재시도), 동시요청은 dedup.
   function get(album) {
-    if (album.id in cache) return Promise.resolve(cache[album.id]);
+    if (cache[album.id]) return Promise.resolve(cache[album.id]);
     if (pending[album.id]) return pending[album.id];
-    pending[album.id] = search(album)
-      .then((u) => { cache[album.id] = u || null; delete pending[album.id]; return cache[album.id]; })
-      .catch(() => { cache[album.id] = null; delete pending[album.id]; return null; });
+    pending[album.id] = resolve(album)
+      .then((u) => { if (u) cache[album.id] = u; delete pending[album.id]; return u || null; })
+      .catch(() => { delete pending[album.id]; return null; });
     return pending[album.id];
   }
 
-  window.SVTArtLive = { get };
+  // 덱 프리페치: 시작 시 미리 불러와 라운드 도달 전에 준비(레이트리밋 회피 위해 stagger)
+  function prefetch(albums) {
+    (albums || []).forEach((al, i) => {
+      if (!al || al.art || cache[al.id]) return;
+      setTimeout(() => { get(al); }, i * 180);
+    });
+  }
+
+  window.SVTArtLive = { get, prefetch };
 })();

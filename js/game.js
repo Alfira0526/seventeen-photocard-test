@@ -103,6 +103,8 @@
     state.round = 0; state.score = 0; state.displayScore = 0; state.answers = [];
     el.score.textContent = "0";
     el["hud-mode"].textContent = T.hudMode[mode] || "";
+    // 자켓을 미리 불러와 라운드 도달 전에 준비(로딩 실패·지연 완화)
+    if (window.SVTArtLive && window.SVTArtLive.prefetch) window.SVTArtLive.prefetch(state.deck);
     show("screen-play");
     renderRound();
   }
@@ -141,14 +143,20 @@
     });
   }
 
-  function mountImage(stage, url, album) {
+  function isCurrent(album) { return state.deck[state.round] === album; }
+
+  function mountImage(stage, url, album, retried) {
     stage.classList.add("loading");
     stage.innerHTML = "";
     el["card-caption"].textContent = "";
     const img = document.createElement("img");
     img.alt = "앨범 자켓";
     img.addEventListener("load", () => { img.classList.add("loaded"); stage.classList.remove("loading"); el["card-caption"].textContent = T.caption.loaded; });
-    img.addEventListener("error", () => { showPlaceholder(stage, album, true); });
+    img.addEventListener("error", () => {
+      if (!isCurrent(album)) return; // 이미 다음 라운드면 무시
+      if (!retried) setTimeout(() => { if (isCurrent(album)) mountImage(stage, url, album, true); }, 700);
+      else showPlaceholder(stage, album, true);
+    });
     img.src = url;
     stage.appendChild(img);
   }
@@ -293,8 +301,18 @@
   function tweetShare() {
     const st = computeStats();
     const text = T.share.tweet(st.tier, state.score, st.pct);
+    // 이미지는 인텐트로 첨부 불가 → 카드 PNG를 먼저 내려받아 첨부에 쓰도록 안내
+    downloadShare();
+    // features 문자열을 주면 브라우저가 '작은 팝업'으로 열어 로그인이 불편함.
+    // anchor 클릭으로 '정상 탭'을 연다(팝업 차단·로그인 세션 문제 회피).
     const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text);
-    window.open(url, "_blank", "noopener");
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   }
 
   // ── 시작화면 상태 갱신(복습 가능 여부, 데일리 완료 표시) ──

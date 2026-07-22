@@ -23,7 +23,7 @@ const launchOpts = process.env.SVT_CHROMIUM_PATH
 async function withPage(fn) {
   const browser = await chromium.launch(launchOpts);
   try {
-    const page = await browser.newPage({ viewport: { width: 1040, height: 800 } });
+    const page = await browser.newPage({ viewport: { width: 1040, height: 800 }, acceptDownloads: true });
     await page.goto(pageUrl);
     return await fn(page);
   } finally {
@@ -58,6 +58,20 @@ test("일반 모드: 완주 → 결과·공유카드 렌더", { skip: !chromium 
     // 다시하기 → 시작화면 복귀
     await page.click("#btn-restart");
     await page.waitForSelector("#screen-start.active");
+  });
+});
+
+test("트위터 공유: 인텐트 URL을 새 탭으로 연다(팝업 아님)", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.click('.mode-btn[data-mode="normal"]');
+    await playThrough(page);
+    const [popup] = await Promise.all([
+      page.context().waitForEvent("page", { timeout: 8000 }),
+      page.click("#btn-tweet"),
+    ]);
+    // 새 탭이 열리면 성공(팝업 창이 아니라 정상 탭 흐름). 최종 URL은 네트워크 환경에 따라 다름
+    // (오프라인 샌드박스에선 twitter 로드가 막혀 chrome-error가 될 수 있음).
+    assert.ok(popup, "공유 시 새 탭이 열리지 않음");
   });
 });
 

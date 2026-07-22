@@ -189,6 +189,7 @@ body {
 .result-detail .tier { font-size: 26px; font-weight: 800; margin: 0 0 6px; }
 .result-detail .pct { color: var(--muted); margin: 0 0 18px; }
 .result-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 6px; }
+.share-hint { color: var(--muted); font-size: 13px; margin: 14px 0 0; }
 #result-canvas { display: none; }
 
 /* 푸터 */
