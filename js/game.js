@@ -7,17 +7,24 @@
 (function () {
   "use strict";
 
-  const { ALBUMS, albumById, memberById, MEMBERS, ALBUM_YEARS } = window.SVTData;
+  const { ALBUMS, albumById, memberById, MEMBERS, ALBUM_YEARS, UNIT_SONGS } = window.SVTData;
   const { shuffle, tierFor } = window.QuizLogic;
-  const { buildQuestion } = window.QuizQuestions;
+  const { buildQuestion, buildMemberQuestion, availableMemberTypes } = window.QuizQuestions;
   const T = window.I18N.t; // UI 문자열(i18n-lite)
 
   const CONFIG = { rounds: 20, pointsPerCorrect: 10, choices: 4 };
 
-  // 문제 생성에 넘길 컨텍스트(카드당 1문제, 랜덤 유형)
+  // 앨범 문제 컨텍스트
   function qctx(rng) {
     return {
       albums: ALBUMS, years: ALBUM_YEARS, members: MEMBERS, n: CONFIG.choices, rng,
+      memberName: (id) => (memberById[id] ? memberById[id].name : id),
+    };
+  }
+  // 멤버 문제 컨텍스트
+  function mctx(rng) {
+    return {
+      members: MEMBERS, unitSongs: UNIT_SONGS, albums: ALBUMS, n: CONFIG.choices, rng,
       memberName: (id) => (memberById[id] ? memberById[id].name : id),
     };
   }
@@ -87,13 +94,14 @@
   // ── 시작: 모드 선택 ──
   function startMode(mode) {
     state.mode = mode;
-    if (mode === "daily") {
-      state.rng = mulberry32(hashStr("svt-daily-" + todayKey()));
-      state.deck = shuffle(ALBUMS, state.rng).slice(0, Math.min(CONFIG.rounds, ALBUMS.length));
-    } else {
-      state.rng = Math.random;
-      state.deck = shuffle(ALBUMS, state.rng).slice(0, Math.min(CONFIG.rounds, ALBUMS.length));
-    }
+    state.rng = mode === "daily" ? mulberry32(hashStr("svt-daily-" + todayKey())) : Math.random;
+    // 덱 = 앨범 카드 + 멤버 카드(문제 낼 수 있는 멤버만) 섞기
+    const albumCards = ALBUMS.map((a) => ({ kind: "album", ref: a }));
+    const memberCards = MEMBERS
+      .filter((m) => availableMemberTypes(m, mctx(state.rng)).length >= 1)
+      .map((m) => ({ kind: "member", ref: m }));
+    const pool = albumCards.concat(memberCards);
+    state.deck = shuffle(pool, state.rng).slice(0, Math.min(CONFIG.rounds, pool.length));
     state.round = 0; state.score = 0; state.displayScore = 0; state.answers = [];
     el.score.textContent = "0";
     el["hud-mode"].textContent = T.hudMode[mode] || "";
@@ -103,25 +111,26 @@
 
   // ── 라운드 렌더 ──
   function renderRound() {
-    const album = state.deck[state.round];
-    renderArt(album);
+    const card = state.deck[state.round];
+    renderCardArt(card);
 
     el.progress.textContent = `${state.round + 1} / ${state.deck.length}`;
     el["progress-fill"].style.width = `${((state.round + 1) / state.deck.length) * 100}%`;
 
-    // 카드당 1문제: 이 앨범에서 가능한 유형 중 랜덤 출제
-    const q = buildQuestion(album, qctx(state.rng));
+    // 카드당 1문제: 멤버 카드면 멤버 문제, 앨범 카드면 앨범 문제
+    const q = card.kind === "member"
+      ? buildMemberQuestion(card.ref, mctx(state.rng))
+      : buildQuestion(card.ref, qctx(state.rng));
     renderQuestion(q);
 
     el.feedback.textContent = ""; el.feedback.className = "feedback";
     el["btn-next"].disabled = true;
     el["btn-next"].textContent = state.round + 1 === state.deck.length ? T.next.result : T.next.more;
 
-    // 다음 카드 자켓만 미리 살짝 데워둠(레이트리밋 회피: 한 번에 최대 1장 선로딩)
-    const nextAlbum = state.deck[state.round + 1];
-    if (nextAlbum && !nextAlbum.art && window.SVTArtLive) window.SVTArtLive.get(nextAlbum);
+    // 다음 앨범 카드 자켓만 미리 살짝 데워둠(레이트리밋 회피)
+    const next = state.deck[state.round + 1];
+    if (next && next.kind === "album" && !next.ref.art && window.SVTArtLive) window.SVTArtLive.get(next.ref);
 
-    // 문제 이동 모션: 카드/문제를 부드럽게 다시 등장시킴
     enterMotion(el["card-art"]);
     enterMotion(el["question"]);
   }
@@ -133,56 +142,87 @@
     node.classList.add("enter");
   }
 
-  // ── 자켓 렌더: 베이크(album.art) → 실시간(SVTArtLive) → 플레이스홀더 순 ──
-  function renderArt(album) {
+  // ── 카드 렌더: 앨범(자켓) 또는 멤버(사진) ──
+  function renderCardArt(card) {
     const stage = el["card-art"];
-    el["btn-reload"].hidden = true; // 로딩 시작 시 재로딩 버튼 숨김
-    if (album.art) { mountImage(stage, album.art, album); return; }
+    el["btn-reload"].hidden = true;
+    stage.classList.toggle("member", card.kind === "member");
 
-    // 실시간 로딩 시도: 스켈레톤 표시 후 URL 도착 시 교체
+    if (card.kind === "member") {
+      const m = card.ref;
+      if (m.photo) mountImage(stage, m.photo, card);
+      else showMemberPlaceholder(stage, m);
+      return;
+    }
+    // 앨범: 베이크 → 실시간 → 플레이스홀더
+    const album = card.ref;
+    if (album.art) { mountImage(stage, album.art, card); return; }
     stage.classList.add("loading");
     stage.innerHTML = "";
     el["card-caption"].textContent = "";
     const live = window.SVTArtLive;
-    if (!live) { showPlaceholder(stage, album); return; }
+    if (!live) { showPlaceholder(stage, card); return; }
     live.get(album).then((url) => {
-      if (state.deck[state.round] !== album) return; // 이미 다음 라운드면 무시
-      if (url) mountImage(stage, url, album);
-      else showPlaceholder(stage, album);
+      if (state.deck[state.round] !== card) return;
+      if (url) mountImage(stage, url, card);
+      else showPlaceholder(stage, card);
     });
   }
 
-  // 재로딩 버튼: 캐시를 비우고 현재 카드 자켓을 다시 시도
+  // 재로딩 버튼: 현재 카드 이미지를 다시 시도
   function reloadArt() {
-    const album = state.deck[state.round];
-    if (!album) return;
-    if (window.SVTArtLive && window.SVTArtLive.reload) window.SVTArtLive.reload(album);
-    renderArt(album);
+    const card = state.deck[state.round];
+    if (!card) return;
+    if (card.kind === "album" && window.SVTArtLive && window.SVTArtLive.reload) window.SVTArtLive.reload(card.ref);
+    renderCardArt(card);
   }
 
-  function isCurrent(album) { return state.deck[state.round] === album; }
+  function isCurrent(card) { return state.deck[state.round] === card; }
 
-  function mountImage(stage, url, album, retried) {
+  function mountImage(stage, url, card, retried) {
     stage.classList.add("loading");
     stage.innerHTML = "";
     el["card-caption"].textContent = "";
+    const isMember = card.kind === "member";
     const img = document.createElement("img");
-    img.alt = "앨범 자켓";
-    img.addEventListener("load", () => { img.classList.add("loaded"); stage.classList.remove("loading"); el["card-caption"].textContent = T.caption.loaded; el["btn-reload"].hidden = true; });
+    img.alt = isMember ? "멤버 사진" : "앨범 자켓";
+    img.addEventListener("load", () => {
+      img.classList.add("loaded"); stage.classList.remove("loading");
+      el["card-caption"].textContent = isMember ? "© Wikimedia Commons" : T.caption.loaded;
+      el["btn-reload"].hidden = true;
+    });
     img.addEventListener("error", () => {
-      if (!isCurrent(album)) return; // 이미 다음 라운드면 무시
-      if (!retried) setTimeout(() => { if (isCurrent(album)) mountImage(stage, url, album, true); }, 700);
-      else showPlaceholder(stage, album, true);
+      if (!isCurrent(card)) return;
+      if (!retried) { setTimeout(() => { if (isCurrent(card)) mountImage(stage, url, card, true); }, 700); return; }
+      if (isMember) showMemberPlaceholder(stage, card.ref, true);
+      else showPlaceholder(stage, card, true);
     });
     img.src = url;
     stage.appendChild(img);
   }
 
-  function showPlaceholder(stage, album, isError) {
+  function showPlaceholder(stage, card, isError) {
     stage.classList.remove("loading");
-    stage.innerHTML = placeholderArt(album);
+    stage.innerHTML = placeholderArt(card.ref);
     el["card-caption"].textContent = isError ? T.caption.error : T.caption.noArt;
-    el["btn-reload"].hidden = false; // 실패 시 재로딩 버튼 노출
+    el["btn-reload"].hidden = false;
+  }
+
+  // 멤버 사진이 없을 때: 유닛 컬러 그라데이션 + 멤버 이름 아바타
+  const UNIT_HUE = { vocal: 210, hiphop: 275, performance: 340 };
+  function showMemberPlaceholder(stage, m, isError) {
+    stage.classList.remove("loading");
+    const hue = UNIT_HUE[m.unit] != null ? UNIT_HUE[m.unit] : 260;
+    stage.innerHTML =
+      `<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="멤버">
+        <defs><linearGradient id="mg" gradientTransform="rotate(60)">
+        <stop offset="0%" stop-color="hsl(${hue} 65% 55%)"/><stop offset="100%" stop-color="hsl(${(hue + 30) % 360} 60% 32%)"/>
+        </linearGradient></defs><rect width="400" height="400" fill="url(#mg)"/>
+        <circle cx="200" cy="160" r="70" fill="rgba(255,255,255,0.18)"/>
+        <rect x="120" y="250" width="160" height="90" rx="80" fill="rgba(255,255,255,0.15)"/>
+        <text x="200" y="380" text-anchor="middle" font-size="30" font-weight="700" fill="#fff" font-family="sans-serif">${escapeHtml(m.name)}</text></svg>`;
+    el["card-caption"].textContent = isError ? "사진을 못 불러왔어요" : "";
+    el["btn-reload"].hidden = !isError;
   }
 
   // 단일 문제 렌더(label 은 HTML 허용, 보기는 이스케이프)
@@ -229,8 +269,7 @@
   }
 
   function finishRound(isCorrect) {
-    const album = state.deck[state.round];
-    state.answers.push({ albumId: album.id, correct: isCorrect });
+    state.answers.push({ correct: isCorrect });
     el.feedback.textContent = isCorrect ? T.feedback.correct : T.feedback.wrong;
     el.feedback.className = "feedback " + (isCorrect ? "good" : "mid");
     el["btn-next"].disabled = false; el["btn-next"].focus();

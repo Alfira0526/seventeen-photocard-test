@@ -16,6 +16,7 @@ on:
       - "js/data.js"
       - "scripts/fetch-art.mjs"
       - "scripts/detect-title.mjs"
+      - "scripts/fetch-members.mjs"
       - ".github/workflows/fetch-art.yml"
 
 permissions:
@@ -48,15 +49,18 @@ jobs:
       - name: Detect album title on cover (OCR) → js/coverMeta.js
         run: node scripts/detect-title.mjs
 
+      - name: Fetch member photos (Wikimedia Commons) → js/memberPhotos.js
+        run: node scripts/fetch-members.mjs
+
       - name: Commit baked files if changed
         run: |
-          if [ -n "$(git status --porcelain js/albumArt.js js/coverMeta.js)" ]; then
+          if [ -n "$(git status --porcelain js/albumArt.js js/coverMeta.js js/memberPhotos.js)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add js/albumArt.js js/coverMeta.js
-            git commit -m "chore: bake album cover URLs + title-on-cover flags [skip ci]"
+            git add js/albumArt.js js/coverMeta.js js/memberPhotos.js
+            git commit -m "chore: bake covers + title flags + member photos [skip ci]"
             git push
-            echo "✅ albumArt.js / coverMeta.js updated"
+            echo "✅ baked files updated"
           else
             echo "ℹ️ No changes"
           fi

@@ -15,6 +15,16 @@
         notInAlbum: "이 중에 이 앨범 수록곡이 <b>아닌</b> 건?",
         lyricist: (track) => `‘${track}’ 작사에 참여한 멤버는 누구일까요?`,
         unitSong: (unit) => `이 앨범에서 <b>${unit} 유닛</b>이 부른 곡, 뭘까요?`,
+        albumType: "이 앨범, 어떤 유형일까요?",
+        albumNumber: "이 앨범, 몇 집일까요?",
+        laterAlbum: "이 앨범보다 <b>나중에</b> 나온 건?",
+      },
+      // 멤버 사진 라운드
+      qm: {
+        unitSong: (name) => `<b>${name}</b>가 부른 <b>유닛곡</b>은?`,
+        notSong: (name) => `<b>${name}</b>가 부르지 <b>않은</b> 곡은?`,
+        roster: (name) => `<b>${name}</b>와 <b>다른 유닛</b>인 멤버는?`,
+        lyricist: (name) => `<b>${name}</b>가 <b>작사</b>한 타이틀곡은?`,
       },
       unit: { vocal: "보컬", hiphop: "힙합", performance: "퍼포먼스" },
       difficulty: {
@@ -27,6 +37,10 @@
         notInAlbum: "살짝 힌트! 나머지 셋은 이 앨범에 담긴 곡이에요.",
         lyricist: "살짝 힌트! 세븐틴은 멤버가 직접 작사에 참여해요.",
         unitSong: "살짝 힌트! 유닛곡은 앨범 안에 숨어 있어요.",
+        laterAlbum: "살짝 힌트! 나머지 셋은 이 앨범보다 먼저 나왔어요.",
+        memberNot: "살짝 힌트! 유닛곡은 그 유닛 멤버만 불러요.",
+        roster: "살짝 힌트! 보컬·힙합·퍼포먼스 유닛으로 나뉘어요.",
+        mlyric: "살짝 힌트! 나머지 셋은 이 멤버가 작사에 참여하지 않았어요.",
       },
       feedback: {
         correct: "딩동댕, 맞았어요! 🎉",

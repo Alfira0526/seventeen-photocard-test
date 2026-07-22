@@ -145,6 +145,7 @@ body {
   overflow: hidden; box-shadow: var(--shadow); background: var(--card); position: relative;
 }
 .card-art svg, .card-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-art.member { box-shadow: 0 10px 30px rgba(123, 92, 255, 0.35); }
 /* 이미지 블러업: 로드 완료 전 흐릿→선명 */
 .card-art img { opacity: 0; filter: blur(12px); transition: opacity 0.4s ease, filter 0.4s ease; }
 .card-art img.loaded { opacity: 1; filter: blur(0); }
@@ -164,6 +165,7 @@ body {
   font-family: inherit;
 }
 .btn-reload:hover { transform: translateY(-1px); border-color: var(--accent); }
+.btn-reload[hidden] { display: none; }
 
 /* 문제 이동 모션(카드/문제 등장) — 깔끔한 페이드+살짝 상승 */
 .card-art.enter, .question.enter { animation: enter 0.3s cubic-bezier(0.22, 1, 0.36, 1); }

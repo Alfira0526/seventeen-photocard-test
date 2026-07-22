@@ -88,7 +88,53 @@
           choices: L.shuffle([correct, ...distract], c.rng) };
       },
     },
+    // ── A1: 앨범 유형(카테고리) ──
+    {
+      id: "albumType", weight: 1, difficulty: 2, available: () => true,
+      make: (al, c) => {
+        const correct = categoryOf(al.type);
+        const pool = [...new Set(c.albums.map((a) => categoryOf(a.type)))].filter((x) => x !== correct);
+        return { label: t.q.albumType, correct,
+          choices: L.shuffle([correct, ...L.shuffle(pool, c.rng).slice(0, 3)], c.rng) };
+      },
+    },
+    // ── A4: 몇 집 (미니/정규 N집) ──
+    {
+      id: "albumNumber", weight: 1.2, difficulty: 3,
+      available: (al) => /(미니|정규)\s*\d+집/.test(al.type),
+      make: (al, c) => {
+        const cat = categoryOf(al.type);
+        const pool = [...new Set(c.albums.map((a) => a.type))]
+          .filter((x) => x !== al.type && /(미니|정규)\s*\d+집/.test(x));
+        // 같은 카테고리(미니/정규) 오답 우선
+        const ranked = pool.sort((a, b) =>
+          (categoryOf(b) === cat) - (categoryOf(a) === cat) || (c.rng() - 0.5));
+        return { label: t.q.albumNumber, correct: al.type,
+          choices: L.shuffle([al.type, ...ranked.slice(0, 3)], c.rng) };
+      },
+    },
+    // ── A3: 이 앨범보다 나중에 나온 앨범 ──
+    {
+      id: "laterAlbum", weight: 1.4, difficulty: 3,
+      available: (al, c) =>
+        c.albums.filter((a) => a.year > al.year).length >= 1 &&
+        c.albums.filter((a) => a.year < al.year).length >= 3,
+      make: (al, c) => {
+        const later = c.albums.filter((a) => a.year > al.year).map((a) => a.title);
+        const earlier = c.albums.filter((a) => a.year < al.year).map((a) => a.title);
+        const correct = L.shuffle(later, c.rng)[0];
+        return { label: t.q.laterAlbum, correct, note: t.note.laterAlbum,
+          choices: L.shuffle([correct, ...L.shuffle(earlier, c.rng).slice(0, 3)], c.rng) };
+      },
+    },
   ];
+
+  // "미니 4집" → "미니 앨범", "정규 1집" → "정규 앨범", 그 외는 원문 유지
+  function categoryOf(type) {
+    if (/미니/.test(type)) return "미니 앨범";
+    if (/정규/.test(type)) return "정규 앨범";
+    return type;
+  }
 
   function availableTypes(al, c) { return TYPES.filter((ty) => ty.available(al, c)); }
 
@@ -106,7 +152,83 @@
     return Object.assign({ typeId: ty.id, difficulty: ty.difficulty }, ty.make(al, c));
   }
 
-  const api = { TYPES, availableTypes, buildQuestion };
+  // ── 멤버 문제(사진 라운드) ── name 은 문제에 병기(사진 오매칭에도 정답 유지)
+  const otherUnitSongs = (m, c) =>
+    Object.keys(c.unitSongs).filter((u) => u !== m.unit).flatMap((u) => c.unitSongs[u]);
+
+  // 작사 데이터가 있는 앨범들의 타이틀곡 / 그 중 멤버가 참여한 곡
+  function lyricInfo(m, c) {
+    const dataAlbums = c.albums.filter((a) => Array.isArray(a.titleLyricists));
+    const titles = dataAlbums.map((a) => a.titleTrack);
+    const written = dataAlbums.filter((a) => a.titleLyricists.includes(m.id)).map((a) => a.titleTrack);
+    const absent = titles.filter((x) => !written.includes(x));
+    return { written, absent };
+  }
+
+  const MEMBER_TYPES = [
+    // M1: 이 멤버가 부른 유닛곡
+    {
+      id: "memberUnitSong", weight: 1.3, difficulty: 3,
+      available: (m, c) => (c.unitSongs[m.unit] || []).length >= 1 && otherUnitSongs(m, c).length >= 3,
+      make: (m, c) => {
+        const correct = L.shuffle(c.unitSongs[m.unit], c.rng)[0];
+        const distract = L.shuffle(otherUnitSongs(m, c), c.rng).slice(0, 3);
+        return { label: t.qm.unitSong(c.memberName(m.id)), correct, note: t.note.unitSong,
+          choices: L.shuffle([correct, ...distract], c.rng) };
+      },
+    },
+    // M2: 이 멤버가 부르지 않은 곡 (다른 유닛곡)
+    {
+      id: "memberNotSong", weight: 1.3, difficulty: 4,
+      available: (m, c) => (c.unitSongs[m.unit] || []).length >= 3 && otherUnitSongs(m, c).length >= 1,
+      make: (m, c) => {
+        const correct = L.shuffle(otherUnitSongs(m, c), c.rng)[0]; // 이 멤버 유닛이 아닌 곡
+        const distract = L.shuffle(c.unitSongs[m.unit], c.rng).slice(0, 3); // 이 멤버가 부른 곡
+        return { label: t.qm.notSong(c.memberName(m.id)), correct, note: t.note.memberNot,
+          choices: L.shuffle([correct, ...distract], c.rng) };
+      },
+    },
+    // M4: 이 멤버와 다른 유닛인 멤버
+    {
+      id: "memberRoster", weight: 1, difficulty: 3,
+      available: (m, c) => {
+        const same = c.members.filter((x) => x.unit === m.unit && x.id !== m.id);
+        const other = c.members.filter((x) => x.unit !== m.unit);
+        return same.length >= 3 && other.length >= 1;
+      },
+      make: (m, c) => {
+        const same = c.members.filter((x) => x.unit === m.unit && x.id !== m.id).map((x) => x.name);
+        const other = c.members.filter((x) => x.unit !== m.unit).map((x) => x.name);
+        const correct = L.shuffle(other, c.rng)[0];
+        return { label: t.qm.roster(c.memberName(m.id)), correct, note: t.note.roster,
+          choices: L.shuffle([correct, ...L.shuffle(same, c.rng).slice(0, 3)], c.rng) };
+      },
+    },
+    // M5: 이 멤버가 작사한 타이틀곡 (검증된 앨범만)
+    {
+      id: "memberLyricist", weight: 1, difficulty: 4,
+      available: (m, c) => {
+        const { written, absent } = lyricInfo(m, c);
+        return written.length >= 1 && absent.length >= 3;
+      },
+      make: (m, c) => {
+        const { written, absent } = lyricInfo(m, c);
+        const correct = L.shuffle(written, c.rng)[0];
+        return { label: t.qm.lyricist(c.memberName(m.id)), correct, note: t.note.mlyric,
+          choices: L.shuffle([correct, ...L.shuffle(absent, c.rng).slice(0, 3)], c.rng) };
+      },
+    },
+  ];
+
+  function availableMemberTypes(m, c) { return MEMBER_TYPES.filter((ty) => ty.available(m, c)); }
+
+  function buildMemberQuestion(m, ctx) {
+    const c = Object.assign({ n: 4, rng: Math.random }, ctx);
+    const ty = weightedPick(availableMemberTypes(m, c), c.rng);
+    return Object.assign({ typeId: ty.id, difficulty: ty.difficulty }, ty.make(m, c));
+  }
+
+  const api = { TYPES, availableTypes, buildQuestion, MEMBER_TYPES, availableMemberTypes, buildMemberQuestion };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (root) root.QuizQuestions = api;
 })(typeof window !== "undefined" ? window : null);
