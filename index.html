@@ -42,21 +42,21 @@
         <div class="hero">
           <h1 class="logo">SEVENTEEN<br /><span>ALBUM COVER QUIZ</span></h1>
           <p class="tagline">
-            앨범 자켓을 보고 <b>앨범 · 발매연도 · 타이틀곡</b>을 맞혀보세요.
+            자켓만 보고 <b>앨범 · 연도 · 타이틀곡</b>까지, 다 맞힐 수 있어요?
           </p>
           <ul class="rules">
-            <li>자켓 1장당 <b>랜덤 유형 1문제</b> (앨범/연도/타이틀곡/수록곡/작사/유닛)</li>
-            <li>총 20문제 · 문제당 10점 · 정답률에 따라 캐럿 등급</li>
-            <li>문제마다 <b>난이도(쉬움~최상)</b> 표기 · 근접 오답 + 고난도 유형</li>
+            <li>한 문제씩, 총 <b>20문제</b>를 풀어요</li>
+            <li>문제마다 <b>난이도(쉬움~최상)</b>가 표시돼요</li>
+            <li>다 풀면 <b>캐럿 등급</b>이 나와요 · 결과는 자랑해도 좋아요 😎</li>
           </ul>
           <div class="modes">
             <button class="mode-btn" data-mode="normal">
-              <b>🎲 일반 모드</b>
-              <small>랜덤 20문제. 가볍게 즐기기</small>
+              <b>🎲 그냥 한 판</b>
+              <small>랜덤 20문제, 부담 없이 즐겨요</small>
             </button>
             <button class="mode-btn" data-mode="daily">
-              <b>📅 데일리 챌린지</b>
-              <small id="daily-sub">오늘의 20문제 · 하루 한 번 같은 문제</small>
+              <b>📅 오늘의 챌린지</b>
+              <small id="daily-sub">오늘의 20문제, 준비해뒀어요</small>
             </button>
           </div>
         </div>
@@ -65,17 +65,18 @@
       <!-- 플레이 화면 -->
       <section id="screen-play" class="screen">
         <header class="hud">
-          <span class="hud-progress">CARD <b id="progress">1 / 20</b></span>
+          <span class="hud-progress"><b id="progress">1 / 20</b></span>
           <span class="hud-mode" id="hud-mode"></span>
           <span class="hud-score">SCORE <b id="score">0</b></span>
         </header>
+        <div class="progress-bar" aria-hidden="true"><div id="progress-fill" class="progress-fill"></div></div>
 
         <div class="play-grid">
           <div class="card-stage">
             <div id="card-art" class="card-art"></div>
             <p id="card-caption" class="card-caption"></p>
             <button id="btn-reload" class="btn-reload" type="button" hidden>
-              🔄 자켓 다시 불러오기
+              🔄 다시 불러올게요
             </button>
           </div>
 
@@ -92,15 +93,15 @@
       <!-- 결과 화면 -->
       <section id="screen-result" class="screen">
         <div class="result">
-          <h2>결과</h2>
+          <h2>오늘의 결과예요</h2>
           <p id="result-score" class="result-score">0 / 0 점</p>
           <div id="result-detail" class="result-detail"></div>
           <div class="result-actions">
-            <button id="btn-restart" class="btn primary">다시 하기</button>
-            <button id="btn-share" class="btn ghost">🖼️ 결과 이미지 저장</button>
-            <button id="btn-tweet" class="btn ghost">🐦 트위터로 공유</button>
+            <button id="btn-restart" class="btn primary">한 판 더!</button>
+            <button id="btn-share" class="btn ghost">🖼️ 이미지로 저장</button>
+            <button id="btn-tweet" class="btn ghost">🐦 트위터에 자랑하기</button>
           </div>
-          <p class="share-hint">트위터 공유 시 결과 이미지가 자동 저장돼요 — 트윗 작성창에 첨부하세요.</p>
+          <p class="share-hint">트위터로 자랑하면 결과 이미지가 자동으로 저장돼요 — 트윗에 붙여주세요!</p>
           <canvas id="result-canvas" width="1200" height="630"></canvas>
         </div>
       </section>

@@ -9,12 +9,12 @@
   const LOCALES = {
     ko: {
       q: {
-        album: "이 자켓의 앨범은?",
-        year: "이 앨범의 발매 연도는?",
-        track: "이 앨범의 타이틀곡은?",
-        notInAlbum: "이 앨범의 수록곡이 <b>아닌</b> 것은?",
-        lyricist: (track) => `‘${track}’ 작사에 참여한 멤버는?`,
-        unitSong: (unit) => `이 앨범에서 <b>${unit} 유닛</b>이 부른 곡은?`,
+        album: "이 자켓, 어떤 앨범일까요?",
+        year: "언제 나온 앨범일까요?",
+        track: "타이틀곡, 뭐였죠?",
+        notInAlbum: "이 중에 이 앨범 수록곡이 <b>아닌</b> 건?",
+        lyricist: (track) => `‘${track}’ 작사에 참여한 멤버는 누구일까요?`,
+        unitSong: (unit) => `이 앨범에서 <b>${unit} 유닛</b>이 부른 곡, 뭘까요?`,
       },
       unit: { vocal: "보컬", hiphop: "힙합", performance: "퍼포먼스" },
       difficulty: {
@@ -24,38 +24,36 @@
         4: { label: "최상", stars: "★★★★" },
       },
       note: {
-        notInAlbum: "힌트: 나머지 셋은 이 앨범 수록곡이에요.",
-        lyricist: "힌트: 세븐틴은 멤버들이 직접 작사에 참여해요.",
-        unitSong: "힌트: 유닛곡은 앨범 안에 숨어 있어요.",
+        notInAlbum: "살짝 힌트! 나머지 셋은 이 앨범에 담긴 곡이에요.",
+        lyricist: "살짝 힌트! 세븐틴은 멤버가 직접 작사에 참여해요.",
+        unitSong: "살짝 힌트! 유닛곡은 앨범 안에 숨어 있어요.",
       },
       feedback: {
-        correct: "🎉 정답!",
-        wrong: "아쉬워요, 오답!",
+        correct: "딩동댕, 맞았어요! 🎉",
+        wrong: "앗, 아쉬워요 🥲",
       },
-      next: { result: "결과 보기", more: "다음 문제 →" },
+      next: { result: "결과 보러 가기", more: "다음 문제 →" },
       caption: {
         loaded: "© 저작권자 · Apple Music",
-        error: "자켓을 표시하지 못했어요 · 자켓 상상 모드",
-        noArt: "자켓을 불러오지 못했어요 · 인터넷 연결을 확인해 주세요",
+        error: "자켓을 못 불러왔어요 · 상상해서 맞혀봐요",
+        noArt: "자켓을 못 불러왔어요 · 인터넷을 확인해 주세요",
       },
       hudMode: { normal: "🎲 일반", daily: "📅 데일리", review: "🔁 복습" },
       shareMode: { normal: "일반", daily: "데일리", review: "복습" },
       result: {
         detail: (tier, pct, hits, total) =>
-          `<p class="tier">${tier}</p><p class="pct">정답률 ${pct}% (${hits}/${total})</p>`,
-        score: (score, max) => `${score} / ${max} 점`,
+          `<p class="tier">${tier}</p><p class="pct">${total}문제 중 ${hits}개 맞혔어요 · 정답률 ${pct}%</p>`,
+        score: (score, max) => `${score}<span class="score-max"> / ${max}점</span>`,
       },
       share: {
         title: "SEVENTEEN 앨범 자켓 퀴즈",
         tweet: (tier, score, pct) =>
-          `SEVENTEEN 앨범 자켓 퀴즈 결과\n${tier} · ${score}점 (정답률 ${pct}%)\n#SEVENTEEN #세븐틴 #앨범자켓퀴즈`,
+          `나 세븐틴 앨범 자켓 퀴즈에서 ${tier} 나왔어요!\n${score}점 · 정답률 ${pct}%\n너도 한번 해볼래?\n#SEVENTEEN #세븐틴 #앨범자켓퀴즈`,
       },
       start: {
-        reviewReady: (n) => `직전 오답 ${n}개 다시 풀기`,
-        reviewEmpty: "직전 판의 틀린 앨범(먼저 한 판 필요)",
         dailyDone: (pct, streak) =>
-          `오늘 완료 · 정답률 ${pct}%${streak ? ` · 🔥${streak}일` : ""}`,
-        dailyOpen: "오늘의 20문제 · 하루 한 번 같은 문제",
+          `오늘은 벌써 풀었어요! 정답률 ${pct}%${streak ? ` · 🔥${streak}일 연속` : ""}`,
+        dailyOpen: "오늘의 20문제, 준비해뒀어요",
       },
     },
   };

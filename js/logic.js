@@ -60,10 +60,10 @@
 
   // 정답률(0~100)로 등급 산출
   function tierFor(pct) {
-    if (pct >= 90) return "🏆 캐럿 마스터";
-    if (pct >= 70) return "💎 진성 캐럿";
-    if (pct >= 40) return "🌱 입덕 준비생";
-    return "👀 관심 단계";
+    if (pct >= 90) return "🏆 찐 캐럿, 인정!";
+    if (pct >= 70) return "💎 진성 캐럿이네요";
+    if (pct >= 40) return "🌱 입덕 준비 완료";
+    return "👀 이제 입덕각이에요";
   }
 
   const api = { shuffle, buildChoices, buildYearChoices, buildAlbumChoices, tierFor };

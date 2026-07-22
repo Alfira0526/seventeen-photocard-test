@@ -53,11 +53,11 @@ test("shuffle: 원본을 변형하지 않고 같은 원소 집합을 유지", ()
 });
 
 test("tierFor: 경계값 등급", () => {
-  assert.match(tierFor(100), /마스터/);
-  assert.match(tierFor(90), /마스터/);
+  assert.match(tierFor(100), /찐 캐럿/);
+  assert.match(tierFor(90), /찐 캐럿/);
   assert.match(tierFor(70), /진성/);
-  assert.match(tierFor(40), /입덕/);
-  assert.match(tierFor(0), /관심/);
+  assert.match(tierFor(40), /입덕 준비/);
+  assert.match(tierFor(0), /입덕각/);
 });
 
 test("buildYearChoices: 정답 포함 + 근접 연도 우선", () => {

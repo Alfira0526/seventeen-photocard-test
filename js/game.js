@@ -50,7 +50,7 @@
     [
       "screen-start", "screen-play", "screen-result",
       "btn-restart", "btn-next", "btn-share", "btn-tweet",
-      "card-art", "card-caption", "btn-reload", "progress", "score", "hud-mode",
+      "card-art", "card-caption", "btn-reload", "progress", "progress-fill", "score", "hud-mode",
       "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
       "theme-toggle", "daily-sub",
@@ -107,6 +107,7 @@
     renderArt(album);
 
     el.progress.textContent = `${state.round + 1} / ${state.deck.length}`;
+    el["progress-fill"].style.width = `${((state.round + 1) / state.deck.length) * 100}%`;
 
     // 카드당 1문제: 이 앨범에서 가능한 유형 중 랜덤 출제
     const q = buildQuestion(album, qctx(state.rng));
@@ -251,7 +252,7 @@
 
   function showResult() {
     const st = computeStats();
-    el["result-score"].textContent = T.result.score(state.score, st.max);
+    el["result-score"].innerHTML = T.result.score(state.score, st.max);
     el["result-detail"].innerHTML = T.result.detail(st.tier, st.pct, st.hits, st.total);
 
     // 데일리 기록 + 스트릭
