@@ -24,10 +24,14 @@ try { require(resolve(root, "js/memberPhotos.js")); existing = globalThis.window
 const API = "https://kpop.fandom.com/api.php";
 const SITE = "https://kpop.fandom.com";
 
-// 특정 멤버는 대표(lead) 이미지 대신 페이지 이미지 목록에서 "다른" 솔로 사진을 고른다.
-//  - exclude: 현재 쓰던 사진 등 제외 패턴 / prefer: 우선 선택 패턴
+// 특정 멤버는 대표(lead) 이미지 대신 위키 파일 목록(prefix 검색)에서 "다른" 솔로 사진을 고른다.
+//  - prefix: 파일명 접두(예: "SEVENTEEN Wonwoo") / exclude: 제외 패턴 / prefer: 우선 패턴
 const ALT_PICK = {
-  wonwoo: { name: "Wonwoo", exclude: /happy.?burstday/i, prefer: /concept|profile|teaser/i },
+  wonwoo: {
+    prefix: "SEVENTEEN Wonwoo",
+    exclude: /happy.?burstday|season|greeting|christmas|halloween/i,
+    prefer: /concept photo|profile|teaser/i,
+  },
 };
 // 이번 실행에서 새로 교체할 멤버(나머지는 기존 URL 보존)
 const REFRESH = new Set(Object.keys(ALT_PICK));
@@ -56,28 +60,29 @@ async function pageImage(query) {
   return p ? { title: p.title, url: p.original.source } : null;
 }
 
-// 페이지 이미지 목록에서 조건에 맞는 "다른" 파일을 골라 Special:FilePath 로 핫링크
-async function pageImageAlt(query, cfg) {
-  const url = API + "?" + new URLSearchParams({
-    action: "query", format: "json", generator: "search",
-    gsrsearch: query, gsrlimit: "1", gsrnamespace: "0",
-    prop: "images", imlimit: "80",
-  });
-  const res = await fetch(url, { headers: { "User-Agent": "svt-quiz/1.0 (fan quiz)" } });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const json = await res.json();
-  const pages = json.query && json.query.pages ? Object.values(json.query.pages) : [];
-  const imgs = (pages[0] && pages[0].images ? pages[0].images : [])
-    .map((x) => x.title.replace(/^File:/, ""))
-    .filter((f) => /\.(png|jpe?g)$/i.test(f))
-    .filter((f) => new RegExp(cfg.name, "i").test(f))
-    .filter((f) => !cfg.exclude || !cfg.exclude.test(f))
-    .filter((f) => !/logo|icon|award|signature|thumb|banner/i.test(f));
-  console.log(`   후보 ${imgs.length}개: ${imgs.slice(0, 8).join(" | ")}`);
-  const preferred = imgs.find((f) => cfg.prefer && cfg.prefer.test(f)) || imgs[0];
-  if (!preferred) return null;
-  const fileUrl = `${SITE}/wiki/Special:FilePath/${encodeURIComponent(preferred)}`;
-  return { title: preferred, url: fileUrl };
+// 위키 전체 파일 목록에서 접두(prefix)로 솔로 파일을 찾아 조건에 맞는 "다른" 사진을 고른다.
+// list=allimages 는 페이지 임베드와 무관하게 파일명으로 직접 검색 → 후보가 풍부.
+async function fileByPrefix(cfg) {
+  async function query(prefix) {
+    const url = API + "?" + new URLSearchParams({
+      action: "query", format: "json", list: "allimages",
+      aiprefix: prefix, ailimit: "200", aiprop: "url", aisort: "name",
+    });
+    const res = await fetch(url, { headers: { "User-Agent": "svt-quiz/1.0 (fan quiz)" } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    return (json.query && json.query.allimages) || [];
+  }
+  let raw = await query(cfg.prefix);
+  if (!raw.length && cfg.prefix.includes(" ")) raw = await query(cfg.prefix.split(" ").pop()); // 폴백: 이름만
+  const imgs = raw
+    .map((x) => ({ name: x.name, url: x.url }))
+    .filter((x) => /\.(png|jpe?g)$/i.test(x.name))
+    .filter((x) => !cfg.exclude || !cfg.exclude.test(x.name))
+    .filter((x) => !/logo|icon|award|signature|banner|scan|fake|weibo|instagram|twitter|logo|sticker/i.test(x.name));
+  console.log(`   후보 ${imgs.length}개: ${imgs.slice(0, 10).map((i) => i.name).join(" | ")}`);
+  const pick = imgs.find((x) => cfg.prefer && cfg.prefer.test(x.name)) || imgs[0];
+  return pick ? { title: pick.name, url: pick.url } : null;
 }
 
 const out = {};
@@ -90,7 +95,7 @@ for (const m of MEMBERS) {
   }
   try {
     let picked;
-    if (ALT_PICK[m.id]) picked = await pageImageAlt(SEARCH[m.id] || `${m.name} Seventeen`, ALT_PICK[m.id]);
+    if (ALT_PICK[m.id]) picked = await fileByPrefix(ALT_PICK[m.id]);
     else if (OVERRIDE[m.id]) picked = { title: "(override)", url: OVERRIDE[m.id] };
     else picked = await pageImage(SEARCH[m.id] || `${m.name} Seventeen`);
     if (picked && picked.url) {
