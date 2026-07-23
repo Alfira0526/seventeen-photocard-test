@@ -22,8 +22,8 @@ window.SVTMemberPhotos = {
     "source": "Hoshi"
   },
   "wonwoo": {
-    "url": "https://static.wikia.nocookie.net/kpop/images/c/c4/SEVENTEEN_Wonwoo_Happy_Burstday_concept_photo_11.png/revision/latest?cb=20250508141542",
-    "source": "Wonwoo (SEVENTEEN)"
+    "url": "https://static.wikia.nocookie.net/kpop/images/4/42/SEVENTEEN_Wonwoo_2021_Photobook_teaser_photo.png/revision/latest?cb=20240127150211",
+    "source": "SEVENTEEN_Wonwoo_2021_Photobook_teaser_photo.png"
   },
   "woozi": {
     "url": "https://static.wikia.nocookie.net/kpop/images/4/48/SEVENTEEN_Woozi_2026_Season%27s_Greetings_concept_photo.png/revision/latest?cb=20251125234612",
