@@ -124,6 +124,15 @@
 
     en: {
       _unit: U.en,
+      atype: {
+        "미니 앨범": "Mini Album", "정규 앨범": "Studio Album", "스페셜 앨범": "Special Album",
+        "유닛 싱글": "Unit Single", "믹스테이프": "Mixtape", "디지털 싱글": "Digital Single",
+        "베스트 앨범": "Best Album", "리패키지": "Repackage",
+        num: (kind, n) => {
+          const s = ["th", "st", "nd", "rd"], v = n % 100;
+          return `${n}${s[(v - 20) % 10] || s[v] || s[0]} ${kind === "미니" ? "Mini Album" : "Studio Album"}`;
+        },
+      },
       q: {
         album: "Which album is this cover?",
         year: "When did this album come out?",
@@ -208,6 +217,12 @@
 
     ja: {
       _unit: U.ja,
+      atype: {
+        "미니 앨범": "ミニアルバム", "정규 앨범": "正規アルバム", "스페셜 앨범": "スペシャルアルバム",
+        "유닛 싱글": "ユニットシングル", "믹스테이프": "ミックステープ", "디지털 싱글": "デジタルシングル",
+        "베스트 앨범": "ベストアルバム", "리패키지": "リパッケージ",
+        num: (kind, n) => `第${n}${kind === "미니" ? "ミニアルバム" : "正規アルバム"}`,
+      },
       q: {
         album: "このジャケット、どのアルバム？",
         year: "いつ出たアルバム？",
@@ -292,6 +307,12 @@
 
     zh: {
       _unit: U.zh,
+      atype: {
+        "미니 앨범": "迷你专辑", "정규 앨범": "正规专辑", "스페셜 앨범": "特别专辑",
+        "유닛 싱글": "小分队单曲", "믹스테이프": "Mixtape", "디지털 싱글": "数字单曲",
+        "베스트 앨범": "精选专辑", "리패키지": "改版专辑",
+        num: (kind, n) => `${kind === "미니" ? "迷你" : "正规"}${n}辑`,
+      },
       q: {
         album: "这张封面是哪张专辑？",
         year: "这张专辑是哪一年发行的？",
@@ -376,6 +397,12 @@
 
     es: {
       _unit: U.es,
+      atype: {
+        "미니 앨범": "Mini Álbum", "정규 앨범": "Álbum de Estudio", "스페셜 앨범": "Álbum Especial",
+        "유닛 싱글": "Single de Unit", "믹스테이프": "Mixtape", "디지털 싱글": "Single Digital",
+        "베스트 앨범": "Álbum Recopilatorio", "리패키지": "Reedición",
+        num: (kind, n) => `${n}º ${kind === "미니" ? "Mini Álbum" : "Álbum"}`,
+      },
       q: {
         album: "Esta portada, ¿de qué álbum es?",
         year: "¿Cuándo salió este álbum?",
@@ -491,7 +518,7 @@
   const SUB = (s) => `<span class="i18n-sub">${s}</span>`;
   // 병기 제외(단일언어) 상위 키: 평문/캔버스/컴팩트 칩 등에서 쓰임
   // (tier·resSub 는 화면에 병기, resScore/resLine 은 숫자 위주라 단일언어 유지)
-  const PLAIN_KEYS = { _unit: 1, difficulty: 1, hudMode: 1, shareMode: 1, share: 1, resScore: 1, resLine: 1 };
+  const PLAIN_KEYS = { _unit: 1, atype: 1, difficulty: 1, hudMode: 1, shareMode: 1, share: 1, resScore: 1, resLine: 1 };
 
   function biStr(loc, en, bi) { return bi && en != null && en !== loc ? MAIN(loc) + SUB(en) : loc; }
   function biFn(locFn, enFn, bi) {
@@ -528,6 +555,15 @@
     SUPPORTED,
     LANG_NAMES,
     raw: (code) => LOCALES[code] || LOCALES.en,
+    // 앨범 유형("미니 5집"·"정규 앨범" 등)을 현재 로케일로 표기. 매핑 없으면(ko 등) 원문 유지.
+    localizeType(str) {
+      if (str == null) return str;
+      const A = (LOCALES[api.locale] || {}).atype;
+      if (!A) return str;
+      const m = /^\s*(미니|정규)\s*(\d+)\s*집\s*$/.exec(str);
+      if (m) return A.num ? A.num(m[1], parseInt(m[2], 10)) : str;
+      return A[str] != null ? A[str] : str;
+    },
     localeFromLang,
     localeFromCountry,
     _cbs: [],

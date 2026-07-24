@@ -17,6 +17,8 @@
   const L = root ? root.QuizLogic : require("./logic.js");
   const I = root ? root.I18N : require("./i18n.js");
   const t = I.t;
+  // 앨범 유형을 현재 로케일로 표기(ko는 원문 유지 → 정답 매칭·테스트 불변)
+  const locType = (s) => (I.localizeType ? I.localizeType(s) : s);
 
   const TYPES = [
     {
@@ -94,8 +96,8 @@
       make: (al, c) => {
         const correct = categoryOf(al.type);
         const pool = [...new Set(c.albums.map((a) => categoryOf(a.type)))].filter((x) => x !== correct);
-        return { label: t.q.albumType, correct,
-          choices: L.shuffle([correct, ...L.shuffle(pool, c.rng).slice(0, 3)], c.rng) };
+        const choices = L.shuffle([correct, ...L.shuffle(pool, c.rng).slice(0, 3)], c.rng);
+        return { label: t.q.albumType, correct: locType(correct), choices: choices.map(locType) };
       },
     },
     // ── A4: 몇 집 (미니/정규 N집) ──
@@ -109,8 +111,8 @@
         // 같은 카테고리(미니/정규) 오답 우선
         const ranked = pool.sort((a, b) =>
           (categoryOf(b) === cat) - (categoryOf(a) === cat) || (c.rng() - 0.5));
-        return { label: t.q.albumNumber, correct: al.type,
-          choices: L.shuffle([al.type, ...ranked.slice(0, 3)], c.rng) };
+        const choices = L.shuffle([al.type, ...ranked.slice(0, 3)], c.rng);
+        return { label: t.q.albumNumber, correct: locType(al.type), choices: choices.map(locType) };
       },
     },
     // ── A3: 이 앨범보다 나중에 나온 앨범 ──

@@ -165,6 +165,29 @@ test("다국어: 특정 언어 직접 선택 시 병기 사라짐(단독 표기)
   }, { languages: ["ko-KR", "ko"] });
 });
 
+test("다국어: 영어 선택 시 앨범 유형 보기도 영어로(한글 미노출)", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.waitForSelector("#lang-select");
+    await page.selectOption("#lang-select", "en");
+    await page.click('.mode-btn[data-mode="normal"]');
+    await page.waitForSelector("#screen-play.active");
+    let sawType = false;
+    for (let r = 0; r < 20; r++) {
+      const label = await page.$eval(".q-label", (e) => e.textContent);
+      if (/type of release|numbered album/i.test(label)) {
+        sawType = true;
+        const choices = await page.$$eval("#question .choice", (els) => els.map((e) => e.textContent));
+        for (const ch of choices) assert.doesNotMatch(ch, /[가-힣]/, `유형 보기에 한글: ${ch}`);
+      }
+      await page.click("#question .choice:first-child");
+      await page.waitForSelector("#btn-next:not([disabled])");
+      await page.click("#btn-next");
+      if (await page.$("#screen-result.active")) break;
+    }
+    assert.ok(sawType, "유형 문제가 한 번도 안 나옴(20문제)");
+  });
+});
+
 test("다국어: 영어 선택 시 단일 언어(병기 없음)", { skip: !chromium }, async () => {
   await withPage(async (page) => {
     await page.waitForSelector("#lang-select");
