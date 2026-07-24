@@ -560,8 +560,8 @@
     ctx.fillStyle = "#9a9ab0"; ctx.font = "500 38px Pretendard, sans-serif";
     ctx.fillText(res.modeText, W / 2, 492);
     // 태그·링크를 이미지에 새겨, 텍스트를 지우는 앱(인스타·카톡)에서도 보이게 함
-    ctx.fillStyle = "#b9a7ff"; ctx.font = "700 30px Pretendard, sans-serif";
-    ctx.fillText("#SEVENTEEN #세븐틴 #앨범자켓퀴즈", W / 2, 552);
+    ctx.fillStyle = "#b9a7ff"; ctx.font = "700 28px Pretendard, sans-serif";
+    ctx.fillText(RA.share.tags, W / 2, 552);
     ctx.fillStyle = "#8a8aa0"; ctx.font = "400 28px Pretendard, sans-serif";
     ctx.fillText(siteUrl(), W / 2, 596);
   }
