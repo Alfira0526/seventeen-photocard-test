@@ -235,7 +235,8 @@
 
     if (card.kind === "member") {
       const m = card.ref;
-      if (m.photo) mountImage(stage, m.photo, card);
+      const photos = (m.photos && m.photos.length) ? m.photos : (m.photo ? [m.photo] : []);
+      if (photos.length) mountImage(stage, photos[Math.floor(Math.random() * photos.length)], card);
       else showMemberPlaceholder(stage, m);
       return;
     }

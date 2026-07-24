@@ -160,10 +160,14 @@ ALBUMS.forEach((a) => {
   if (CM[a.id] && typeof CM[a.id].titleOnCover === "boolean") a.titleOnCover = CM[a.id].titleOnCover;
 });
 
-// ── 멤버 사진 병합: memberPhotos.js(Commons 수집) 가 있으면 photo 주입 ──
+// ── 멤버 사진 병합: memberPhotos.js 가 있으면 photos(배열) 주입 ──
+// 새 스키마 {urls:[...]} / 구 스키마 {url} 모두 지원. m.photos=배열, m.photo=첫 장(호환).
 const MP = (typeof window !== "undefined" && window.SVTMemberPhotos) || {};
 MEMBERS.forEach((m) => {
-  if (MP[m.id] && MP[m.id].url) m.photo = MP[m.id].url;
+  const p = MP[m.id];
+  if (!p) return;
+  const urls = (Array.isArray(p.urls) ? p.urls : p.url ? [p.url] : []).filter(Boolean);
+  if (urls.length) { m.photos = urls; m.photo = urls[0]; }
 });
 
 // ── 유닛곡 집계: 앨범 tracks의 unit 태그를 유닛별로 모음(멤버 노래 문제용) ──
