@@ -3,6 +3,15 @@
 이 프로젝트의 주요 변화를 버전별로 정리합니다. 상세 작업 로그는
 [PROGRESS.md](PROGRESS.md), 개선 분석은 [ANALYSIS.md](ANALYSIS.md) 참고.
 
+## v0.11 — 운영 루프: 텔레메트리 · 오류 제보 · 정기 리뷰 루틴
+- 📊 **텔레메트리(analytics.js)**: 모드 이용률 + 문제 유형/개별 문제 정답률을 익명 집계로
+  Firebase에 기록(서버 increment). 개인정보 없음.
+- 🐞 **오류 제보 창(report.js + 🐞 플로팅 버튼/모달)**: 현재 문제 맥락을 자동 첨부해 제보 수집.
+- 🤖 **주간 운영 루프**: GitHub Actions(ops-snapshot)가 Firebase를 `docs/ops/`로 스냅샷 →
+  주간 리뷰 루틴(Claude, 5인 페르소나)이 이용률/정답률·오류 리포트를 만들고, 웹 교차검증으로
+  확증된 데이터 오류는 즉시 수정, 그 외는 제안으로 보고. 문서: `docs/OPS_ROUTINES.md`.
+- ℹ️ 활성화에 Firebase 규칙 1회 확장 필요(stats·reports) — OPS_ROUTINES.md 참고.
+
 ## v0.10.2 — 데이터 수정: Face the Sun 타이틀곡
 - 🐞 **Face the Sun 타이틀곡 "Darl+ing" → "HOT"**: Darl+ing은 선공개 싱글(2022-04-15),
   정규 4집의 프로모션 리드곡은 "HOT"(2022-05-27). 그래서 문제 정답이 실제와 어긋났음(수정).

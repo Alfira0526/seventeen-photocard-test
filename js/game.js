@@ -85,6 +85,7 @@
       "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
       "theme-toggle", "lang-select",
+      "btn-report", "report-modal", "report-ctx", "report-text", "report-cancel", "report-send",
     ].forEach((id) => (el[id] = document.getElementById(id)));
   }
   function show(screen) {
@@ -138,6 +139,7 @@
     state.round = 0; state.score = 0; state.correct = 0; state.over = false; state.answers = [];
     el.score.textContent = "0";
     el["hud-mode"].textContent = T.hudMode[mode] || "";
+    if (window.SVTAnalytics) window.SVTAnalytics.play(mode);
 
     if (mode === "endless") {
       state.limited = false; state.lives = 1;
@@ -200,6 +202,12 @@
         ? buildYtQuestion(card.ref, ytctx(state.rng))
         : buildQuestion(card.ref, qctx(state.rng));
     renderQuestion(q);
+    // 현재 문제 맥락(텔레메트리·오류 제보용, 평문)
+    state.cur = {
+      mode: state.mode, typeId: q.typeId, cardKind: card.kind, cardId: card.ref.id,
+      label: String(q.label || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
+      correct: q.correct, choices: q.choices,
+    };
 
     el.feedback.innerHTML = ""; el.feedback.className = "feedback";
     el["btn-next"].disabled = true;
@@ -344,6 +352,9 @@
     if (c.dataset.answered === "true" || state.over) return;
     c.dataset.answered = "true";
     const isCorrect = String(btn.dataset.value) === String(correct);
+    if (window.SVTAnalytics && state.cur) {
+      window.SVTAnalytics.answer(state.cur.typeId, isCorrect, state.cur.typeId + "__" + state.cur.cardKind + "_" + state.cur.cardId);
+    }
     if (isCorrect) {
       state.correct++;
       const gain = state.mode === "normal" ? CONFIG.pointsPerCorrect : 1;
@@ -444,6 +455,7 @@
 
   function showResult() {
     stopTimer();
+    if (window.SVTAnalytics) window.SVTAnalytics.finish(state.mode);
     const res = buildResultView();
     state.lastRes = res;
     el["result-score"].innerHTML = res.scoreHtml;
@@ -610,6 +622,30 @@
     clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2400);
   }
 
+  // ── 오류 제보 모달 ──
+  function openReport() {
+    const R = I18N.raw(I18N.locale);
+    const c = state.cur;
+    if (c && el["screen-play"].classList.contains("active")) {
+      el["report-ctx"].textContent = `${R.ui.reportCtxLabel}: ${c.label}` + (c.correct != null ? ` · ✔ ${c.correct}` : "");
+      el["report-ctx"].hidden = false;
+    } else {
+      el["report-ctx"].hidden = true;
+    }
+    el["report-text"].value = "";
+    el["report-modal"].hidden = false;
+    setTimeout(() => el["report-text"].focus(), 30);
+  }
+  function closeReport() { el["report-modal"].hidden = true; }
+  function submitReport() {
+    const text = (el["report-text"].value || "").trim();
+    const ctx = (state.cur && el["screen-play"].classList.contains("active")) ? state.cur : null;
+    if (!text && !ctx) { closeReport(); return; }
+    if (window.SVTReport) window.SVTReport.submit({ text: text, ctx: ctx });
+    closeReport();
+    toast(T.ui.reportThanks);
+  }
+
   // 이미지 저장(다운로드)
   function downloadShare() {
     el["result-canvas"].toBlob((blob) => {
@@ -754,6 +790,11 @@
     el["btn-insta"].addEventListener("click", instaShare);
     el["btn-kakao"].addEventListener("click", kakaoShare);
     el["btn-reload"].addEventListener("click", reloadArt);
+    // 오류 제보
+    el["btn-report"].addEventListener("click", openReport);
+    el["report-cancel"].addEventListener("click", closeReport);
+    el["report-send"].addEventListener("click", submitReport);
+    el["report-modal"].addEventListener("click", (e) => { if (e.target === el["report-modal"]) closeReport(); });
     initKakao();
     goHome();
     // 접속 지역(IP) 기반 로케일 보정 — IP가 브라우저 언어보다 우선(사용자가 직접 고른 경우 제외)

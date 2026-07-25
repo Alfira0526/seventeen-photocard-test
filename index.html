@@ -139,6 +139,21 @@
       </section>
     </main>
 
+    <!-- 오류 제보: 플로팅 버튼 + 모달 -->
+    <button id="btn-report" class="report-fab" type="button" data-i18n-attr="title:reportFabTitle" title="오류 제보" aria-label="오류 제보">🐞</button>
+    <div id="report-modal" class="modal-overlay" hidden>
+      <div class="modal-card" role="dialog" aria-modal="true">
+        <h3 data-i18n="reportTitle">🐞 오류 제보하기</h3>
+        <p class="modal-desc" data-i18n="reportDesc">이 문제, 뭐가 이상한가요? 알려주시면 바로 확인할게요.</p>
+        <p id="report-ctx" class="report-ctx"></p>
+        <textarea id="report-text" rows="3" maxlength="1000" data-i18n-attr="placeholder:reportPlaceholder" placeholder="예: 정답이 실제와 달라요 / 이미지가 안 떠요"></textarea>
+        <div class="modal-actions">
+          <button id="report-cancel" class="btn ghost" type="button" data-i18n="reportCancel">닫기</button>
+          <button id="report-send" class="btn primary" type="button" data-i18n="reportSubmit">제보 보내기</button>
+        </div>
+      </div>
+    </div>
+
     <footer class="site-foot">
       <small data-i18n="footer"
         >팬메이드 비영리 데모 · 앨범 자켓 이미지의 저작권은 각 저작권자(플레디스 등)에게
@@ -154,6 +169,8 @@
     <script src="js/geo.js"></script>
     <script src="js/ranking-config.js"></script>
     <script src="js/ranking.js"></script>
+    <script src="js/analytics.js"></script>
+    <script src="js/report.js"></script>
     <script src="js/logic.js"></script>
     <script src="js/data.js"></script>
     <script src="js/questions.js"></script>
