@@ -59,7 +59,7 @@ const ALBUMS = [
   { id: "semicolon",     title: "; [Semicolon]",      year: 2020, type: "스페셜 앨범", titleTrack: "HOME;RUN",              itunes: "Semicolon" },
   { id: "yourchoice",    title: "Your Choice",        year: 2021, type: "미니 8집",  titleTrack: "Ready to love",          itunes: "Your Choice" },
   { id: "attacca",       title: "Attacca",            year: 2021, type: "미니 9집",  titleTrack: "Rock with you",          itunes: "Attacca" },
-  { id: "facethesun",    title: "Face the Sun",       year: 2022, type: "정규 4집",  titleTrack: "Darl+ing",               itunes: "Face the Sun" },
+  { id: "facethesun",    title: "Face the Sun",       year: 2022, type: "정규 4집",  titleTrack: "HOT",                    itunes: "Face the Sun" },
   { id: "sector17",      title: "SECTOR 17",          year: 2022, type: "리패키지",  titleTrack: "_WORLD",                 itunes: "SECTOR 17" },
   // FML 은 더블 타이틀("손오공(Super)" + "F*ck My Life"). 대표 타이틀로 Super 사용.
   { id: "fml",           title: "FML",                year: 2023, type: "미니 10집", titleTrack: "손오공 (Super)",         itunes: "FML SEVENTEEN" },
