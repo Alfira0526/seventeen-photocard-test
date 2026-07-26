@@ -354,6 +354,9 @@ body {
   border: 1px solid var(--line); border-radius: 18px; padding: 22px; box-shadow: var(--shadow);
 }
 .modal-card h3 { margin: 0 0 8px; font-size: 19px; }
+.announce-list { margin: 6px 0 18px; padding: 0; list-style: none; display: grid; gap: 11px; }
+.announce-list li { font-size: 14.5px; line-height: 1.45; color: var(--text); }
+.announce-list li .i18n-sub { display: block; margin-top: 1px; font-size: 0.8em; color: var(--muted); }
 .modal-card .modal-desc { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
 .modal-card .modal-desc .i18n-sub, .modal-card h3 .i18n-sub { font-size: 0.82em; }
 .report-ctx {

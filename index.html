@@ -156,6 +156,23 @@
       </div>
     </div>
 
+    <!-- 업데이트 공지: 사용자당 1회 노출 -->
+    <div id="announce-modal" class="modal-overlay" hidden>
+      <div class="modal-card announce-card" role="dialog" aria-modal="true" aria-labelledby="announce-title">
+        <h3 id="announce-title" data-i18n="annTitle">🎉 업데이트 소식</h3>
+        <p class="modal-desc" data-i18n="annIntro">더 재밌게 즐기시라고 몇 가지 바뀌었어요!</p>
+        <ul class="announce-list">
+          <li data-i18n="annItem1">⚡ 새 점수 방식 — 빠르고 어려운 문제일수록, 콤보를 이어갈수록 高점수!</li>
+          <li data-i18n="annItem2">🏠 게임 중 언제든 나가기 버튼 추가</li>
+          <li data-i18n="annItem3">🐞 문제에 오류가 있으면 바로 제보하기</li>
+        </ul>
+        <div class="modal-actions">
+          <button id="announce-close" class="btn ghost" type="button" data-i18n="annClose">나중에</button>
+          <button id="announce-cta" class="btn primary" type="button" data-i18n="annCta">지금 한 판 해보기</button>
+        </div>
+      </div>
+    </div>
+
     <footer class="site-foot">
       <small data-i18n="footer"
         >팬메이드 비영리 데모 · 앨범 자켓 이미지의 저작권은 각 저작권자(플레디스 등)에게
@@ -179,5 +196,6 @@
     <!-- albumArt.js가 없을 때 자켓을 실시간으로 불러오는 폴백 -->
     <script src="js/artlive.js"></script>
     <script src="js/game.js"></script>
+    <script src="js/announce.js"></script>
   </body>
 </html>

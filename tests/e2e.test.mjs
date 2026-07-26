@@ -24,6 +24,10 @@ async function withPage(fn, opts = {}) {
   const browser = await chromium.launch(launchOpts);
   try {
     const page = await browser.newPage({ viewport: { width: 1040, height: 800 }, acceptDownloads: true });
+    // 업데이트 공지 팝업은 기본 억제(모드 버튼 클릭 방해 방지). 팝업 테스트만 opt-in.
+    if (!opts.showAnnounce) {
+      await page.addInitScript(() => { window.__SVT_NO_ANNOUNCE = true; });
+    }
     if (opts.languages) {
       await page.addInitScript((langs) => {
         Object.defineProperty(navigator, "languages", { get: () => langs });
@@ -243,4 +247,21 @@ test("명예의 전당: 기록 10건 미만이면 숨김", { skip: !chromium }, 
     const hidden = await page.$eval("#hall", (e) => e.hidden);
     assert.ok(hidden, "기록이 적은데 명예의 전당이 보임");
   }, { seedRanking: seed });
+});
+
+test("업데이트 공지: 최초 1회 노출 → 닫으면 재방문 시 미노출", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.waitForSelector("#screen-start.active");
+    await page.waitForSelector("#announce-modal:not([hidden])", { timeout: 3000 });
+    // CTA 로 닫으면 노멀 모드 시작(기능 체감)
+    await page.click("#announce-cta");
+    await page.waitForSelector("#announce-modal", { state: "hidden" });
+    await page.waitForSelector("#screen-play.active");
+    // 재방문(reload) 시 공지 미노출
+    await page.reload();
+    await page.waitForSelector("#screen-start.active");
+    await page.waitForTimeout(700);
+    const shown = await page.$eval("#announce-modal", (e) => !e.hidden);
+    assert.ok(!shown, "재방문인데 공지가 다시 뜸");
+  }, { showAnnounce: true });
 });
