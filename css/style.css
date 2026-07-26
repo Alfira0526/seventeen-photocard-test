@@ -324,20 +324,22 @@ body.playing .report-fab { display: none; }
 .hall-tab.active { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
 /* 3모드 나란히(한 화면). 좁은 화면에서는 가로 스크롤 */
 .hall-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.hall-col { min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--card); padding: 8px 8px 4px; }
+.hall-col { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--card); padding: 8px 8px 4px; }
 .hall-col-h { font-size: 12px; font-weight: 800; color: var(--accent-2); text-align: center; margin-bottom: 4px; }
-/* 오픈베타 챔피언 상시 박제(각 모드 1위) */
+/* 오픈베타 챔피언 상시 박제(각 모드 1위) — 좁은 컬럼에서도 안 씹히게 2줄 구조 */
 .hall-champ {
-  display: flex; align-items: center; gap: 4px; margin-bottom: 4px; padding: 4px 6px;
-  border-radius: 9px; border: 1px solid #e2b23a;
+  display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; padding: 5px 7px;
+  border-radius: 9px; border: 1px solid #e2b23a; overflow: hidden;
   background: linear-gradient(180deg, rgba(240,200,80,0.18), rgba(240,200,80,0.06));
   font-size: 11px;
 }
 .hall-champ[hidden] { display: none; }
-.hall-champ .crown { font-size: 13px; }
-.hall-champ .champ-label { color: #b8860b; font-weight: 800; white-space: nowrap; }
-.hall-champ .champ-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
-.hall-champ .champ-score { font-weight: 800; color: var(--text); }
+.hall-champ .champ-top { display: flex; align-items: center; gap: 3px; min-width: 0; }
+.hall-champ .crown { font-size: 12px; flex: none; }
+.hall-champ .champ-label { color: #b8860b; font-weight: 800; font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hall-champ .champ-bot { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; min-width: 0; }
+.hall-champ .champ-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
+.hall-champ .champ-score { flex: none; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
 :root[data-theme="dark"] .hall-champ .champ-label { color: #f0cf6a; }
 /* 현재 표시 중인 데이터 출처(오픈베타/시즌2) */
 .hall-src { font-size: 10px; font-weight: 800; text-align: center; margin-bottom: 3px; letter-spacing: 0.3px; }

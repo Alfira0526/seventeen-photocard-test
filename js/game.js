@@ -661,10 +661,9 @@
     if (champEl) {
       if (o.champion) {
         champEl.hidden = false;
-        champEl.innerHTML = `<span class="crown">🏅</span>` +
-          `<span class="champ-label">${T.season.champ(o.champName)}</span>` +
-          `<span class="champ-name">${escapeHtml(o.champion.name)}</span>` +
-          `<span class="champ-score">${o.champion.score}${unit}</span>`;
+        champEl.innerHTML =
+          `<div class="champ-top"><span class="crown">🏅</span><span class="champ-label">${T.season.champ(o.champName)}</span></div>` +
+          `<div class="champ-bot"><span class="champ-name">${escapeHtml(o.champion.name)}</span><span class="champ-score">${o.champion.score}${unit}</span></div>`;
         count++;
       } else { champEl.hidden = true; champEl.innerHTML = ""; }
     }
