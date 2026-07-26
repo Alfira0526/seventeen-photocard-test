@@ -72,7 +72,7 @@ test("일반 모드: 완주 → 결과·공유카드 렌더", { skip: !chromium 
     await page.click('.mode-btn[data-mode="normal"]');
     await playThrough(page);
     const score = await page.textContent("#result-score");
-    assert.match(score, /\d+\s*\/\s*\d+/);
+    assert.match(score, /\d+/); // 노멀=난이도·속도·콤보 raw 점수(만점 천장 제거)
     const drawn = await page.evaluate(() => {
       const cv = document.getElementById("result-canvas");
       const d = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data;

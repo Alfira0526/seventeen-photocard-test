@@ -242,6 +242,13 @@ body {
 .feedback { min-height: 22px; font-weight: 700; margin: 4px 2px 12px; }
 .feedback.good { color: var(--good); }
 .feedback.mid { color: var(--accent-2); }
+.feedback .gain {
+  display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px;
+  background: var(--good); color: #fff; font-size: 0.82em; font-weight: 800;
+  animation: gainPop 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.feedback .combo { margin-left: 4px; color: var(--accent-2); font-size: 0.9em; }
+@keyframes gainPop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 /* 결과 */
 .result { text-align: center; padding: 32px 0; }

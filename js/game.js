@@ -17,6 +17,23 @@
 
   const CONFIG = { rounds: 20, pointsPerCorrect: 5, choices: 4, taSeconds: 60, taLives: 3 };
 
+  // 노멀 모드 점수 변별: 난이도 배점 + 속도 보너스 + 콤보 배수 (만점 동점 방지)
+  const SCORE = {
+    diff: { 1: 10, 2: 14, 3: 20, 4: 28 }, // 문제 난이도(1~4)별 기본 배점
+    speedMax: 12,          // 속도 보너스 최대치
+    speedWindowMs: 7000,   // 이 시간 안에 맞히면 보너스(선형 감소), 지나면 0
+    comboStep: 0.1,        // 연속 정답 1개당 배수 증가폭
+    comboCap: 9,           // 배수 상한(×1.9)
+  };
+  // 현재 문제의 획득 점수(콤보는 이미 증가된 state.combo 기준)
+  function scoreGain(difficulty) {
+    const base = SCORE.diff[difficulty] || 12;
+    const elapsed = performance.now() - (state.qStart || performance.now());
+    const speed = Math.round(SCORE.speedMax * Math.max(0, 1 - elapsed / SCORE.speedWindowMs));
+    const mult = 1 + Math.min(Math.max(0, state.combo - 1), SCORE.comboCap) * SCORE.comboStep;
+    return Math.max(1, Math.round((base + speed) * mult));
+  }
+
   // 멤버 이름: 라벨용은 {loc,en} 객체(병기), 보기용은 로케일 평문
   function nameObj(id) {
     const m = memberById[id];
@@ -60,6 +77,8 @@
     limited: true,  // true=고정 20문제, false=무한 진행
     over: false,
     answers: [],
+    combo: 0,       // 연속 정답 수(노멀 점수 배수)
+    qStart: 0,      // 현재 문제 표시 시각(속도 보너스 계산)
   };
 
   // ── 로컬스토리지 헬퍼(사파리 프라이빗 등 예외 방어) ──
@@ -136,7 +155,7 @@
     const ytCards = YTS.map((s) => ({ kind: "yt", ref: s }));
     state.pool = albumCards.concat(memberCards, ytCards);
 
-    state.round = 0; state.score = 0; state.correct = 0; state.over = false; state.answers = [];
+    state.round = 0; state.score = 0; state.correct = 0; state.over = false; state.answers = []; state.combo = 0;
     el.score.textContent = "0";
     el["hud-mode"].textContent = T.hudMode[mode] || "";
     if (window.SVTAnalytics) window.SVTAnalytics.play(mode);
@@ -205,9 +224,11 @@
     // 현재 문제 맥락(텔레메트리·오류 제보용, 평문)
     state.cur = {
       mode: state.mode, typeId: q.typeId, cardKind: card.kind, cardId: card.ref.id,
+      difficulty: q.difficulty,
       label: String(q.label || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
       correct: q.correct, choices: q.choices,
     };
+    state.qStart = performance.now(); // 속도 보너스 기준 시각
 
     el.feedback.innerHTML = ""; el.feedback.className = "feedback";
     el["btn-next"].disabled = true;
@@ -355,17 +376,25 @@
     if (window.SVTAnalytics && state.cur) {
       window.SVTAnalytics.answer(state.cur.typeId, isCorrect, state.cur.typeId + "__" + state.cur.cardKind + "_" + state.cur.cardId);
     }
+    let gain = 0;
     if (isCorrect) {
       state.correct++;
-      const gain = state.mode === "normal" ? CONFIG.pointsPerCorrect : 1;
+      if (state.mode === "normal") {
+        state.combo++;
+        gain = scoreGain(state.cur && state.cur.difficulty);
+      } else {
+        gain = 1;
+      }
       animateScore(state.score, (state.score += gain));
+    } else {
+      state.combo = 0; // 콤보 리셋
     }
     c.querySelectorAll(".choice").forEach((b) => {
       b.disabled = true; b.setAttribute("aria-disabled", "true");
       if (String(b.dataset.value) === String(correct)) { b.classList.add("correct"); b.setAttribute("aria-label", b.textContent + " (정답)"); }
       else if (b === btn) { b.classList.add("wrong"); b.setAttribute("aria-label", b.textContent + " (오답)"); }
     });
-    finishRound(isCorrect);
+    finishRound(isCorrect, gain);
   }
 
   // ── 점수 카운트업 ──
@@ -380,7 +409,7 @@
     requestAnimationFrame(step);
   }
 
-  function finishRound(isCorrect) {
+  function finishRound(isCorrect, gain) {
     state.answers.push({ correct: isCorrect });
     updateHud();
 
@@ -392,8 +421,14 @@
       if (state.lives <= 0) ended = true;
     }
 
-    el.feedback.innerHTML = isCorrect ? T.feedback.correct
-      : (ended ? T.feedback.over : T.feedback.wrong);
+    // 노멀 정답: 획득 점수(+콤보) 표기로 점수 변별을 눈에 보이게
+    let extra = "";
+    if (isCorrect && state.mode === "normal" && gain) {
+      const flame = state.combo >= 3 ? ` <span class="combo">🔥${state.combo}</span>` : "";
+      extra = ` <span class="gain">+${gain}</span>${flame}`;
+    }
+    el.feedback.innerHTML = (isCorrect ? T.feedback.correct + extra
+      : (ended ? T.feedback.over : T.feedback.wrong));
     el.feedback.className = "feedback " + (isCorrect ? "good" : "mid");
 
     if (state.limited) {
