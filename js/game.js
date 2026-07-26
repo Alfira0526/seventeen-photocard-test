@@ -99,8 +99,10 @@
       "screen-start", "screen-play", "screen-result",
       "btn-restart", "btn-next", "btn-share", "btn-save", "btn-tweet", "btn-insta", "btn-kakao", "share-hint",
       "card-art", "card-caption", "btn-reload", "progress", "progress-fill", "score", "hud-mode", "hud-lives",
-      "rank-name", "btn-rank", "rank-list", "btn-home", "btn-hud-home",
-      "hall", "hall-mode", "hall-list",
+      "rank-name", "btn-rank", "rank-list", "btn-legacy", "btn-home", "btn-hud-home",
+      "hall", "hall-season",
+      "hall-h-normal", "hall-h-endless", "hall-h-timeattack",
+      "hall-normal", "hall-endless", "hall-timeattack",
       "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
       "theme-toggle", "lang-select",
@@ -497,6 +499,7 @@
     el["result-detail"].innerHTML = `<p class="tier">${res.tierHtml}</p><p class="pct">${res.subHtml}</p>`;
     el["rank-name"].value = store.get(LS.name, "");
     el["btn-rank"].disabled = false;
+    rankLegacy = false; // 결과 진입 시 항상 현재 시즌부터
     renderRankList();
     drawShareCard(res);
     show("screen-result");
@@ -516,12 +519,16 @@
   }
 
   // 현재 모드의 순위만 그린다(로컬 즉시 → 원격 병합 시 갱신)
+  // rankLegacy=true 면 지난 시즌(구 100점제) 기록을 보여준다.
+  let rankLegacy = false;
   function renderRankList(highlight) {
-    const mode = state.mode;
-    paintRankList(RANK.localList(mode), highlight, mode);
-    RANK.list(mode).then((list) => {
-      if (state.mode === mode) paintRankList(list, highlight, mode);
+    const mode = state.mode, opts = { legacy: rankLegacy };
+    const hl = rankLegacy ? null : highlight;
+    paintRankList(RANK.localList(mode, opts), hl, mode);
+    RANK.list(mode, opts).then((list) => {
+      if (state.mode === mode) paintRankList(list, hl, mode);
     });
+    if (el["btn-legacy"]) el["btn-legacy"].innerHTML = rankLegacy ? T.ui.legacyHide : T.ui.legacyShow;
   }
   function paintRankList(list, highlight, mode) {
     const top = list.slice(0, 10);
@@ -537,51 +544,51 @@
 
   function nowStamp() { try { return Date.now(); } catch (e) { return Math.random(); } }
 
-  // ── 명예의 전당(시작화면 롤링): 모드별 기록 10건 이상이면 노출 ──
-  const HALL_MIN = 10, MODES = ["normal", "endless", "timeattack"];
-  let hallTimer = null, hallModes = [], hallIdx = 0;
-  function stopHall() { if (hallTimer) { clearInterval(hallTimer); hallTimer = null; } }
+  // ── 명예의 전당(시작화면): 3모드(일반·무한·타임어택)를 한 화면에 나란히,
+  //    각 컬럼이 세로 롤링. 현재 시즌 기록 합계가 일정 수 이상이면 노출 ──
+  const HALL_MIN_TOTAL = 3, MODES = ["normal", "endless", "timeattack"];
+  function stopHall() { /* 컬럼형은 CSS 애니메이션이라 타이머 없음(호환용) */ }
   function refreshHall() {
-    stopHall();
     if (!RANK || !el["hall"]) return;
-    // 로컬 기준으로 즉시 판정/표시(원격 대기로 지연되지 않게)
-    applyHall(MODES.filter((m) => RANK.localList(m).length >= HALL_MIN));
-    // 원격 저장소가 있으면 병합 결과로 재판정
+    // 로컬 즉시 표시(원격 대기로 지연되지 않게)
+    let total = 0;
+    MODES.forEach((m) => { const l = RANK.localList(m).slice(0, 10); total += l.length; paintHallCol(m, l); });
+    applyHall(total);
+    // 원격 저장소가 있으면 병합 결과로 재판정/갱신
     if (RANK.remote) {
-      RANK.counts(MODES).then((counts) => {
-        applyHall(MODES.filter((m) => (counts[m] || 0) >= HALL_MIN));
-      });
+      Promise.all(MODES.map((m) => RANK.list(m))).then((lists) => {
+        let t = 0;
+        lists.forEach((l, i) => { const top = l.slice(0, 10); t += top.length; paintHallCol(MODES[i], top); });
+        applyHall(t);
+      }).catch(() => {});
     }
   }
-  function applyHall(modes) {
-    stopHall();
-    hallModes = modes;
-    if (!hallModes.length) { el["hall"].hidden = true; return; }
-    el["hall"].hidden = false;
-    hallIdx = 0;
-    showHallMode(hallModes[0]);
-    if (hallModes.length > 1) {
-      hallTimer = setInterval(() => {
-        hallIdx = (hallIdx + 1) % hallModes.length;
-        showHallMode(hallModes[hallIdx]);
-      }, 8000);
-    }
+  function applyHall(total) {
+    el["hall"].hidden = !(total >= HALL_MIN_TOTAL);
+    if (el["hall-season"]) el["hall-season"].textContent = RANK.SEASON ? "S2" : "";
   }
-  function paintHall(mode, list) {
-    el["hall-mode"].textContent = T.hudMode[mode] || "";
+  function paintHallCol(mode, list) {
+    const head = el["hall-h-" + mode], ol = el["hall-" + mode];
+    if (head) head.textContent = T.hudMode[mode] || mode;
+    if (!ol) return;
     const unit = mode === "normal" ? "점" : "개";
+    if (!list.length) {
+      ol.innerHTML = `<li class="empty">${T.rank.empty}</li>`;
+      ol.style.animation = "none";
+      return;
+    }
     const rows = list.map((e, i) =>
       `<li><span class="rk">${i + 1}</span><span class="nm">${escapeHtml(e.name)}</span>` +
       `<span class="sc">${e.score}${unit}</span></li>`).join("");
-    // 마퀴: 항목을 두 번 이어붙여 끊김 없는 세로 스크롤
-    el["hall-list"].innerHTML = rows + rows;
-    el["hall-list"].style.animationDuration = Math.max(9, list.length * 1.6) + "s";
-  }
-  function showHallMode(mode) {
-    paintHall(mode, RANK.localList(mode).slice(0, 10)); // 로컬 즉시
-    if (RANK.remote) RANK.list(mode).then((all) => {
-      if (hallModes[hallIdx] === mode) paintHall(mode, all.slice(0, 10)); // 원격 병합 갱신
-    });
+    // 항목이 충분히 많으면 끊김 없는 세로 롤링(항목 2배 이어붙임), 적으면 정적 표시
+    if (list.length >= 5) {
+      ol.innerHTML = rows + rows;
+      ol.style.animation = "";
+      ol.style.animationDuration = Math.max(9, list.length * 1.6) + "s";
+    } else {
+      ol.innerHTML = rows;
+      ol.style.animation = "none";
+    }
   }
 
   // ── 공유 카드(canvas) ──
@@ -817,6 +824,7 @@
     // 한 판 더: 방금 한 모드로 바로 재시작 / 처음으로: 시작화면 복귀
     el["btn-restart"].addEventListener("click", () => { stopTimer(); startMode(state.mode); });
     el["btn-home"].addEventListener("click", () => { stopTimer(); goHome(); });
+    if (el["btn-legacy"]) el["btn-legacy"].addEventListener("click", () => { rankLegacy = !rankLegacy; renderRankList(); });
     if (el["btn-hud-home"]) el["btn-hud-home"].addEventListener("click", () => {
       const msg = I18N.raw(I18N.locale).ui.quitConfirm;
       if (window.confirm(msg)) { stopTimer(); goHome(); }

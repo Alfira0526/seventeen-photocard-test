@@ -20,6 +20,16 @@
     set(v) { try { localStorage.setItem(LS, JSON.stringify(v.slice(0, 300))); } catch (e) {} },
   };
 
+  // ── 시즌 ──
+  // 새 점수제(속도·난이도·콤보) 도입에 맞춰 시즌을 분리한다. 구 100점제 기록은
+  // 기존 경로(rankings/<mode>)에 그대로 두고 "지난 시즌"으로만 조회하며, 현재 시즌은
+  // 모드 키에 접미사를 붙여(rankings/<mode>_s2) 저장/조회한다.
+  // → Firebase 규칙(rankings/$mode/$id)을 그대로 재사용(규칙 재설정 불필요).
+  const SEASON = "s2";
+  const SUFFIX = "_" + SEASON;
+  // 저장/조회에 쓰는 실제 키. legacy=true 면 구 시즌(접미사 없음).
+  function skey(mode, legacy) { return legacy ? mode : mode + SUFFIX; }
+
   const idOf = (e) => `${e.mode}|${e.name}|${e.score}|${e.ts}`;
   function dedupeSort(list, mode) {
     const seen = new Set(), out = [];
@@ -57,23 +67,27 @@
 
   const api = {
     remote: !!fb,
-    localList,
+    SEASON,
+    // 현재 시즌(기본) 또는 지난 시즌(opts.legacy) 로컬 순위
+    localList(mode, opts) { return dedupeSort(store.get(), skey(mode, opts && opts.legacy)); },
     // 특정 모드 순위(원격+로컬 병합, 점수 내림차순). 원격 실패 시 로컬만.
-    async list(mode) {
-      const local = localList(mode);
+    async list(mode, opts) {
+      const sk = skey(mode, opts && opts.legacy);
+      const local = dedupeSort(store.get(), sk);
       if (!fb) return local;
       try {
-        const rem = await remoteList(mode);
-        return dedupeSort(local.concat(rem), mode);
+        const rem = await remoteList(sk);
+        return dedupeSort(local.concat(rem), sk);
       } catch (e) { return local; }
     },
-    // 기록 추가: 로컬에 즉시 저장 + (설정 시) 원격에도 append
+    // 기록 추가: 현재 시즌 키로 로컬 즉시 저장 + (설정 시) 원격 append
     async add(entry) {
-      localAdd(entry);
-      if (fb) { try { await remoteAdd(entry); } catch (e) {} }
-      return entry;
+      const e = Object.assign({}, entry, { mode: skey(entry.mode), season: SEASON });
+      localAdd(e);
+      if (fb) { try { await remoteAdd(e); } catch (err) {} }
+      return e;
     },
-    // 모드별 기록 수(롤링 노출 조건 판단)
+    // 모드별 기록 수(현재 시즌 기준, 롤링 노출 조건 판단)
     async counts(modes) {
       const out = {};
       await Promise.all(modes.map(async (m) => { out[m] = (await api.list(m)).length; }));

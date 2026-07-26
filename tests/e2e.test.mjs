@@ -225,27 +225,56 @@ test("처음으로: 결과에서 시작화면으로 복귀 + 모드 3개", { ski
   });
 });
 
-test("명예의 전당: 모드 기록 10건 이상이면 시작화면에 롤링 노출", { skip: !chromium }, async () => {
-  const seed = Array.from({ length: 12 }, (_, i) => ({
-    name: `caret${i}`, score: 100 - i * 3, mode: "normal", ts: 1000 + i,
-  }));
+test("명예의 전당: 현재 시즌 기록이 쌓이면 3모드 한 화면 노출·롤링", { skip: !chromium }, async () => {
+  // 현재 시즌 저장키는 모드+_s2. 일반/무한 두 모드에 시드.
+  const seed = [
+    ...Array.from({ length: 8 }, (_, i) => ({ name: `caret${i}`, score: 300 - i * 7, mode: "normal_s2", season: "s2", ts: 1000 + i })),
+    ...Array.from({ length: 6 }, (_, i) => ({ name: `end${i}`, score: 20 - i, mode: "endless_s2", season: "s2", ts: 2000 + i })),
+  ];
   await withPage(async (page) => {
     await page.waitForSelector("#screen-start.active");
     await page.waitForSelector("#hall:not([hidden])", { timeout: 4000 });
-    const items = await page.$$eval("#hall-list li", (els) => els.length);
-    assert.ok(items >= 10, `롤링 목록이 비었음(${items})`);
-    const hallMode = await page.textContent("#hall-mode");
-    assert.match(hallMode, /일반|Normal|通常|普通|Normal/);
+    // 세 컬럼(일반·무한·타임어택)이 한 화면에 존재
+    const cols = await page.$$eval(".hall-col", (els) => els.length);
+    assert.equal(cols, 3);
+    const normalItems = await page.$$eval("#hall-normal li", (els) => els.length);
+    assert.ok(normalItems >= 8, `일반 컬럼 비었음(${normalItems})`);
+    const normalHead = await page.textContent("#hall-h-normal");
+    assert.match(normalHead, /일반|Normal|通常|普通/);
+    const season = await page.textContent("#hall-season");
+    assert.match(season, /S2/);
   }, { seedRanking: seed, languages: ["ko-KR", "ko"] });
 });
 
-test("명예의 전당: 기록 10건 미만이면 숨김", { skip: !chromium }, async () => {
-  const seed = Array.from({ length: 5 }, (_, i) => ({ name: `x${i}`, score: 50, mode: "normal", ts: i }));
+test("명예의 전당: 현재 시즌 기록이 거의 없으면 숨김(구 시즌만 있으면 숨김)", { skip: !chromium }, async () => {
+  // 구 시즌(접미사 없음) 기록만 있고 현재 시즌은 2건뿐 → 임계(3) 미만 → 숨김
+  const seed = [
+    ...Array.from({ length: 9 }, (_, i) => ({ name: `old${i}`, score: 100 - i, mode: "normal", ts: i })),
+    ...Array.from({ length: 2 }, (_, i) => ({ name: `new${i}`, score: 150, mode: "normal_s2", season: "s2", ts: 500 + i })),
+  ];
   await withPage(async (page) => {
     await page.waitForSelector("#screen-start.active");
     await page.waitForTimeout(500);
     const hidden = await page.$eval("#hall", (e) => e.hidden);
-    assert.ok(hidden, "기록이 적은데 명예의 전당이 보임");
+    assert.ok(hidden, "현재 시즌 기록이 적은데 명예의 전당이 보임");
+  }, { seedRanking: seed });
+});
+
+test("지난 시즌 토글: 결과 화면에서 구 랭킹을 별도로 표기", { skip: !chromium }, async () => {
+  // 구 시즌(접미사 없음) 기록만 시드 → 현재 시즌 목록은 비어 있고, 토글 시 구 기록 노출
+  const seed = Array.from({ length: 3 }, (_, i) => ({ name: `legacy${i}`, score: 90 - i, mode: "normal", ts: i }));
+  await withPage(async (page) => {
+    await page.click('.mode-btn[data-mode="normal"]');
+    await playThrough(page);
+    await page.waitForSelector("#screen-result.active");
+    // 현재 시즌: 구 기록 안 보임
+    const before = await page.textContent("#rank-list");
+    assert.ok(!/legacy0/.test(before), "현재 시즌에 구 기록이 섞임");
+    // 지난 시즌 토글
+    await page.click("#btn-legacy");
+    await page.waitForFunction(() => /legacy0/.test(document.getElementById("rank-list").textContent), null, { timeout: 3000 });
+    const after = await page.textContent("#rank-list");
+    assert.ok(/legacy0/.test(after), "지난 시즌 기록이 안 뜸");
   }, { seedRanking: seed });
 });
 

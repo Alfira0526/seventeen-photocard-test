@@ -282,25 +282,42 @@ body {
 .rank-list .rk { width: 22px; text-align: center; font-weight: 800; color: var(--accent-2); }
 .rank-list .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .rank-list .sc { font-weight: 800; color: var(--text); }
+.rank-legacy-toggle {
+  display: block; margin: 8px auto 0; padding: 5px 4px;
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px;
+}
+.rank-legacy-toggle:hover { color: var(--accent); }
+.rank-legacy-toggle .i18n-sub { font-size: 0.82em; }
 
 /* 명예의 전당(시작화면 롤링) */
 .hall { margin-top: 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--bg-soft); padding: 12px 14px; }
 .hall[hidden] { display: none; }
-.hall-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.hall-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .hall-title { font-weight: 800; font-size: 14px; }
-.hall-mode { font-size: 12px; color: var(--accent-2); font-weight: 700; }
+.hall-season { font-size: 11px; font-weight: 800; color: #fff; background: var(--accent-2); border-radius: 999px; padding: 1px 8px; letter-spacing: 0.5px; }
+/* 3모드 나란히(한 화면). 좁은 화면에서는 가로 스크롤 */
+.hall-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.hall-col { min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--card); padding: 8px 8px 4px; }
+.hall-col-h { font-size: 12px; font-weight: 800; color: var(--accent-2); text-align: center; margin-bottom: 4px; }
 .hall-viewport {
-  height: 150px; overflow: hidden; position: relative;
+  height: 132px; overflow: hidden; position: relative;
   -webkit-mask-image: linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent);
   mask-image: linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent);
 }
 .hall-list { list-style: none; margin: 0; padding: 0; animation: hallroll linear infinite; }
-.hall-list li { display: flex; align-items: center; gap: 10px; padding: 5px 4px; font-size: 14px; }
-.hall-list .rk { width: 20px; text-align: center; font-weight: 800; color: var(--accent-2); }
+.hall-list li { display: flex; align-items: center; gap: 6px; padding: 4px 2px; font-size: 12.5px; }
+.hall-list li.empty { justify-content: center; color: var(--muted); font-size: 12px; padding: 10px 0; }
+.hall-list .rk { width: 16px; text-align: center; font-weight: 800; color: var(--accent-2); }
 .hall-list .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-.hall-list .sc { font-weight: 800; color: var(--text); }
+.hall-list .sc { font-weight: 800; color: var(--text); font-size: 12px; }
 @keyframes hallroll { from { transform: translateY(0); } to { transform: translateY(-50%); } }
-@media (prefers-reduced-motion: reduce) { .hall-list { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .hall-list { animation: none !important; } }
+@media (max-width: 560px) {
+  .hall-cols { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .hall-col { padding: 6px 5px 3px; }
+  .hall-list li { font-size: 11.5px; gap: 4px; }
+}
 .share-grid {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
   max-width: 440px; margin: 16px auto 0;

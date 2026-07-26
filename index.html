@@ -67,14 +67,25 @@
             </button>
           </div>
 
-          <!-- 명예의 전당: 모드별 기록 10건 이상이면 롤링 노출 -->
+          <!-- 명예의 전당: 3모드(일반·무한·타임어택) 한 화면에서 각각 롤링 -->
           <section id="hall" class="hall" hidden>
             <div class="hall-head">
               <span class="hall-title" data-i18n="hallTitle">🏆 명예의 전당</span>
-              <span class="hall-mode" id="hall-mode"></span>
+              <span class="hall-season" id="hall-season"></span>
             </div>
-            <div class="hall-viewport">
-              <ol id="hall-list" class="hall-list"></ol>
+            <div class="hall-cols">
+              <div class="hall-col">
+                <div class="hall-col-h" id="hall-h-normal"></div>
+                <div class="hall-viewport"><ol id="hall-normal" class="hall-list"></ol></div>
+              </div>
+              <div class="hall-col">
+                <div class="hall-col-h" id="hall-h-endless"></div>
+                <div class="hall-viewport"><ol id="hall-endless" class="hall-list"></ol></div>
+              </div>
+              <div class="hall-col">
+                <div class="hall-col-h" id="hall-h-timeattack"></div>
+                <div class="hall-viewport"><ol id="hall-timeattack" class="hall-list"></ol></div>
+              </div>
             </div>
           </section>
         </div>
@@ -122,6 +133,7 @@
               <button id="btn-rank" class="btn ghost" type="button" data-i18n="rankBtn">등록</button>
             </div>
             <ol id="rank-list" class="rank-list"></ol>
+            <button id="btn-legacy" class="rank-legacy-toggle" type="button" data-i18n="legacyShow">🕐 지난 시즌 기록 보기</button>
           </div>
           <div class="result-actions">
             <button id="btn-share" class="btn primary" data-i18n="shareBtn">📤 공유하기</button>

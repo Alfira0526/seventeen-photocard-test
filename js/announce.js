@@ -11,7 +11,7 @@
  */
 (function () {
   "use strict";
-  var ANNOUNCE_VER = "2026-07-v12"; // 공지 버전(내용 바뀌면 이 값만 갱신)
+  var ANNOUNCE_VER = "2026-07-v12-s2"; // 공지 버전(내용 바뀌면 이 값만 갱신)
   var KEY = "svt-announce-seen";
 
   function seen() {
