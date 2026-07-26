@@ -1,53 +1,50 @@
 /**
- * season.js — 시즌 스케줄(클라이언트 계산).
+ * season.js — 시즌 스케줄(캘린더 월 기준, 클라이언트 계산).
  *
- * 정적 사이트라 서버 스케줄러가 없으므로, 시작 기준일(anchor)과 시즌 길이(lenDays)를
- * 박아두고 브라우저의 현재 날짜와 비교해 "지금 몇 번째 시즌인지"를 계산한다.
- * 4주(28일)마다 자동으로 다음 시즌으로 롤오버되고, 직전 시즌은 챔피언/레거시로 남는다.
+ *  · 월간 시즌: 매월 1일 리셋 / 말일 종료. 저장키 접미사 = "_YYYYMM"(예: _202608).
+ *    챔피언 = 직전 달 1위(직전 달 기록이 없으면 오픈베타=접미사 없음).
+ *  · 분기 누적: 별도 리셋이 아니라 그 분기(3개월)의 월간 데이터를 합산한 "뷰".
+ *    quarterMonths() 가 해당 분기의 월 접미사 목록을 준다.
+ *  · 오픈베타: 월간 도입 이전의 구 기록(접미사 없음, "").
  *
- *  · 시즌2가 첫 정식 시즌(그 이전 = 오픈베타, 접미사 없음)
- *  · 종료 D-noticeDays 부터는 "막판 순위 굳히기" 강조(FOMO)
+ * 모두 UTC 기준(테스트 __SVT_NOW 와 일치). 막판(말일 D-noticeDays) 강조.
  *
  * 테스트/자동화 오버라이드:
- *  · window.__SVT_NOW           : 현재시각(ms) 고정
- *  · window.__SVT_SEASON_OVERRIDE: "s2" 처럼 활성 시즌 강제
+ *  · window.__SVT_NOW : 현재시각(ms) 고정
  */
 (function (root) {
   "use strict";
   if (!root) return;
   var DAY = 86400000;
-  var CFG = {
-    anchor: Date.parse("2026-07-26T00:00:00Z"), // 시즌2 시작 기준일
-    lenDays: 28,     // 4주(월간 시즌)
-    noticeDays: 3,   // 막판 강조 시작(D-3)
-    firstNum: 2,     // 시즌2부터(그 이전=오픈베타)
-  };
+  var CFG = { noticeDays: 3 }; // 말일 3일 전부터 '막판 순위 굳히기'
+
   function nowMs() {
     if (typeof root.__SVT_NOW === "number") return root.__SVT_NOW;
-    try { return Date.now(); } catch (e) { return CFG.anchor; }
+    try { return Date.now(); } catch (e) { return Date.UTC(2026, 6, 26); }
   }
-  function activeNum() {
-    var ov = root.__SVT_SEASON_OVERRIDE;
-    if (typeof ov === "string" && /^s(\d+)$/.test(ov)) return parseInt(ov.slice(1), 10);
-    var idx = Math.floor((nowMs() - CFG.anchor) / (CFG.lenDays * DAY));
-    if (idx < 0) idx = 0;
-    return CFG.firstNum + idx;
+  function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+  function ymNow() { var d = new Date(nowMs()); return { y: d.getUTCFullYear(), m: d.getUTCMonth() + 1 }; }
+
+  function month(y, m) {
+    return { y: y, m: m, ym: "" + y + pad2(m), suffix: "_" + y + pad2(m),
+             start: Date.UTC(y, m - 1, 1), end: Date.UTC(y, m, 1) };
   }
-  function byNum(num) {
-    var start = CFG.anchor + (num - CFG.firstNum) * CFG.lenDays * DAY;
-    return { beta: false, num: num, id: "s" + num, suffix: "_s" + num, start: start, end: start + CFG.lenDays * DAY };
-  }
-  function active() { return byNum(activeNum()); }
-  function previous() {
-    var num = activeNum();
-    if (num <= CFG.firstNum) return { beta: true, id: "beta", suffix: "" };
-    return byNum(num - 1);
-  }
+  function active() { var n = ymNow(); return month(n.y, n.m); }
+  function previous() { var n = ymNow(); var y = n.y, m = n.m - 1; if (m < 1) { m = 12; y--; } return month(y, m); }
   function daysLeft() { return Math.max(0, Math.ceil((active().end - nowMs()) / DAY)); }
   function isFinalPush() { var d = daysLeft(); return d > 0 && d <= CFG.noticeDays; }
+
+  // 분기(1~4)와 그 분기 3개월의 접미사 목록(누적 뷰용)
+  function quarterOf(m) { return Math.floor((m - 1) / 3) + 1; }
+  function quarter() { var n = ymNow(); return { y: n.y, q: quarterOf(n.m) }; }
+  function quarterMonths() {
+    var n = ymNow(), q = quarterOf(n.m), first = (q - 1) * 3 + 1;
+    return [first, first + 1, first + 2].map(function (mm) { return "_" + n.y + pad2(mm); });
+  }
 
   root.SVTSeason = {
     CFG: CFG, nowMs: nowMs, active: active, previous: previous,
     daysLeft: daysLeft, isFinalPush: isFinalPush,
+    quarter: quarter, quarterMonths: quarterMonths,
   };
 })(typeof window !== "undefined" ? window : null);

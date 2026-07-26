@@ -314,6 +314,14 @@ body.playing .report-fab { display: none; }
 .season-banner.final b { color: #fff; }
 @keyframes seasonPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(216,60,72,0.5); } 50% { box-shadow: 0 0 0 6px rgba(216,60,72,0); } }
 @media (prefers-reduced-motion: reduce) { .season-banner.final { animation: none; } }
+/* 이번 달 / 분기 누적 탭 */
+.hall-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.hall-tab {
+  flex: 1; padding: 6px 8px; border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--bg-soft); color: var(--muted);
+  font-size: 12.5px; font-weight: 700; transition: all 0.15s ease;
+}
+.hall-tab.active { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
 /* 3모드 나란히(한 화면). 좁은 화면에서는 가로 스크롤 */
 .hall-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .hall-col { min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--card); padding: 8px 8px 4px; }

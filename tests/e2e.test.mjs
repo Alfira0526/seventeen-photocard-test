@@ -228,9 +228,10 @@ test("처음으로: 결과에서 시작화면으로 복귀 + 모드 3개", { ski
   });
 });
 
-test("명예의 전당: 신규(시즌2) 기록이 임계 이상이면 시즌2 순위로 교체 표시", { skip: !chromium }, async () => {
+test("명예의 전당: 이번 달 기록이 임계 이상이면 이번 달 순위로 표시", { skip: !chromium }, async () => {
+  // 이번 달(2026-07) 저장키 = normal_202607
   const seed = [
-    ...Array.from({ length: 6 }, (_, i) => ({ name: `s2n${i}`, score: 300 - i * 7, mode: "normal_s2", season: "s2", ts: 1000 + i })),
+    ...Array.from({ length: 6 }, (_, i) => ({ name: `julN${i}`, score: 300 - i * 7, mode: "normal_202607", season: "202607", ts: 1000 + i })),
   ];
   await withPage(async (page) => {
     await page.waitForSelector("#screen-start.active");
@@ -238,17 +239,17 @@ test("명예의 전당: 신규(시즌2) 기록이 임계 이상이면 시즌2 �
     const cols = await page.$$eval(".hall-col", (els) => els.length);
     assert.equal(cols, 3); // 3모드 한 화면
     const src = await page.textContent("#hall-src-normal");
-    assert.match(src, /시즌2|Season 2|シーズン2|第2赛季|Temporada 2/);
+    assert.match(src, /7월|Jul/);
     const listTxt = await page.textContent("#hall-normal");
-    assert.ok(/s2n0/.test(listTxt), "시즌2 순위가 안 뜸");
+    assert.ok(/julN0/.test(listTxt), "이번 달 순위가 안 뜸");
   }, { seedRanking: seed, languages: ["ko-KR", "ko"] });
 });
 
-test("명예의 전당: 신규가 적으면 오픈베타(구) 순위 노출 + 챔피언 상시 박제", { skip: !chromium }, async () => {
-  // 구 시즌 6건(old0=1위) + 신규 1건(임계 3 미만) → 오픈베타 데이터 노출, old0 챔피언 박제
+test("명예의 전당: 이번 달이 적으면 오픈베타(구) 순위 노출 + 챔피언 상시 박제", { skip: !chromium }, async () => {
+  // 오픈베타 6건(old0=1위) + 이번 달 1건(임계 3 미만) → 오픈베타 데이터 노출, old0 챔피언 박제
   const seed = [
     ...Array.from({ length: 6 }, (_, i) => ({ name: `old${i}`, score: 100 - i * 5, mode: "normal", ts: i })),
-    { name: "newbie", score: 250, mode: "normal_s2", season: "s2", ts: 900 },
+    { name: "newbie", score: 250, mode: "normal_202607", season: "202607", ts: 900 },
   ];
   await withPage(async (page) => {
     await page.waitForSelector("#screen-start.active");
@@ -294,21 +295,21 @@ test("지난 시즌 토글: 결과 화면에서 구 랭킹을 별도로 표기",
   }, { seedRanking: seed });
 });
 
-test("시즌 배너: 시작화면에 종료 카운트다운(D-N) 노출", { skip: !chromium }, async () => {
+test("시즌 배너: 시작화면에 이번 달 종료 카운트다운(D-N) 노출", { skip: !chromium }, async () => {
   await withPage(async (page) => {
     await page.waitForSelector("#screen-start.active");
     await page.waitForSelector("#season-banner:not([hidden])", { timeout: 3000 });
     const txt = await page.textContent("#season-banner");
-    assert.match(txt, /시즌2|Season 2/);
+    assert.match(txt, /7월|Jul/);
     assert.match(txt, /종료 D-\d+|ends in/);
     const isFinal = await page.$eval("#season-banner", (e) => e.classList.contains("final"));
     assert.ok(!isFinal, "초반인데 막판 강조가 켜짐");
   }, { languages: ["ko-KR", "ko"] });
 });
 
-test("시즌 배너: 종료 임박(D-3 이내)엔 '막판 순위 굳히기' 강조", { skip: !chromium }, async () => {
-  // 시즌2 시작(2026-07-26) + 26일 = 종료 이틀 전
-  const now = Date.parse("2026-07-26T00:00:00Z") + 26 * 86400000;
+test("시즌 배너: 말일 임박(D-3 이내)엔 '막판 순위 굳히기' 강조", { skip: !chromium }, async () => {
+  // 2026-07-30 → 7월 종료(8/1)까지 이틀
+  const now = Date.parse("2026-07-30T00:00:00Z");
   await withPage(async (page) => {
     await page.waitForSelector("#season-banner:not([hidden])", { timeout: 3000 });
     const isFinal = await page.$eval("#season-banner", (e) => e.classList.contains("final"));
@@ -316,6 +317,23 @@ test("시즌 배너: 종료 임박(D-3 이내)엔 '막판 순위 굳히기' 강�
     const txt = await page.textContent("#season-banner");
     assert.match(txt, /마지막|Final|ラスト|最后|Últimos/);
   }, { now, languages: ["ko-KR", "ko"] });
+});
+
+test("명예의 전당: '분기 누적' 탭은 그 분기 월간 데이터를 합산해 표시", { skip: !chromium }, async () => {
+  // 2026 Q3 = 7·8·9월. 7월·8월에 각각 시드 → 분기 탭에서 둘 다 합산
+  const seed = [
+    ...Array.from({ length: 3 }, (_, i) => ({ name: `jul${i}`, score: 200 - i, mode: "normal_202607", season: "202607", ts: 100 + i })),
+    ...Array.from({ length: 3 }, (_, i) => ({ name: `aug${i}`, score: 260 - i, mode: "normal_202608", season: "202608", ts: 200 + i })),
+  ];
+  await withPage(async (page) => {
+    await page.waitForSelector("#hall:not([hidden])", { timeout: 4000 });
+    await page.click("#hall-tab-quarter");
+    await page.waitForFunction(() => /aug0/.test(document.getElementById("hall-normal").textContent), null, { timeout: 3000 });
+    const listTxt = await page.textContent("#hall-normal");
+    assert.ok(/jul0/.test(listTxt) && /aug0/.test(listTxt), "분기 누적에 7·8월이 합쳐지지 않음");
+    const src = await page.textContent("#hall-src-normal");
+    assert.match(src, /분기|Q3|Quarter/);
+  }, { seedRanking: seed, languages: ["ko-KR", "ko"] });
 });
 
 test("업데이트 공지: 최초 1회 노출 → 닫으면 재방문 시 미노출", { skip: !chromium }, async () => {

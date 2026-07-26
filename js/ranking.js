@@ -20,20 +20,30 @@
     set(v) { try { localStorage.setItem(LS, JSON.stringify(v.slice(0, 300))); } catch (e) {} },
   };
 
-  // ── 시즌 ──
-  // 시즌 스케줄(js/season.js)이 현재/직전 시즌을 날짜 기반으로 계산한다.
-  // 현재 시즌은 모드 키에 접미사(_s2, _s3 …)를 붙여 저장/조회하고, 직전 시즌은
-  // legacy 로 조회한다(시즌2의 직전은 오픈베타=접미사 없음).
+  // ── 시즌 키 ──
+  // 저장/조회 키 = 모드 + 접미사. 접미사는 시즌 스케줄(season.js)이 준다.
+  //  · 현재 달   : SVTSeason.active().suffix  (예: "_202608")
+  //  · 지난 달   : SVTSeason.previous().suffix
+  //  · 분기 누적 : SVTSeason.quarterMonths()  (여러 달 접미사 병합)
+  //  · 오픈베타  : "" (구 100점제, 접미사 없음)
   // → Firebase 규칙(rankings/$mode/$id)을 그대로 재사용(규칙 재설정 불필요).
-  function curSuffix() { return (root.SVTSeason ? root.SVTSeason.active().suffix : "_s2"); }
-  function prevSuffix() { return (root.SVTSeason ? root.SVTSeason.previous().suffix : ""); }
-  function skey(mode, legacy) { return mode + (legacy ? prevSuffix() : curSuffix()); }
+  function activeSuffix() { return (root.SVTSeason ? root.SVTSeason.active().suffix : ""); }
+  // opts: {suffix} 단일 지정 · {suffixes:[...]} 병합(분기 누적) · 없으면 현재 달
+  function keysFor(mode, opts) {
+    let sufs;
+    if (opts && opts.suffixes) sufs = opts.suffixes;
+    else if (opts && opts.suffix != null) sufs = [opts.suffix];
+    else sufs = [activeSuffix()];
+    return sufs.map((s) => mode + s);
+  }
 
   const idOf = (e) => `${e.mode}|${e.name}|${e.score}|${e.ts}`;
-  function dedupeSort(list, mode) {
+  // keys: 허용할 e.mode 값 집합(여러 달 병합 가능). null 이면 전체.
+  function dedupeSort(list, keys) {
+    const allow = keys ? new Set(keys) : null;
     const seen = new Set(), out = [];
     for (const e of list) {
-      if (!e || (mode && e.mode !== mode)) continue;
+      if (!e || (allow && !allow.has(e.mode))) continue;
       const k = idOf(e);
       if (seen.has(k)) continue;
       seen.add(k);
@@ -45,15 +55,14 @@
 
   // ── 로컬 ──
   function localAdd(entry) { const l = store.get(); l.push(entry); store.set(l); }
-  function localList(mode) { return dedupeSort(store.get(), mode); }
 
   // ── 원격(Firebase RTDB REST) ──
   const fb = cfg.firebase ? String(cfg.firebase).replace(/\/$/, "") : null;
   function withTimeout(p, ms) {
     return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
   }
-  async function remoteList(mode) {
-    const res = await withTimeout(fetch(`${fb}/rankings/${encodeURIComponent(mode)}.json`), 4000);
+  async function remoteKey(key) {
+    const res = await withTimeout(fetch(`${fb}/rankings/${encodeURIComponent(key)}.json`), 4000);
     if (!res.ok) throw new Error("http " + res.status);
     const obj = await res.json();
     return obj ? Object.keys(obj).map((k) => obj[k]) : [];
@@ -66,27 +75,29 @@
 
   const api = {
     remote: !!fb,
-    // 현재 시즌(기본) 또는 지난 시즌(opts.legacy) 로컬 순위
-    localList(mode, opts) { return dedupeSort(store.get(), skey(mode, opts && opts.legacy)); },
-    // 특정 모드 순위(원격+로컬 병합, 점수 내림차순). 원격 실패 시 로컬만.
+    // 로컬 순위(기본=현재 달 · opts.suffix/suffixes 로 다른 시즌/분기)
+    localList(mode, opts) { return dedupeSort(store.get(), keysFor(mode, opts)); },
+    // 원격+로컬 병합 순위(점수 내림차순). 원격 실패 시 로컬만.
     async list(mode, opts) {
-      const sk = skey(mode, opts && opts.legacy);
-      const local = dedupeSort(store.get(), sk);
+      const keys = keysFor(mode, opts);
+      const local = dedupeSort(store.get(), keys);
       if (!fb) return local;
       try {
-        const rem = await remoteList(sk);
-        return dedupeSort(local.concat(rem), sk);
+        const rems = await Promise.all(keys.map(remoteKey));
+        let merged = local;
+        rems.forEach((r) => { merged = merged.concat(r); });
+        return dedupeSort(merged, keys);
       } catch (e) { return local; }
     },
-    // 기록 추가: 현재 시즌 키로 로컬 즉시 저장 + (설정 시) 원격 append
+    // 기록 추가: 현재 달 키로 로컬 즉시 저장 + (설정 시) 원격 append
     async add(entry) {
-      const sid = root.SVTSeason ? root.SVTSeason.active().id : "s2";
-      const e = Object.assign({}, entry, { mode: skey(entry.mode), season: sid });
+      const ym = root.SVTSeason ? root.SVTSeason.active().ym : "";
+      const e = Object.assign({}, entry, { mode: entry.mode + activeSuffix(), season: ym });
       localAdd(e);
       if (fb) { try { await remoteAdd(e); } catch (err) {} }
       return e;
     },
-    // 모드별 기록 수(현재 시즌 기준, 롤링 노출 조건 판단)
+    // 모드별 기록 수(현재 달 기준)
     async counts(modes) {
       const out = {};
       await Promise.all(modes.map(async (m) => { out[m] = (await api.list(m)).length; }));

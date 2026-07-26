@@ -101,7 +101,7 @@
       "card-art", "card-caption", "btn-reload", "progress", "progress-fill", "score", "hud-mode", "hud-lives",
       "rank-name", "btn-rank", "rank-list", "btn-legacy", "btn-home", "btn-hud-home",
       "season-banner",
-      "hall", "hall-season",
+      "hall", "hall-season", "hall-tab-month", "hall-tab-quarter",
       "hall-h-normal", "hall-h-endless", "hall-h-timeattack",
       "hall-src-normal", "hall-src-endless", "hall-src-timeattack",
       "hall-champ-normal", "hall-champ-endless", "hall-champ-timeattack",
@@ -156,7 +156,7 @@
     if (!b || !window.SVTSeason) return;
     const s = window.SVTSeason.active();
     const d = window.SVTSeason.daysLeft();
-    const name = T.season.name(s.num);
+    const name = T.season.month(s.m);
     if (window.SVTSeason.isFinalPush()) {
       b.className = "season-banner final";
       b.innerHTML = `<b>🏆 ${name}</b> · ${T.season.final(d)}`;
@@ -545,7 +545,8 @@
   // rankLegacy=true 면 지난 시즌(구 100점제) 기록을 보여준다.
   let rankLegacy = false;
   function renderRankList(highlight) {
-    const mode = state.mode, opts = { legacy: rankLegacy };
+    // rankLegacy=true → 오픈베타(구 100점제, 접미사 없음) 기록. 기본은 이번 달.
+    const mode = state.mode, opts = rankLegacy ? { suffix: "" } : undefined;
     const hl = rankLegacy ? null : highlight;
     paintRankList(RANK.localList(mode, opts), hl, mode);
     RANK.list(mode, opts).then((list) => {
@@ -568,79 +569,117 @@
   function nowStamp() { try { return Date.now(); } catch (e) { return Math.random(); } }
 
   // ── 명예의 전당(시작화면): 3모드(일반·무한·타임어택)를 한 화면에 나란히 ──
-  //  · 신규(시즌2) 기록이 HALL_SWAP 미만이면 그 컬럼은 오픈베타(구 시즌) 순위를 대신 노출
-  //  · HALL_SWAP 이상 쌓이면 시즌2 순위로 교체(선점 심리 유도 위해 임계 낮게)
-  //  · 각 모드의 오픈베타 1위는 컬럼 상단에 🏅 챔피언으로 상시 박제
+  //  · [이번 달] 탭: 이번 달 순위. 이번 달 기록이 HALL_SWAP 미만이면 지난 달(없으면 오픈베타)을
+  //    대신 노출. 각 모드 '지난 달 1위'(없으면 오픈베타 1위)를 🏅 챔피언으로 상시 박제.
+  //  · [분기 누적] 탭: 이번 분기 3개월 데이터를 합산한 순위(별도 리셋 아님).
   const HALL_SWAP = 3, MODES = ["normal", "endless", "timeattack"];
+  let hallView = "month"; // "month" | "quarter"
   function stopHall() { /* 컬럼형은 CSS 애니메이션이라 타이머 없음(호환용) */ }
+  function unitOf(mode) { return mode === "normal" ? "점" : "개"; }
+  function activeMonthName() { const s = window.SVTSeason && window.SVTSeason.active(); return s ? T.season.month(s.m) : ""; }
+  function prevMonthName() { const p = window.SVTSeason && window.SVTSeason.previous(); return p ? T.season.month(p.m) : ""; }
+  function quarterName() { const q = window.SVTSeason && window.SVTSeason.quarter(); return q ? `${q.y} ${T.season.quarter(q.q)}` : T.season.tabQuarter; }
+
+  function renderHallTabs() {
+    const t = el["hall-tab-month"], q = el["hall-tab-quarter"];
+    if (t) { t.textContent = T.season.tabMonth; t.classList.toggle("active", hallView === "month"); }
+    if (q) { q.textContent = T.season.tabQuarter; q.classList.toggle("active", hallView === "quarter"); }
+  }
   function refreshHall() {
     if (!RANK || !el["hall"]) return;
-    // 로컬 즉시 표시(원격 대기로 지연되지 않게)
-    paintHall(MODES.map((m) => ({ mode: m, oldList: RANK.localList(m, { legacy: true }), newList: RANK.localList(m) })));
-    // 원격 저장소가 있으면 병합 결과로 재판정/갱신
+    renderHallTabs();
+    return hallView === "quarter" ? refreshHallQuarter() : refreshHallMonth();
+  }
+
+  // 이번 달(+ 지난 달/오픈베타 폴백)
+  function refreshHallMonth() {
+    const prevSuf = window.SVTSeason ? window.SVTSeason.previous().suffix : "";
+    const rows = (getter) => MODES.map((m) => ({
+      mode: m,
+      curList: getter(m),
+      prevList: getter(m, { suffix: prevSuf }),
+      betaList: getter(m, { suffix: "" }),
+    }));
+    paintHallMonth(rows((m, o) => RANK.localList(m, o)));
     if (RANK.remote) {
       Promise.all(MODES.map(async (m) => ({
         mode: m,
-        oldList: await RANK.list(m, { legacy: true }),
-        newList: await RANK.list(m),
-      }))).then(paintHall).catch(() => {});
+        curList: await RANK.list(m),
+        prevList: await RANK.list(m, { suffix: prevSuf }),
+        betaList: await RANK.list(m, { suffix: "" }),
+      }))).then(paintHallMonth).catch(() => {});
     }
   }
-  function paintHall(data) {
+  function paintHallMonth(data) {
     let shown = 0;
-    data.forEach((d) => { shown += paintHallCol(d.mode, d.oldList || [], d.newList || []); });
+    data.forEach((d) => {
+      const hasPrev = d.prevList.length > 0;
+      const oldList = hasPrev ? d.prevList : d.betaList;      // 챔피언·폴백 보드
+      const oldName = hasPrev ? prevMonthName() : T.season.beta;
+      const useCur = d.curList.length >= HALL_SWAP;
+      shown += paintHallCol(d.mode, {
+        champion: oldList[0] || null, champName: oldName,
+        board: useCur ? d.curList : oldList,
+        boardName: useCur ? activeMonthName() : oldName,
+        boardIsCur: useCur,
+        skipChampInBoard: !useCur, // 폴백 보드를 보여줄 땐 1위(=챔피언)를 리스트에서 제외
+      });
+    });
     el["hall"].hidden = !(shown > 0);
-    if (el["hall-season"]) el["hall-season"].textContent = activeSeasonName();
+    if (el["hall-season"]) el["hall-season"].textContent = activeMonthName();
   }
-  function unitOf(mode) { return mode === "normal" ? "점" : "개"; }
-  // 현재/직전 시즌 표시명(오픈베타 또는 시즌N)
-  function activeSeasonName() {
-    const s = window.SVTSeason ? window.SVTSeason.active() : null;
-    return s ? T.season.name(s.num) : T.season.name(2);
+
+  // 이번 분기 누적(3개월 병합)
+  function refreshHallQuarter() {
+    const sufs = window.SVTSeason ? window.SVTSeason.quarterMonths() : [""];
+    paintHallQuarter(MODES.map((m) => ({ mode: m, list: RANK.localList(m, { suffixes: sufs }) })));
+    if (RANK.remote) {
+      Promise.all(MODES.map(async (m) => ({ mode: m, list: await RANK.list(m, { suffixes: sufs }) })))
+        .then(paintHallQuarter).catch(() => {});
+    }
   }
-  function prevSeasonName() {
-    const p = window.SVTSeason ? window.SVTSeason.previous() : { beta: true };
-    return p.beta ? T.season.beta : T.season.name(p.num);
+  function paintHallQuarter(data) {
+    let shown = 0;
+    data.forEach((d) => {
+      shown += paintHallCol(d.mode, {
+        champion: null, champName: "",
+        board: d.list, boardName: quarterName(), boardIsCur: true, skipChampInBoard: false,
+      });
+    });
+    el["hall"].hidden = !(shown > 0);
+    if (el["hall-season"]) el["hall-season"].textContent = quarterName();
   }
-  // 반환: 이 컬럼에서 실제로 표시된 항목 수(챔피언 + 리스트) — 홀 노출 판정용
-  function paintHallCol(mode, oldList, newList) {
+
+  // 반환: 표시된 항목 수(챔피언 + 리스트) — 홀 노출 판정용
+  function paintHallCol(mode, o) {
     const head = el["hall-h-" + mode], srcEl = el["hall-src-" + mode];
     const champEl = el["hall-champ-" + mode], ol = el["hall-" + mode];
     if (head) head.textContent = T.hudMode[mode] || mode;
     if (!ol) return 0;
     const unit = unitOf(mode);
-
-    // 오픈베타(구 시즌) 챔피언 — 각 모드 1위, 상시 박제
-    const champ = oldList[0] || null;
     let count = 0;
     if (champEl) {
-      if (champ) {
+      if (o.champion) {
         champEl.hidden = false;
         champEl.innerHTML = `<span class="crown">🏅</span>` +
-          `<span class="champ-label">${T.season.champ(prevSeasonName())}</span>` +
-          `<span class="champ-name">${escapeHtml(champ.name)}</span>` +
-          `<span class="champ-score">${champ.score}${unit}</span>`;
+          `<span class="champ-label">${T.season.champ(o.champName)}</span>` +
+          `<span class="champ-name">${escapeHtml(o.champion.name)}</span>` +
+          `<span class="champ-score">${o.champion.score}${unit}</span>`;
         count++;
-      } else {
-        champEl.hidden = true; champEl.innerHTML = "";
-      }
+      } else { champEl.hidden = true; champEl.innerHTML = ""; }
     }
+    if (srcEl) { srcEl.textContent = o.boardName; srcEl.className = "hall-src " + (o.boardIsCur ? "is-cur" : "is-beta"); }
 
-    // 라이브 순위: 신규가 임계 이상이면 시즌2, 아니면 오픈베타(구)
-    const useNew = newList.length >= HALL_SWAP;
-    // 오픈베타를 보여줄 땐 챔피언(1위)은 위에 박제했으니 리스트는 2위부터
-    const liveList = useNew ? newList.slice(0, 10) : oldList.slice(champ ? 1 : 0, 10);
-    const startRank = useNew ? 1 : (champ ? 2 : 1);
-    if (srcEl) srcEl.textContent = useNew ? activeSeasonName() : prevSeasonName();
-    if (srcEl) srcEl.className = "hall-src " + (useNew ? "is-cur" : "is-beta");
-
+    const board = o.board || [];
+    const start = (o.skipChampInBoard && o.champion) ? 1 : 0;
+    const liveList = board.slice(start, start + 10);
     if (!liveList.length) {
       ol.innerHTML = count ? "" : `<li class="empty">${T.rank.empty}</li>`;
       ol.style.animation = "none";
       return count;
     }
     const rows = liveList.map((e, i) =>
-      `<li><span class="rk">${startRank + i}</span><span class="nm">${escapeHtml(e.name)}</span>` +
+      `<li><span class="rk">${start + 1 + i}</span><span class="nm">${escapeHtml(e.name)}</span>` +
       `<span class="sc">${e.score}${unit}</span></li>`).join("");
     if (liveList.length >= 5) {
       ol.innerHTML = rows + rows; // 끊김 없는 세로 롤링
@@ -889,6 +928,8 @@
     el["btn-restart"].addEventListener("click", () => { stopTimer(); startMode(state.mode); });
     el["btn-home"].addEventListener("click", () => { stopTimer(); goHome(); });
     if (el["btn-legacy"]) el["btn-legacy"].addEventListener("click", () => { rankLegacy = !rankLegacy; renderRankList(); });
+    if (el["hall-tab-month"]) el["hall-tab-month"].addEventListener("click", () => { hallView = "month"; refreshHall(); });
+    if (el["hall-tab-quarter"]) el["hall-tab-quarter"].addEventListener("click", () => { hallView = "quarter"; refreshHall(); });
     if (el["btn-hud-home"]) el["btn-hud-home"].addEventListener("click", () => {
       const msg = I18N.raw(I18N.locale).ui.quitConfirm;
       if (window.confirm(msg)) { stopTimer(); goHome(); }
