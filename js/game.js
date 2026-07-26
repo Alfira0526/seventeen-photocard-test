@@ -85,7 +85,7 @@
       "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
       "theme-toggle", "lang-select",
-      "btn-report", "report-modal", "report-ctx", "report-text", "report-cancel", "report-send",
+      "btn-report", "btn-report-result", "report-modal", "report-ctx", "report-text", "report-cancel", "report-send",
     ].forEach((id) => (el[id] = document.getElementById(id)));
   }
   function show(screen) {
@@ -792,6 +792,7 @@
     el["btn-reload"].addEventListener("click", reloadArt);
     // 오류 제보
     el["btn-report"].addEventListener("click", openReport);
+    if (el["btn-report-result"]) el["btn-report-result"].addEventListener("click", openReport);
     el["report-cancel"].addEventListener("click", closeReport);
     el["report-send"].addEventListener("click", submitReport);
     el["report-modal"].addEventListener("click", (e) => { if (e.target === el["report-modal"]) closeReport(); });

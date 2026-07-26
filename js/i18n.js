@@ -125,6 +125,7 @@
         reportSubmit: "제보 보내기", reportCancel: "닫기",
         reportThanks: "제보 감사합니다! 교차검증 후 반영할게요 🙌",
         reportCtxLabel: "지금 문제", reportFabTitle: "오류 제보",
+        reportFab: "오류 제보", reportResultLink: "🐞 문제에 오류가 있었나요? 제보하기",
       },
     },
 
@@ -224,6 +225,7 @@
         reportSubmit: "Send report", reportCancel: "Close",
         reportThanks: "Thanks! We'll verify and fix it 🙌",
         reportCtxLabel: "This question", reportFabTitle: "Report an issue",
+        reportFab: "Report", reportResultLink: "🐞 Spotted a wrong answer? Report it",
       },
     },
 
@@ -320,6 +322,7 @@
         reportSubmit: "報告する", reportCancel: "閉じる",
         reportThanks: "ありがとうございます！ 確認して直します 🙌",
         reportCtxLabel: "この問題", reportFabTitle: "不具合を報告",
+        reportFab: "不具合報告", reportResultLink: "🐞 問題に間違いが？ 報告する",
       },
     },
 
@@ -416,6 +419,7 @@
         reportSubmit: "提交报告", reportCancel: "关闭",
         reportThanks: "谢谢！ 我们会核实并修正 🙌",
         reportCtxLabel: "当前题目", reportFabTitle: "报告问题",
+        reportFab: "报告问题", reportResultLink: "🐞 发现错误了吗？ 报告一下",
       },
     },
 
@@ -512,6 +516,7 @@
         reportSubmit: "Enviar reporte", reportCancel: "Cerrar",
         reportThanks: "¡Gracias! Lo verificamos y lo corregimos 🙌",
         reportCtxLabel: "Esta pregunta", reportFabTitle: "Reportar un error",
+        reportFab: "Reportar", reportResultLink: "🐞 ¿Viste un error? Repórtalo",
       },
     },
   };
