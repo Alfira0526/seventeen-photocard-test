@@ -300,6 +300,23 @@ body {
 .hall-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .hall-col { min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--card); padding: 8px 8px 4px; }
 .hall-col-h { font-size: 12px; font-weight: 800; color: var(--accent-2); text-align: center; margin-bottom: 4px; }
+/* 오픈베타 챔피언 상시 박제(각 모드 1위) */
+.hall-champ {
+  display: flex; align-items: center; gap: 4px; margin-bottom: 4px; padding: 4px 6px;
+  border-radius: 9px; border: 1px solid #e2b23a;
+  background: linear-gradient(180deg, rgba(240,200,80,0.18), rgba(240,200,80,0.06));
+  font-size: 11px;
+}
+.hall-champ[hidden] { display: none; }
+.hall-champ .crown { font-size: 13px; }
+.hall-champ .champ-label { color: #b8860b; font-weight: 800; white-space: nowrap; }
+.hall-champ .champ-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
+.hall-champ .champ-score { font-weight: 800; color: var(--text); }
+:root[data-theme="dark"] .hall-champ .champ-label { color: #f0cf6a; }
+/* 현재 표시 중인 데이터 출처(오픈베타/시즌2) */
+.hall-src { font-size: 10px; font-weight: 800; text-align: center; margin-bottom: 3px; letter-spacing: 0.3px; }
+.hall-src.is-beta { color: #c8951a; }
+.hall-src.is-cur { color: var(--accent-2); }
 .hall-viewport {
   height: 132px; overflow: hidden; position: relative;
   -webkit-mask-image: linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent);

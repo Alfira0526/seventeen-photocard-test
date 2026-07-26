@@ -225,39 +225,52 @@ test("처음으로: 결과에서 시작화면으로 복귀 + 모드 3개", { ski
   });
 });
 
-test("명예의 전당: 현재 시즌 기록이 쌓이면 3모드 한 화면 노출·롤링", { skip: !chromium }, async () => {
-  // 현재 시즌 저장키는 모드+_s2. 일반/무한 두 모드에 시드.
+test("명예의 전당: 신규(시즌2) 기록이 임계 이상이면 시즌2 순위로 교체 표시", { skip: !chromium }, async () => {
   const seed = [
-    ...Array.from({ length: 8 }, (_, i) => ({ name: `caret${i}`, score: 300 - i * 7, mode: "normal_s2", season: "s2", ts: 1000 + i })),
-    ...Array.from({ length: 6 }, (_, i) => ({ name: `end${i}`, score: 20 - i, mode: "endless_s2", season: "s2", ts: 2000 + i })),
+    ...Array.from({ length: 6 }, (_, i) => ({ name: `s2n${i}`, score: 300 - i * 7, mode: "normal_s2", season: "s2", ts: 1000 + i })),
   ];
   await withPage(async (page) => {
     await page.waitForSelector("#screen-start.active");
     await page.waitForSelector("#hall:not([hidden])", { timeout: 4000 });
-    // 세 컬럼(일반·무한·타임어택)이 한 화면에 존재
     const cols = await page.$$eval(".hall-col", (els) => els.length);
-    assert.equal(cols, 3);
-    const normalItems = await page.$$eval("#hall-normal li", (els) => els.length);
-    assert.ok(normalItems >= 8, `일반 컬럼 비었음(${normalItems})`);
-    const normalHead = await page.textContent("#hall-h-normal");
-    assert.match(normalHead, /일반|Normal|通常|普通/);
-    const season = await page.textContent("#hall-season");
-    assert.match(season, /S2/);
+    assert.equal(cols, 3); // 3모드 한 화면
+    const src = await page.textContent("#hall-src-normal");
+    assert.match(src, /시즌2|Season 2|シーズン2|第2赛季|Temporada 2/);
+    const listTxt = await page.textContent("#hall-normal");
+    assert.ok(/s2n0/.test(listTxt), "시즌2 순위가 안 뜸");
   }, { seedRanking: seed, languages: ["ko-KR", "ko"] });
 });
 
-test("명예의 전당: 현재 시즌 기록이 거의 없으면 숨김(구 시즌만 있으면 숨김)", { skip: !chromium }, async () => {
-  // 구 시즌(접미사 없음) 기록만 있고 현재 시즌은 2건뿐 → 임계(3) 미만 → 숨김
+test("명예의 전당: 신규가 적으면 오픈베타(구) 순위 노출 + 챔피언 상시 박제", { skip: !chromium }, async () => {
+  // 구 시즌 6건(old0=1위) + 신규 1건(임계 3 미만) → 오픈베타 데이터 노출, old0 챔피언 박제
   const seed = [
-    ...Array.from({ length: 9 }, (_, i) => ({ name: `old${i}`, score: 100 - i, mode: "normal", ts: i })),
-    ...Array.from({ length: 2 }, (_, i) => ({ name: `new${i}`, score: 150, mode: "normal_s2", season: "s2", ts: 500 + i })),
+    ...Array.from({ length: 6 }, (_, i) => ({ name: `old${i}`, score: 100 - i * 5, mode: "normal", ts: i })),
+    { name: "newbie", score: 250, mode: "normal_s2", season: "s2", ts: 900 },
   ];
+  await withPage(async (page) => {
+    await page.waitForSelector("#screen-start.active");
+    await page.waitForSelector("#hall:not([hidden])", { timeout: 4000 });
+    // 챔피언(오픈베타 1위 = old0) 상시 박제
+    const champHidden = await page.$eval("#hall-champ-normal", (e) => e.hidden);
+    assert.ok(!champHidden, "챔피언 박제가 숨겨짐");
+    const champTxt = await page.textContent("#hall-champ-normal");
+    assert.ok(/old0/.test(champTxt), "오픈베타 1위가 챔피언으로 안 뜸");
+    // 라이브 리스트는 오픈베타(구) 데이터
+    const src = await page.textContent("#hall-src-normal");
+    assert.match(src, /오픈베타|Open Beta|オープン|公测|Beta/);
+    // 챔피언(1위)은 리스트에서 제외되고 2위부터 노출
+    const listTxt = await page.textContent("#hall-normal");
+    assert.ok(/old1/.test(listTxt) && !/old0/.test(listTxt), "리스트가 2위부터가 아님");
+  }, { seedRanking: seed, languages: ["ko-KR", "ko"] });
+});
+
+test("명예의 전당: 기록이 전혀 없으면 숨김", { skip: !chromium }, async () => {
   await withPage(async (page) => {
     await page.waitForSelector("#screen-start.active");
     await page.waitForTimeout(500);
     const hidden = await page.$eval("#hall", (e) => e.hidden);
-    assert.ok(hidden, "현재 시즌 기록이 적은데 명예의 전당이 보임");
-  }, { seedRanking: seed });
+    assert.ok(hidden, "기록이 없는데 명예의 전당이 보임");
+  }, { seedRanking: [] });
 });
 
 test("지난 시즌 토글: 결과 화면에서 구 랭킹을 별도로 표기", { skip: !chromium }, async () => {

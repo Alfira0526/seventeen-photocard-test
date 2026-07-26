@@ -102,6 +102,8 @@
       "rank-name", "btn-rank", "rank-list", "btn-legacy", "btn-home", "btn-hud-home",
       "hall", "hall-season",
       "hall-h-normal", "hall-h-endless", "hall-h-timeattack",
+      "hall-src-normal", "hall-src-endless", "hall-src-timeattack",
+      "hall-champ-normal", "hall-champ-endless", "hall-champ-timeattack",
       "hall-normal", "hall-endless", "hall-timeattack",
       "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
@@ -544,51 +546,81 @@
 
   function nowStamp() { try { return Date.now(); } catch (e) { return Math.random(); } }
 
-  // ── 명예의 전당(시작화면): 3모드(일반·무한·타임어택)를 한 화면에 나란히,
-  //    각 컬럼이 세로 롤링. 현재 시즌 기록 합계가 일정 수 이상이면 노출 ──
-  const HALL_MIN_TOTAL = 3, MODES = ["normal", "endless", "timeattack"];
+  // ── 명예의 전당(시작화면): 3모드(일반·무한·타임어택)를 한 화면에 나란히 ──
+  //  · 신규(시즌2) 기록이 HALL_SWAP 미만이면 그 컬럼은 오픈베타(구 시즌) 순위를 대신 노출
+  //  · HALL_SWAP 이상 쌓이면 시즌2 순위로 교체(선점 심리 유도 위해 임계 낮게)
+  //  · 각 모드의 오픈베타 1위는 컬럼 상단에 🏅 챔피언으로 상시 박제
+  const HALL_SWAP = 3, MODES = ["normal", "endless", "timeattack"];
   function stopHall() { /* 컬럼형은 CSS 애니메이션이라 타이머 없음(호환용) */ }
   function refreshHall() {
     if (!RANK || !el["hall"]) return;
     // 로컬 즉시 표시(원격 대기로 지연되지 않게)
-    let total = 0;
-    MODES.forEach((m) => { const l = RANK.localList(m).slice(0, 10); total += l.length; paintHallCol(m, l); });
-    applyHall(total);
+    paintHall(MODES.map((m) => ({ mode: m, oldList: RANK.localList(m, { legacy: true }), newList: RANK.localList(m) })));
     // 원격 저장소가 있으면 병합 결과로 재판정/갱신
     if (RANK.remote) {
-      Promise.all(MODES.map((m) => RANK.list(m))).then((lists) => {
-        let t = 0;
-        lists.forEach((l, i) => { const top = l.slice(0, 10); t += top.length; paintHallCol(MODES[i], top); });
-        applyHall(t);
-      }).catch(() => {});
+      Promise.all(MODES.map(async (m) => ({
+        mode: m,
+        oldList: await RANK.list(m, { legacy: true }),
+        newList: await RANK.list(m),
+      }))).then(paintHall).catch(() => {});
     }
   }
-  function applyHall(total) {
-    el["hall"].hidden = !(total >= HALL_MIN_TOTAL);
-    if (el["hall-season"]) el["hall-season"].textContent = RANK.SEASON ? "S2" : "";
+  function paintHall(data) {
+    let shown = 0;
+    data.forEach((d) => { shown += paintHallCol(d.mode, d.oldList || [], d.newList || []); });
+    el["hall"].hidden = !(shown > 0);
+    if (el["hall-season"]) el["hall-season"].textContent = T.season.cur || "";
   }
-  function paintHallCol(mode, list) {
-    const head = el["hall-h-" + mode], ol = el["hall-" + mode];
+  function unitOf(mode) { return mode === "normal" ? "점" : "개"; }
+  // 반환: 이 컬럼에서 실제로 표시된 항목 수(챔피언 + 리스트) — 홀 노출 판정용
+  function paintHallCol(mode, oldList, newList) {
+    const head = el["hall-h-" + mode], srcEl = el["hall-src-" + mode];
+    const champEl = el["hall-champ-" + mode], ol = el["hall-" + mode];
     if (head) head.textContent = T.hudMode[mode] || mode;
-    if (!ol) return;
-    const unit = mode === "normal" ? "점" : "개";
-    if (!list.length) {
-      ol.innerHTML = `<li class="empty">${T.rank.empty}</li>`;
-      ol.style.animation = "none";
-      return;
+    if (!ol) return 0;
+    const unit = unitOf(mode);
+
+    // 오픈베타(구 시즌) 챔피언 — 각 모드 1위, 상시 박제
+    const champ = oldList[0] || null;
+    let count = 0;
+    if (champEl) {
+      if (champ) {
+        champEl.hidden = false;
+        champEl.innerHTML = `<span class="crown">🏅</span>` +
+          `<span class="champ-label">${T.season.champ}</span>` +
+          `<span class="champ-name">${escapeHtml(champ.name)}</span>` +
+          `<span class="champ-score">${champ.score}${unit}</span>`;
+        count++;
+      } else {
+        champEl.hidden = true; champEl.innerHTML = "";
+      }
     }
-    const rows = list.map((e, i) =>
-      `<li><span class="rk">${i + 1}</span><span class="nm">${escapeHtml(e.name)}</span>` +
+
+    // 라이브 순위: 신규가 임계 이상이면 시즌2, 아니면 오픈베타(구)
+    const useNew = newList.length >= HALL_SWAP;
+    // 오픈베타를 보여줄 땐 챔피언(1위)은 위에 박제했으니 리스트는 2위부터
+    const liveList = useNew ? newList.slice(0, 10) : oldList.slice(champ ? 1 : 0, 10);
+    const startRank = useNew ? 1 : (champ ? 2 : 1);
+    if (srcEl) srcEl.textContent = useNew ? T.season.cur : T.season.beta;
+    if (srcEl) srcEl.className = "hall-src " + (useNew ? "is-cur" : "is-beta");
+
+    if (!liveList.length) {
+      ol.innerHTML = count ? "" : `<li class="empty">${T.rank.empty}</li>`;
+      ol.style.animation = "none";
+      return count;
+    }
+    const rows = liveList.map((e, i) =>
+      `<li><span class="rk">${startRank + i}</span><span class="nm">${escapeHtml(e.name)}</span>` +
       `<span class="sc">${e.score}${unit}</span></li>`).join("");
-    // 항목이 충분히 많으면 끊김 없는 세로 롤링(항목 2배 이어붙임), 적으면 정적 표시
-    if (list.length >= 5) {
-      ol.innerHTML = rows + rows;
+    if (liveList.length >= 5) {
+      ol.innerHTML = rows + rows; // 끊김 없는 세로 롤링
       ol.style.animation = "";
-      ol.style.animationDuration = Math.max(9, list.length * 1.6) + "s";
+      ol.style.animationDuration = Math.max(9, liveList.length * 1.6) + "s";
     } else {
       ol.innerHTML = rows;
       ol.style.animation = "none";
     }
+    return count + liveList.length;
   }
 
   // ── 공유 카드(canvas) ──

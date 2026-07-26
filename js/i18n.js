@@ -75,6 +75,7 @@
       difficulty: { 1: { label: "쉬움", stars: "★" }, 2: { label: "보통", stars: "★★" }, 3: { label: "어려움", stars: "★★★" }, 4: { label: "최상", stars: "★★★★" } },
       hudMode: { normal: "🎲 일반", endless: "♾️ 무한", timeattack: "⏱️ 타임어택" },
       shareMode: { normal: "일반", endless: "무한", timeattack: "타임어택" },
+      season: { beta: "오픈베타 시즌", cur: "시즌2", champ: "오픈베타 1위" },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 찐 캐럿, 인정!" : pct >= 70 ? "💎 진성 캐럿이네요" : pct >= 40 ? "🌱 입덕 준비 완료" : "👀 이제 입덕각이에요"),
         count: (n) => (n >= 20 ? "🏆 찐 캐럿, 인정!" : n >= 12 ? "💎 진성 캐럿이네요" : n >= 6 ? "🌱 입덕 준비 완료" : "👀 이제 입덕각이에요"),
@@ -182,6 +183,7 @@
       difficulty: { 1: { label: "Easy", stars: "★" }, 2: { label: "Normal", stars: "★★" }, 3: { label: "Hard", stars: "★★★" }, 4: { label: "Expert", stars: "★★★★" } },
       hudMode: { normal: "🎲 Normal", endless: "♾️ Endless", timeattack: "⏱️ Time Attack" },
       shareMode: { normal: "Normal", endless: "Endless", timeattack: "Time Attack" },
+      season: { beta: "Open Beta", cur: "Season 2", champ: "Open Beta #1" },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 Certified CARAT!" : pct >= 70 ? "💎 True CARAT" : pct >= 40 ? "🌱 Getting hooked" : "👀 On the way in"),
         count: (n) => (n >= 20 ? "🏆 Certified CARAT!" : n >= 12 ? "💎 True CARAT" : n >= 6 ? "🌱 Getting hooked" : "👀 On the way in"),
@@ -286,6 +288,7 @@
       difficulty: { 1: { label: "やさしい", stars: "★" }, 2: { label: "ふつう", stars: "★★" }, 3: { label: "むずかしい", stars: "★★★" }, 4: { label: "最上級", stars: "★★★★" } },
       hudMode: { normal: "🎲 通常", endless: "♾️ 無限", timeattack: "⏱️ タイムアタック" },
       shareMode: { normal: "通常", endless: "無限", timeattack: "タイムアタック" },
+      season: { beta: "オープンβ", cur: "シーズン2", champ: "オープンβ 1位" },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 本物のCARAT！" : pct >= 70 ? "💎 ガチCARAT" : pct >= 40 ? "🌱 沼入り間近" : "👀 沼への入口"),
         count: (n) => (n >= 20 ? "🏆 本物のCARAT！" : n >= 12 ? "💎 ガチCARAT" : n >= 6 ? "🌱 沼入り間近" : "👀 沼への入口"),
@@ -390,6 +393,7 @@
       difficulty: { 1: { label: "简单", stars: "★" }, 2: { label: "普通", stars: "★★" }, 3: { label: "困难", stars: "★★★" }, 4: { label: "顶级", stars: "★★★★" } },
       hudMode: { normal: "🎲 普通", endless: "♾️ 无限", timeattack: "⏱️ 限时" },
       shareMode: { normal: "普通", endless: "无限", timeattack: "限时" },
+      season: { beta: "公测赛季", cur: "第2赛季", champ: "公测冠军" },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 认证CARAT！" : pct >= 70 ? "💎 真·CARAT" : pct >= 40 ? "🌱 即将入坑" : "👀 入坑在即"),
         count: (n) => (n >= 20 ? "🏆 认证CARAT！" : n >= 12 ? "💎 真·CARAT" : n >= 6 ? "🌱 即将入坑" : "👀 入坑在即"),
@@ -494,6 +498,7 @@
       difficulty: { 1: { label: "Fácil", stars: "★" }, 2: { label: "Normal", stars: "★★" }, 3: { label: "Difícil", stars: "★★★" }, 4: { label: "Experto", stars: "★★★★" } },
       hudMode: { normal: "🎲 Normal", endless: "♾️ Infinito", timeattack: "⏱️ Contrarreloj" },
       shareMode: { normal: "Normal", endless: "Infinito", timeattack: "Contrarreloj" },
+      season: { beta: "Beta abierta", cur: "Temporada 2", champ: "Campeón beta" },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 ¡CARAT de verdad!" : pct >= 70 ? "💎 CARAT auténtico" : pct >= 40 ? "🌱 Cayendo en el pozo" : "👀 A punto de caer"),
         count: (n) => (n >= 20 ? "🏆 ¡CARAT de verdad!" : n >= 12 ? "💎 CARAT auténtico" : n >= 6 ? "🌱 Cayendo en el pozo" : "👀 A punto de caer"),
@@ -588,7 +593,7 @@
   const SUB = (s) => `<span class="i18n-sub">${s}</span>`;
   // 병기 제외(단일언어) 상위 키: 평문/캔버스/컴팩트 칩 등에서 쓰임
   // (tier·resSub 는 화면에 병기, resScore/resLine 은 숫자 위주라 단일언어 유지)
-  const PLAIN_KEYS = { _unit: 1, atype: 1, difficulty: 1, hudMode: 1, shareMode: 1, share: 1, resScore: 1, resLine: 1 };
+  const PLAIN_KEYS = { _unit: 1, atype: 1, difficulty: 1, hudMode: 1, shareMode: 1, share: 1, resScore: 1, resLine: 1, season: 1 };
 
   function biStr(loc, en, bi) { return bi && en != null && en !== loc ? MAIN(loc) + SUB(en) : loc; }
   function biFn(locFn, enFn, bi) {
