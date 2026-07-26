@@ -295,6 +295,18 @@ test("지난 시즌 토글: 결과 화면에서 구 랭킹을 별도로 표기",
   }, { seedRanking: seed });
 });
 
+test("난이도 선택: 어려움 칩으로 일반 모드 원탭 시작", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.waitForSelector("#screen-start.active");
+    const chips = await page.$$eval(".diff-chip", (els) => els.map((e) => e.dataset.diff));
+    assert.deepEqual(chips.sort(), ["easy", "hard", "normal"]);
+    await page.click('.diff-chip[data-diff="hard"]');
+    await page.waitForSelector("#screen-play.active"); // 일반 모드 시작
+    const progress = await page.textContent("#progress");
+    assert.match(progress, /1 \/ 20/); // 일반 모드 20문제
+  }, { languages: ["ko-KR", "ko"] });
+});
+
 test("시즌 배너: 시작화면에 이번 달 종료 카운트다운(D-N) 노출", { skip: !chromium }, async () => {
   await withPage(async (page) => {
     await page.waitForSelector("#screen-start.active");

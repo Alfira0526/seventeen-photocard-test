@@ -147,10 +147,18 @@
     return types[types.length - 1];
   }
 
+  // 선택 난이도(diffMin~diffMax)로 유형을 좁힌다. 걸러서 없으면 원래 후보 유지(비파괴 폴백).
+  function filterByDiff(types, c) {
+    if (c.diffMin == null && c.diffMax == null) return types;
+    const lo = c.diffMin == null ? 0 : c.diffMin, hi = c.diffMax == null ? 99 : c.diffMax;
+    const f = types.filter((ty) => ty.difficulty >= lo && ty.difficulty <= hi);
+    return f.length ? f : types;
+  }
+
   // 앨범 1장 → 랜덤 유형 문제 1개.
   function buildQuestion(al, ctx) {
     const c = Object.assign({ n: 4, rng: Math.random }, ctx);
-    const ty = weightedPick(availableTypes(al, c), c.rng);
+    const ty = weightedPick(filterByDiff(availableTypes(al, c), c), c.rng);
     return Object.assign({ typeId: ty.id, difficulty: ty.difficulty }, ty.make(al, c));
   }
 
@@ -227,7 +235,7 @@
 
   function buildMemberQuestion(m, ctx) {
     const c = Object.assign({ n: 4, rng: Math.random }, ctx);
-    const ty = weightedPick(availableMemberTypes(m, c), c.rng);
+    const ty = weightedPick(filterByDiff(availableMemberTypes(m, c), c), c.rng);
     return Object.assign({ typeId: ty.id, difficulty: ty.difficulty }, ty.make(m, c));
   }
 
@@ -259,7 +267,7 @@
   function availableYtTypes(s, c) { return YT_TYPES.filter((ty) => ty.available(s, c)); }
   function buildYtQuestion(s, ctx) {
     const c = Object.assign({ n: 4, rng: Math.random }, ctx);
-    const ty = weightedPick(availableYtTypes(s, c), c.rng);
+    const ty = weightedPick(filterByDiff(availableYtTypes(s, c), c), c.rng);
     return Object.assign({ typeId: ty.id, difficulty: ty.difficulty }, ty.make(s, c));
   }
 

@@ -78,6 +78,7 @@
       season: { beta: "오픈베타", month: (m) => `${m}월`, quarter: (q) => `${q}분기`,
         champ: (nm) => `${nm} 1위`, endsIn: (d) => `종료 D-${d}`, final: (d) => `⏰ 마지막 ${d}일! 순위 굳히기`,
         tabMonth: "이번 달", tabQuarter: "분기 누적" },
+      diffChip: { easy: "쉬움", normal: "보통", hard: "어려움", label: "난이도 골라 바로 시작" },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 찐 캐럿, 인정!" : pct >= 70 ? "💎 진성 캐럿이네요" : pct >= 40 ? "🌱 입덕 준비 완료" : "👀 이제 입덕각이에요"),
         count: (n) => (n >= 20 ? "🏆 찐 캐럿, 인정!" : n >= 12 ? "💎 진성 캐럿이네요" : n >= 6 ? "🌱 입덕 준비 완료" : "👀 이제 입덕각이에요"),
@@ -190,6 +191,7 @@
         quarter: (q) => `Q${q}`, champ: (nm) => `${nm} #1`,
         endsIn: (d) => `ends in ${d}d`, final: (d) => `⏰ Final ${d} days! Lock your rank`,
         tabMonth: "This month", tabQuarter: "Quarter" },
+      diffChip: { easy: "Easy", normal: "Normal", hard: "Hard", label: "Pick a difficulty & play" },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 Certified CARAT!" : pct >= 70 ? "💎 True CARAT" : pct >= 40 ? "🌱 Getting hooked" : "👀 On the way in"),
         count: (n) => (n >= 20 ? "🏆 Certified CARAT!" : n >= 12 ? "💎 True CARAT" : n >= 6 ? "🌱 Getting hooked" : "👀 On the way in"),
@@ -297,6 +299,7 @@
       season: { beta: "オープンβ", month: (m) => `${m}月`, quarter: (q) => `Q${q}`,
         champ: (nm) => `${nm} 1位`, endsIn: (d) => `終了 D-${d}`, final: (d) => `⏰ ラスト${d}日！ 順位を固めろ`,
         tabMonth: "今月", tabQuarter: "四半期" },
+      diffChip: { easy: "やさしい", normal: "普通", hard: "むずかしい", label: "難易度を選んで開始" },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 本物のCARAT！" : pct >= 70 ? "💎 ガチCARAT" : pct >= 40 ? "🌱 沼入り間近" : "👀 沼への入口"),
         count: (n) => (n >= 20 ? "🏆 本物のCARAT！" : n >= 12 ? "💎 ガチCARAT" : n >= 6 ? "🌱 沼入り間近" : "👀 沼への入口"),
@@ -404,6 +407,7 @@
       season: { beta: "公测", month: (m) => `${m}月`, quarter: (q) => `第${q}季度`,
         champ: (nm) => `${nm}冠军`, endsIn: (d) => `距结束 ${d}天`, final: (d) => `⏰ 最后${d}天！ 锁定排名`,
         tabMonth: "本月", tabQuarter: "本季度" },
+      diffChip: { easy: "简单", normal: "普通", hard: "困难", label: "选难度直接开始" },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 认证CARAT！" : pct >= 70 ? "💎 真·CARAT" : pct >= 40 ? "🌱 即将入坑" : "👀 入坑在即"),
         count: (n) => (n >= 20 ? "🏆 认证CARAT！" : n >= 12 ? "💎 真·CARAT" : n >= 6 ? "🌱 即将入坑" : "👀 入坑在即"),
@@ -513,6 +517,7 @@
         quarter: (q) => `T${q}`, champ: (nm) => `${nm} #1`,
         endsIn: (d) => `termina en ${d}d`, final: (d) => `⏰ ¡Últimos ${d} días! Asegura tu puesto`,
         tabMonth: "Este mes", tabQuarter: "Trimestre" },
+      diffChip: { easy: "Fácil", normal: "Normal", hard: "Difícil", label: "Elige dificultad y juega" },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 ¡CARAT de verdad!" : pct >= 70 ? "💎 CARAT auténtico" : pct >= 40 ? "🌱 Cayendo en el pozo" : "👀 A punto de caer"),
         count: (n) => (n >= 20 ? "🏆 ¡CARAT de verdad!" : n >= 12 ? "💎 CARAT auténtico" : n >= 6 ? "🌱 Cayendo en el pozo" : "👀 A punto de caer"),
@@ -607,7 +612,7 @@
   const SUB = (s) => `<span class="i18n-sub">${s}</span>`;
   // 병기 제외(단일언어) 상위 키: 평문/캔버스/컴팩트 칩 등에서 쓰임
   // (tier·resSub 는 화면에 병기, resScore/resLine 은 숫자 위주라 단일언어 유지)
-  const PLAIN_KEYS = { _unit: 1, atype: 1, difficulty: 1, hudMode: 1, shareMode: 1, share: 1, resScore: 1, resLine: 1, season: 1 };
+  const PLAIN_KEYS = { _unit: 1, atype: 1, difficulty: 1, hudMode: 1, shareMode: 1, share: 1, resScore: 1, resLine: 1, season: 1, diffChip: 1 };
 
   function biStr(loc, en, bi) { return bi && en != null && en !== loc ? MAIN(loc) + SUB(en) : loc; }
   function biFn(locFn, enFn, bi) {

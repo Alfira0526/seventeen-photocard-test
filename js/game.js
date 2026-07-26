@@ -25,13 +25,21 @@
     comboStep: 0.1,        // 연속 정답 1개당 배수 증가폭
     comboCap: 9,           // 배수 상한(×1.9)
   };
-  // 현재 문제의 획득 점수(콤보는 이미 증가된 state.combo 기준)
+  // 일반 모드 난이도 밴드: 출제 난이도 범위 + 점수 배수(통합 랭킹 유지)
+  const DIFF = {
+    easy:   { band: "easy",   min: 1, max: 2, mult: 0.8 },
+    normal: { band: "normal", min: 1, max: 4, mult: 1.0 },
+    hard:   { band: "hard",   min: 3, max: 4, mult: 1.3 },
+  };
+
+  // 현재 문제의 획득 점수(콤보는 이미 증가된 state.combo 기준, 난이도 밴드 배수 적용)
   function scoreGain(difficulty) {
     const base = SCORE.diff[difficulty] || 12;
     const elapsed = performance.now() - (state.qStart || performance.now());
     const speed = Math.round(SCORE.speedMax * Math.max(0, 1 - elapsed / SCORE.speedWindowMs));
-    const mult = 1 + Math.min(Math.max(0, state.combo - 1), SCORE.comboCap) * SCORE.comboStep;
-    return Math.max(1, Math.round((base + speed) * mult));
+    const combo = 1 + Math.min(Math.max(0, state.combo - 1), SCORE.comboCap) * SCORE.comboStep;
+    const bandMult = (state.diff && state.diff.mult) || 1;
+    return Math.max(1, Math.round((base + speed) * combo * bandMult));
   }
 
   // 멤버 이름: 라벨용은 {loc,en} 객체(병기), 보기용은 로케일 평문
@@ -43,23 +51,27 @@
   }
   const nameOf = (id) => nameObj(id).loc;
 
+  // 선택 난이도 밴드의 출제 범위(없으면 전체) — 모든 ctx에 실어 문제 유형을 좁힌다.
+  function diffRange() {
+    return state.diff ? { diffMin: state.diff.min, diffMax: state.diff.max } : {};
+  }
   // 앨범 문제 컨텍스트
   function qctx(rng) {
-    return {
+    return Object.assign({
       albums: ALBUMS, years: ALBUM_YEARS, members: MEMBERS, n: CONFIG.choices, rng,
       memberName: nameObj, nameOf,
-    };
+    }, diffRange());
   }
   // 멤버 문제 컨텍스트
   function mctx(rng) {
-    return {
+    return Object.assign({
       members: MEMBERS, unitSongs: UNIT_SONGS, albums: ALBUMS, n: CONFIG.choices, rng,
       memberName: nameObj, nameOf,
-    };
+    }, diffRange());
   }
   // 유튜브 솔로곡 문제 컨텍스트
   function ytctx(rng) {
-    return { ytSongs: YTS, albums: ALBUMS, years: ALBUM_YEARS, n: CONFIG.choices, rng };
+    return Object.assign({ ytSongs: YTS, albums: ALBUMS, years: ALBUM_YEARS, n: CONFIG.choices, rng }, diffRange());
   }
   const LS = { theme: "svt-theme", ranking: "svt-ranking", name: "svt-name" };
 
@@ -79,6 +91,7 @@
     answers: [],
     combo: 0,       // 연속 정답 수(노멀 점수 배수)
     qStart: 0,      // 현재 문제 표시 시각(속도 보너스 계산)
+    diff: null,     // 일반 모드 난이도 밴드(startMode에서 설정)
   };
 
   // ── 로컬스토리지 헬퍼(사파리 프라이빗 등 예외 방어) ──
@@ -168,10 +181,12 @@
   }
 
   // ── 시작: 모드 선택 ──
-  function startMode(mode) {
+  function startMode(mode, band) {
     stopTimer();
     stopHall();
     state.mode = mode;
+    // 난이도 밴드는 일반 모드에만 적용(무한·타임어택은 전체·배수 1.0)
+    state.diff = (mode === "normal") ? (DIFF[band] || DIFF.normal) : DIFF.normal;
     state.rng = Math.random;
     const albumCards = ALBUMS.map((a) => ({ kind: "album", ref: a }));
     const memberCards = MEMBERS
@@ -899,6 +914,13 @@
     if (el["hud-mode"]) el["hud-mode"].textContent = T.hudMode[state.mode] || "";
     // 시즌 배너/명예의전당도 로케일 전환에 맞춰 갱신
     if (el["season-banner"] && !el["season-banner"].hidden) renderSeasonBanner();
+    // 난이도 칩 라벨(단일언어 평문)
+    const dc = R.diffChip || {};
+    document.querySelectorAll("[data-diff-label]").forEach((n) => {
+      const k = n.getAttribute("data-diff-label"); if (dc[k] != null) n.textContent = dc[k];
+    });
+    const drl = document.getElementById("diff-row-label");
+    if (drl && dc.label) drl.textContent = "🎲 " + dc.label;
   }
 
   function buildLangUI() {
@@ -922,6 +944,9 @@
     I18N.onChange(() => { applyStatic(); syncLangUI(); refreshHall(); });
     document.querySelectorAll(".mode-btn").forEach((b) =>
       b.addEventListener("click", () => { if (!b.disabled) startMode(b.dataset.mode); }));
+    // 난이도 칩: 원탭으로 그 난이도의 일반 모드 시작
+    document.querySelectorAll(".diff-chip").forEach((c) =>
+      c.addEventListener("click", () => startMode("normal", c.dataset.diff)));
     el["btn-next"].addEventListener("click", nextRound);
     // 한 판 더: 방금 한 모드로 바로 재시작 / 처음으로: 시작화면 복귀
     el["btn-restart"].addEventListener("click", () => { stopTimer(); startMode(state.mode); });

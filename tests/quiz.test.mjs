@@ -146,6 +146,33 @@ test("buildQuestion: 결과에 difficulty 포함", () => {
   assert.ok([1, 2, 3, 4].includes(q.difficulty), `difficulty 없음: ${q.difficulty}`);
 });
 
+test("난이도 밴드: 어려움(3~4)은 쉬운 유형을 거의 안 낸다(폴백 허용)", () => {
+  const hard = Object.assign({}, QCTX, { diffMin: 3, diffMax: 4 });
+  let hardCount = 0, total = 0;
+  for (const al of ALBUMS) {
+    for (let i = 0; i < 8; i++) {
+      const q = buildQuestion(al, hard);
+      total++;
+      if (q.difficulty >= 3) hardCount++;
+    }
+  }
+  // 대부분 3+ (일부 앨범은 3+ 유형이 없어 폴백될 수 있음)
+  assert.ok(hardCount / total > 0.6, `어려움 밴드 비율 낮음: ${hardCount}/${total}`);
+});
+
+test("난이도 밴드: 쉬움(1~2)은 쉬운 유형 위주", () => {
+  const easy = Object.assign({}, QCTX, { diffMin: 1, diffMax: 2 });
+  let easyCount = 0, total = 0;
+  for (const al of ALBUMS) {
+    for (let i = 0; i < 8; i++) {
+      const q = buildQuestion(al, easy);
+      total++;
+      if (q.difficulty <= 2) easyCount++;
+    }
+  }
+  assert.ok(easyCount / total > 0.6, `쉬움 밴드 비율 낮음: ${easyCount}/${total}`);
+});
+
 test("questions: tracks 있는 앨범은 notInAlbum 가용", () => {
   const withTracks = ALBUMS.find((a) => a.tracks && a.tracks.length >= 3);
   assert.ok(availableTypes(withTracks, QCTX).some((t) => t.id === "notInAlbum"));
