@@ -80,7 +80,7 @@
       "screen-start", "screen-play", "screen-result",
       "btn-restart", "btn-next", "btn-share", "btn-save", "btn-tweet", "btn-insta", "btn-kakao", "share-hint",
       "card-art", "card-caption", "btn-reload", "progress", "progress-fill", "score", "hud-mode", "hud-lives",
-      "rank-name", "btn-rank", "rank-list", "btn-home",
+      "rank-name", "btn-rank", "rank-list", "btn-home", "btn-hud-home",
       "hall", "hall-mode", "hall-list",
       "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
@@ -782,6 +782,10 @@
     // 한 판 더: 방금 한 모드로 바로 재시작 / 처음으로: 시작화면 복귀
     el["btn-restart"].addEventListener("click", () => { stopTimer(); startMode(state.mode); });
     el["btn-home"].addEventListener("click", () => { stopTimer(); goHome(); });
+    if (el["btn-hud-home"]) el["btn-hud-home"].addEventListener("click", () => {
+      const msg = I18N.raw(I18N.locale).ui.quitConfirm;
+      if (window.confirm(msg)) { stopTimer(); goHome(); }
+    });
     el["btn-rank"].addEventListener("click", registerRank);
     el["rank-name"].addEventListener("keydown", (e) => { if (e.key === "Enter") registerRank(); });
     el["btn-share"].addEventListener("click", shareMain);

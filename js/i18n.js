@@ -126,6 +126,7 @@
         reportThanks: "제보 감사합니다! 교차검증 후 반영할게요 🙌",
         reportCtxLabel: "지금 문제", reportFabTitle: "오류 제보",
         reportFab: "오류 제보", reportResultLink: "🐞 문제에 오류가 있었나요? 제보하기",
+        quitTitle: "나가기", quitConfirm: "지금 나가면 이 판 기록이 사라져요. 처음으로 돌아갈까요?",
       },
     },
 
@@ -226,6 +227,7 @@
         reportThanks: "Thanks! We'll verify and fix it 🙌",
         reportCtxLabel: "This question", reportFabTitle: "Report an issue",
         reportFab: "Report", reportResultLink: "🐞 Spotted a wrong answer? Report it",
+        quitTitle: "Quit", quitConfirm: "Leave now and this run's progress is lost. Go back home?",
       },
     },
 
@@ -323,6 +325,7 @@
         reportThanks: "ありがとうございます！ 確認して直します 🙌",
         reportCtxLabel: "この問題", reportFabTitle: "不具合を報告",
         reportFab: "不具合報告", reportResultLink: "🐞 問題に間違いが？ 報告する",
+        quitTitle: "終了", quitConfirm: "今抜けると今回の記録が消えます。最初に戻りますか？",
       },
     },
 
@@ -420,6 +423,7 @@
         reportThanks: "谢谢！ 我们会核实并修正 🙌",
         reportCtxLabel: "当前题目", reportFabTitle: "报告问题",
         reportFab: "报告问题", reportResultLink: "🐞 发现错误了吗？ 报告一下",
+        quitTitle: "退出", quitConfirm: "现在退出会丢失本局记录。要回到首页吗？",
       },
     },
 
@@ -517,6 +521,7 @@
         reportThanks: "¡Gracias! Lo verificamos y lo corregimos 🙌",
         reportCtxLabel: "Esta pregunta", reportFabTitle: "Reportar un error",
         reportFab: "Reportar", reportResultLink: "🐞 ¿Viste un error? Repórtalo",
+        quitTitle: "Salir", quitConfirm: "Si sales ahora perderás el progreso de esta partida. ¿Volver al inicio?",
       },
     },
   };
