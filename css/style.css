@@ -163,6 +163,8 @@ body {
   transition: color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 .hud-home:hover { color: var(--accent); border-color: var(--accent); transform: scale(1.08); }
+/* 플레이 화면에선 바닥 FAB 숨김(‘다음 문제’ 버튼과 겹침 방지) → 문제 아래 인라인 링크로 대체 */
+body.playing .report-fab { display: none; }
 .progress-bar { height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; margin-bottom: 18px; }
 .progress-fill { height: 100%; width: 5%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
 .score-max { color: var(--muted); font-size: 0.5em; font-weight: 700; -webkit-text-fill-color: var(--muted); }
@@ -296,6 +298,22 @@ body {
 .hall-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .hall-title { font-weight: 800; font-size: 14px; }
 .hall-season { font-size: 11px; font-weight: 800; color: #fff; background: var(--accent-2); border-radius: 999px; padding: 1px 8px; letter-spacing: 0.5px; }
+/* 시즌 종료 카운트다운 배너 */
+.season-banner {
+  margin: 0 0 14px; padding: 9px 14px; border-radius: 12px; text-align: center;
+  font-size: 13px; font-weight: 700; color: var(--text);
+  border: 1px solid var(--line); background: var(--bg-soft);
+}
+.season-banner[hidden] { display: none; }
+.season-banner b { color: var(--accent-2); }
+.season-banner.final {
+  color: #fff; border-color: #d94a54;
+  background: linear-gradient(180deg, #e0525c, #c8323d);
+  animation: seasonPulse 1.6s ease-in-out infinite;
+}
+.season-banner.final b { color: #fff; }
+@keyframes seasonPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(216,60,72,0.5); } 50% { box-shadow: 0 0 0 6px rgba(216,60,72,0); } }
+@media (prefers-reduced-motion: reduce) { .season-banner.final { animation: none; } }
 /* 3모드 나란히(한 화면). 좁은 화면에서는 가로 스크롤 */
 .hall-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .hall-col { min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--card); padding: 8px 8px 4px; }

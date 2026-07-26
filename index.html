@@ -52,6 +52,7 @@
             <li data-i18n="rule2">매번 <b>랜덤</b> 출제 · 문제마다 <b>난이도(쉬움~최상)</b>를 미리 알려줘요</li>
             <li data-i18n="rule3">다 풀면 <b>캐럿 등급</b> · 이름 걸고 <b>랭킹</b>·명예의 전당에 도전 😎</li>
           </ul>
+          <div id="season-banner" class="season-banner" hidden></div>
           <div class="modes">
             <button class="mode-btn" data-mode="normal">
               <b data-i18n="modeNormalT">🎲 그냥 한 판</b>
@@ -123,6 +124,7 @@
 
             <p id="feedback" class="feedback"></p>
             <button id="btn-next" class="btn primary" disabled>다음 문제 →</button>
+            <button id="btn-report-play" class="report-link" type="button" data-i18n="reportResultLink">🐞 문제에 오류가 있었나요? 제보하기</button>
           </div>
         </div>
       </section>
@@ -204,6 +206,7 @@
     <script src="js/memberPhotos.js"></script>
     <script src="js/i18n.js"></script>
     <script src="js/geo.js"></script>
+    <script src="js/season.js"></script>
     <script src="js/ranking-config.js"></script>
     <script src="js/ranking.js"></script>
     <script src="js/analytics.js"></script>

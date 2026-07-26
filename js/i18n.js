@@ -75,7 +75,8 @@
       difficulty: { 1: { label: "쉬움", stars: "★" }, 2: { label: "보통", stars: "★★" }, 3: { label: "어려움", stars: "★★★" }, 4: { label: "최상", stars: "★★★★" } },
       hudMode: { normal: "🎲 일반", endless: "♾️ 무한", timeattack: "⏱️ 타임어택" },
       shareMode: { normal: "일반", endless: "무한", timeattack: "타임어택" },
-      season: { beta: "오픈베타 시즌", cur: "시즌2", champ: "오픈베타 1위" },
+      season: { beta: "오픈베타", name: (n) => `시즌${n}`, champ: (nm) => `${nm} 1위`,
+        endsIn: (d) => `종료 D-${d}`, final: (d) => `⏰ 마지막 ${d}일! 순위 굳히기` },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 찐 캐럿, 인정!" : pct >= 70 ? "💎 진성 캐럿이네요" : pct >= 40 ? "🌱 입덕 준비 완료" : "👀 이제 입덕각이에요"),
         count: (n) => (n >= 20 ? "🏆 찐 캐럿, 인정!" : n >= 12 ? "💎 진성 캐럿이네요" : n >= 6 ? "🌱 입덕 준비 완료" : "👀 이제 입덕각이에요"),
@@ -183,7 +184,8 @@
       difficulty: { 1: { label: "Easy", stars: "★" }, 2: { label: "Normal", stars: "★★" }, 3: { label: "Hard", stars: "★★★" }, 4: { label: "Expert", stars: "★★★★" } },
       hudMode: { normal: "🎲 Normal", endless: "♾️ Endless", timeattack: "⏱️ Time Attack" },
       shareMode: { normal: "Normal", endless: "Endless", timeattack: "Time Attack" },
-      season: { beta: "Open Beta", cur: "Season 2", champ: "Open Beta #1" },
+      season: { beta: "Open Beta", name: (n) => `Season ${n}`, champ: (nm) => `${nm} #1`,
+        endsIn: (d) => `ends in ${d}d`, final: (d) => `⏰ Final ${d} days! Lock your rank` },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 Certified CARAT!" : pct >= 70 ? "💎 True CARAT" : pct >= 40 ? "🌱 Getting hooked" : "👀 On the way in"),
         count: (n) => (n >= 20 ? "🏆 Certified CARAT!" : n >= 12 ? "💎 True CARAT" : n >= 6 ? "🌱 Getting hooked" : "👀 On the way in"),
@@ -288,7 +290,8 @@
       difficulty: { 1: { label: "やさしい", stars: "★" }, 2: { label: "ふつう", stars: "★★" }, 3: { label: "むずかしい", stars: "★★★" }, 4: { label: "最上級", stars: "★★★★" } },
       hudMode: { normal: "🎲 通常", endless: "♾️ 無限", timeattack: "⏱️ タイムアタック" },
       shareMode: { normal: "通常", endless: "無限", timeattack: "タイムアタック" },
-      season: { beta: "オープンβ", cur: "シーズン2", champ: "オープンβ 1位" },
+      season: { beta: "オープンβ", name: (n) => `シーズン${n}`, champ: (nm) => `${nm} 1位`,
+        endsIn: (d) => `終了 D-${d}`, final: (d) => `⏰ ラスト${d}日！ 順位を固めろ` },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 本物のCARAT！" : pct >= 70 ? "💎 ガチCARAT" : pct >= 40 ? "🌱 沼入り間近" : "👀 沼への入口"),
         count: (n) => (n >= 20 ? "🏆 本物のCARAT！" : n >= 12 ? "💎 ガチCARAT" : n >= 6 ? "🌱 沼入り間近" : "👀 沼への入口"),
@@ -393,7 +396,8 @@
       difficulty: { 1: { label: "简单", stars: "★" }, 2: { label: "普通", stars: "★★" }, 3: { label: "困难", stars: "★★★" }, 4: { label: "顶级", stars: "★★★★" } },
       hudMode: { normal: "🎲 普通", endless: "♾️ 无限", timeattack: "⏱️ 限时" },
       shareMode: { normal: "普通", endless: "无限", timeattack: "限时" },
-      season: { beta: "公测赛季", cur: "第2赛季", champ: "公测冠军" },
+      season: { beta: "公测", name: (n) => `第${n}赛季`, champ: (nm) => `${nm}冠军`,
+        endsIn: (d) => `距结束 ${d}天`, final: (d) => `⏰ 最后${d}天！ 锁定排名` },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 认证CARAT！" : pct >= 70 ? "💎 真·CARAT" : pct >= 40 ? "🌱 即将入坑" : "👀 入坑在即"),
         count: (n) => (n >= 20 ? "🏆 认证CARAT！" : n >= 12 ? "💎 真·CARAT" : n >= 6 ? "🌱 即将入坑" : "👀 入坑在即"),
@@ -498,7 +502,8 @@
       difficulty: { 1: { label: "Fácil", stars: "★" }, 2: { label: "Normal", stars: "★★" }, 3: { label: "Difícil", stars: "★★★" }, 4: { label: "Experto", stars: "★★★★" } },
       hudMode: { normal: "🎲 Normal", endless: "♾️ Infinito", timeattack: "⏱️ Contrarreloj" },
       shareMode: { normal: "Normal", endless: "Infinito", timeattack: "Contrarreloj" },
-      season: { beta: "Beta abierta", cur: "Temporada 2", champ: "Campeón beta" },
+      season: { beta: "Beta abierta", name: (n) => `Temporada ${n}`, champ: (nm) => `${nm} #1`,
+        endsIn: (d) => `termina en ${d}d`, final: (d) => `⏰ ¡Últimos ${d} días! Asegura tu puesto` },
       tier: {
         normal: (pct) => (pct >= 90 ? "🏆 ¡CARAT de verdad!" : pct >= 70 ? "💎 CARAT auténtico" : pct >= 40 ? "🌱 Cayendo en el pozo" : "👀 A punto de caer"),
         count: (n) => (n >= 20 ? "🏆 ¡CARAT de verdad!" : n >= 12 ? "💎 CARAT auténtico" : n >= 6 ? "🌱 Cayendo en el pozo" : "👀 A punto de caer"),

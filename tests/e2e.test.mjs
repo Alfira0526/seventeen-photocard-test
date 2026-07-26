@@ -28,6 +28,9 @@ async function withPage(fn, opts = {}) {
     if (!opts.showAnnounce) {
       await page.addInitScript(() => { window.__SVT_NO_ANNOUNCE = true; });
     }
+    // 시즌 계산 시각 고정(기본: 시즌2 초반). opts.now 로 막판 등 시뮬레이션.
+    const nowMs = opts.now != null ? opts.now : Date.parse("2026-07-27T00:00:00Z");
+    await page.addInitScript((t) => { window.__SVT_NOW = t; }, nowMs);
     if (opts.languages) {
       await page.addInitScript((langs) => {
         Object.defineProperty(navigator, "languages", { get: () => langs });
@@ -289,6 +292,30 @@ test("지난 시즌 토글: 결과 화면에서 구 랭킹을 별도로 표기",
     const after = await page.textContent("#rank-list");
     assert.ok(/legacy0/.test(after), "지난 시즌 기록이 안 뜸");
   }, { seedRanking: seed });
+});
+
+test("시즌 배너: 시작화면에 종료 카운트다운(D-N) 노출", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.waitForSelector("#screen-start.active");
+    await page.waitForSelector("#season-banner:not([hidden])", { timeout: 3000 });
+    const txt = await page.textContent("#season-banner");
+    assert.match(txt, /시즌2|Season 2/);
+    assert.match(txt, /종료 D-\d+|ends in/);
+    const isFinal = await page.$eval("#season-banner", (e) => e.classList.contains("final"));
+    assert.ok(!isFinal, "초반인데 막판 강조가 켜짐");
+  }, { languages: ["ko-KR", "ko"] });
+});
+
+test("시즌 배너: 종료 임박(D-3 이내)엔 '막판 순위 굳히기' 강조", { skip: !chromium }, async () => {
+  // 시즌2 시작(2026-07-26) + 26일 = 종료 이틀 전
+  const now = Date.parse("2026-07-26T00:00:00Z") + 26 * 86400000;
+  await withPage(async (page) => {
+    await page.waitForSelector("#season-banner:not([hidden])", { timeout: 3000 });
+    const isFinal = await page.$eval("#season-banner", (e) => e.classList.contains("final"));
+    assert.ok(isFinal, "막판인데 강조가 안 켜짐");
+    const txt = await page.textContent("#season-banner");
+    assert.match(txt, /마지막|Final|ラスト|最后|Últimos/);
+  }, { now, languages: ["ko-KR", "ko"] });
 });
 
 test("업데이트 공지: 최초 1회 노출 → 닫으면 재방문 시 미노출", { skip: !chromium }, async () => {

@@ -21,14 +21,13 @@
   };
 
   // ── 시즌 ──
-  // 새 점수제(속도·난이도·콤보) 도입에 맞춰 시즌을 분리한다. 구 100점제 기록은
-  // 기존 경로(rankings/<mode>)에 그대로 두고 "지난 시즌"으로만 조회하며, 현재 시즌은
-  // 모드 키에 접미사를 붙여(rankings/<mode>_s2) 저장/조회한다.
+  // 시즌 스케줄(js/season.js)이 현재/직전 시즌을 날짜 기반으로 계산한다.
+  // 현재 시즌은 모드 키에 접미사(_s2, _s3 …)를 붙여 저장/조회하고, 직전 시즌은
+  // legacy 로 조회한다(시즌2의 직전은 오픈베타=접미사 없음).
   // → Firebase 규칙(rankings/$mode/$id)을 그대로 재사용(규칙 재설정 불필요).
-  const SEASON = "s2";
-  const SUFFIX = "_" + SEASON;
-  // 저장/조회에 쓰는 실제 키. legacy=true 면 구 시즌(접미사 없음).
-  function skey(mode, legacy) { return legacy ? mode : mode + SUFFIX; }
+  function curSuffix() { return (root.SVTSeason ? root.SVTSeason.active().suffix : "_s2"); }
+  function prevSuffix() { return (root.SVTSeason ? root.SVTSeason.previous().suffix : ""); }
+  function skey(mode, legacy) { return mode + (legacy ? prevSuffix() : curSuffix()); }
 
   const idOf = (e) => `${e.mode}|${e.name}|${e.score}|${e.ts}`;
   function dedupeSort(list, mode) {
@@ -67,7 +66,6 @@
 
   const api = {
     remote: !!fb,
-    SEASON,
     // 현재 시즌(기본) 또는 지난 시즌(opts.legacy) 로컬 순위
     localList(mode, opts) { return dedupeSort(store.get(), skey(mode, opts && opts.legacy)); },
     // 특정 모드 순위(원격+로컬 병합, 점수 내림차순). 원격 실패 시 로컬만.
@@ -82,7 +80,8 @@
     },
     // 기록 추가: 현재 시즌 키로 로컬 즉시 저장 + (설정 시) 원격 append
     async add(entry) {
-      const e = Object.assign({}, entry, { mode: skey(entry.mode), season: SEASON });
+      const sid = root.SVTSeason ? root.SVTSeason.active().id : "s2";
+      const e = Object.assign({}, entry, { mode: skey(entry.mode), season: sid });
       localAdd(e);
       if (fb) { try { await remoteAdd(e); } catch (err) {} }
       return e;

@@ -100,6 +100,7 @@
       "btn-restart", "btn-next", "btn-share", "btn-save", "btn-tweet", "btn-insta", "btn-kakao", "share-hint",
       "card-art", "card-caption", "btn-reload", "progress", "progress-fill", "score", "hud-mode", "hud-lives",
       "rank-name", "btn-rank", "rank-list", "btn-legacy", "btn-home", "btn-hud-home",
+      "season-banner",
       "hall", "hall-season",
       "hall-h-normal", "hall-h-endless", "hall-h-timeattack",
       "hall-src-normal", "hall-src-endless", "hall-src-timeattack",
@@ -108,12 +109,14 @@
       "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
       "theme-toggle", "lang-select",
-      "btn-report", "btn-report-result", "report-modal", "report-ctx", "report-text", "report-cancel", "report-send",
+      "btn-report", "btn-report-result", "btn-report-play", "report-modal", "report-ctx", "report-text", "report-cancel", "report-send",
     ].forEach((id) => (el[id] = document.getElementById(id)));
   }
   function show(screen) {
     ["screen-start", "screen-play", "screen-result"].forEach((s) =>
       el[s].classList.toggle("active", s === screen));
+    // 플레이 중에는 바닥 플로팅 FAB를 숨겨 '다음 문제' 버튼과 겹치지 않게(모바일)
+    document.body.classList.toggle("playing", screen === "screen-play");
   }
 
   // ── 테마 ──
@@ -143,7 +146,25 @@
   function goHome() {
     stopTimer();
     show("screen-start");
+    renderSeasonBanner();
     refreshHall();
+  }
+
+  // 시즌 종료 카운트다운 배너(막판 D-noticeDays 이내엔 '순위 굳히기' 강조)
+  function renderSeasonBanner() {
+    const b = el["season-banner"];
+    if (!b || !window.SVTSeason) return;
+    const s = window.SVTSeason.active();
+    const d = window.SVTSeason.daysLeft();
+    const name = T.season.name(s.num);
+    if (window.SVTSeason.isFinalPush()) {
+      b.className = "season-banner final";
+      b.innerHTML = `<b>🏆 ${name}</b> · ${T.season.final(d)}`;
+    } else {
+      b.className = "season-banner";
+      b.innerHTML = `<b>🏆 ${name}</b> · ${T.season.endsIn(d)}`;
+    }
+    b.hidden = false;
   }
 
   // ── 시작: 모드 선택 ──
@@ -569,9 +590,18 @@
     let shown = 0;
     data.forEach((d) => { shown += paintHallCol(d.mode, d.oldList || [], d.newList || []); });
     el["hall"].hidden = !(shown > 0);
-    if (el["hall-season"]) el["hall-season"].textContent = T.season.cur || "";
+    if (el["hall-season"]) el["hall-season"].textContent = activeSeasonName();
   }
   function unitOf(mode) { return mode === "normal" ? "점" : "개"; }
+  // 현재/직전 시즌 표시명(오픈베타 또는 시즌N)
+  function activeSeasonName() {
+    const s = window.SVTSeason ? window.SVTSeason.active() : null;
+    return s ? T.season.name(s.num) : T.season.name(2);
+  }
+  function prevSeasonName() {
+    const p = window.SVTSeason ? window.SVTSeason.previous() : { beta: true };
+    return p.beta ? T.season.beta : T.season.name(p.num);
+  }
   // 반환: 이 컬럼에서 실제로 표시된 항목 수(챔피언 + 리스트) — 홀 노출 판정용
   function paintHallCol(mode, oldList, newList) {
     const head = el["hall-h-" + mode], srcEl = el["hall-src-" + mode];
@@ -587,7 +617,7 @@
       if (champ) {
         champEl.hidden = false;
         champEl.innerHTML = `<span class="crown">🏅</span>` +
-          `<span class="champ-label">${T.season.champ}</span>` +
+          `<span class="champ-label">${T.season.champ(prevSeasonName())}</span>` +
           `<span class="champ-name">${escapeHtml(champ.name)}</span>` +
           `<span class="champ-score">${champ.score}${unit}</span>`;
         count++;
@@ -601,7 +631,7 @@
     // 오픈베타를 보여줄 땐 챔피언(1위)은 위에 박제했으니 리스트는 2위부터
     const liveList = useNew ? newList.slice(0, 10) : oldList.slice(champ ? 1 : 0, 10);
     const startRank = useNew ? 1 : (champ ? 2 : 1);
-    if (srcEl) srcEl.textContent = useNew ? T.season.cur : T.season.beta;
+    if (srcEl) srcEl.textContent = useNew ? activeSeasonName() : prevSeasonName();
     if (srcEl) srcEl.className = "hall-src " + (useNew ? "is-cur" : "is-beta");
 
     if (!liveList.length) {
@@ -829,6 +859,8 @@
     });
     try { document.title = R.share.title; } catch (e) {}
     if (el["hud-mode"]) el["hud-mode"].textContent = T.hudMode[state.mode] || "";
+    // 시즌 배너/명예의전당도 로케일 전환에 맞춰 갱신
+    if (el["season-banner"] && !el["season-banner"].hidden) renderSeasonBanner();
   }
 
   function buildLangUI() {
@@ -872,6 +904,7 @@
     // 오류 제보
     el["btn-report"].addEventListener("click", openReport);
     if (el["btn-report-result"]) el["btn-report-result"].addEventListener("click", openReport);
+    if (el["btn-report-play"]) el["btn-report-play"].addEventListener("click", openReport);
     el["report-cancel"].addEventListener("click", closeReport);
     el["report-send"].addEventListener("click", submitReport);
     el["report-modal"].addEventListener("click", (e) => { if (e.target === el["report-modal"]) closeReport(); });
