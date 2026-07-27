@@ -90,25 +90,29 @@
               <button id="hall-tab-quarter" class="hall-tab" type="button">분기 누적</button>
             </div>
             <div class="hall-cols">
-              <div class="hall-col">
+              <button class="hall-col" data-mode="normal" type="button" aria-label="일반 전체 순위 보기">
+                <span class="hall-more" aria-hidden="true">↗</span>
                 <div class="hall-col-h" id="hall-h-normal"></div>
                 <div class="hall-champ" id="hall-champ-normal" hidden></div>
                 <div class="hall-src" id="hall-src-normal"></div>
                 <div class="hall-viewport"><ol id="hall-normal" class="hall-list"></ol></div>
-              </div>
-              <div class="hall-col">
+              </button>
+              <button class="hall-col" data-mode="endless" type="button" aria-label="무한 전체 순위 보기">
+                <span class="hall-more" aria-hidden="true">↗</span>
                 <div class="hall-col-h" id="hall-h-endless"></div>
                 <div class="hall-champ" id="hall-champ-endless" hidden></div>
                 <div class="hall-src" id="hall-src-endless"></div>
                 <div class="hall-viewport"><ol id="hall-endless" class="hall-list"></ol></div>
-              </div>
-              <div class="hall-col">
+              </button>
+              <button class="hall-col" data-mode="timeattack" type="button" aria-label="타임어택 전체 순위 보기">
+                <span class="hall-more" aria-hidden="true">↗</span>
                 <div class="hall-col-h" id="hall-h-timeattack"></div>
                 <div class="hall-champ" id="hall-champ-timeattack" hidden></div>
                 <div class="hall-src" id="hall-src-timeattack"></div>
                 <div class="hall-viewport"><ol id="hall-timeattack" class="hall-list"></ol></div>
-              </div>
+              </button>
             </div>
+            <p class="hall-hint" data-i18n="hallHint">칸을 탭하면 전체 순위를 크게 봐요</p>
           </section>
         </div>
       </section>
@@ -188,6 +192,17 @@
           <button id="report-cancel" class="btn ghost" type="button" data-i18n="reportCancel">닫기</button>
           <button id="report-send" class="btn primary" type="button" data-i18n="reportSubmit">제보 보내기</button>
         </div>
+      </div>
+    </div>
+
+    <!-- 명예의 전당 상세: 칸 탭 시 전체 순위 큰 팝업 -->
+    <div id="hall-modal" class="modal-overlay" hidden>
+      <div class="modal-card hall-modal-card" role="dialog" aria-modal="true" aria-labelledby="hall-modal-title">
+        <div class="hall-modal-head">
+          <h3 id="hall-modal-title">🏆</h3>
+          <button id="hall-modal-close" class="modal-x" type="button" aria-label="닫기">✕</button>
+        </div>
+        <ol id="hall-modal-list" class="hall-modal-list"></ol>
       </div>
     </div>
 

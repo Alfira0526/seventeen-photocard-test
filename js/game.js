@@ -115,6 +115,7 @@
       "rank-name", "btn-rank", "rank-list", "btn-legacy", "btn-home", "btn-hud-home",
       "season-banner",
       "hall", "hall-season", "hall-tab-month", "hall-tab-quarter",
+      "hall-modal", "hall-modal-title", "hall-modal-list", "hall-modal-close",
       "hall-h-normal", "hall-h-endless", "hall-h-timeattack",
       "hall-src-normal", "hall-src-endless", "hall-src-timeattack",
       "hall-champ-normal", "hall-champ-endless", "hall-champ-timeattack",
@@ -694,6 +695,9 @@
     if (el["hall-season"]) el["hall-season"].textContent = quarterName();
   }
 
+  // 칸 탭 시 큰 팝업에서 쓸 전체 순위 캐시(모드별)
+  const hallCache = {};
+
   // 반환: 표시된 항목 수(챔피언 + 리스트) — 홀 노출 판정용
   function paintHallCol(mode, o) {
     const head = el["hall-h-" + mode], srcEl = el["hall-src-" + mode];
@@ -701,6 +705,8 @@
     if (head) head.textContent = T.hudMode[mode] || mode;
     if (!ol) return 0;
     const unit = unitOf(mode);
+    // 전체 순위(팝업용) 캐시 — board[0]=1위(챔피언)
+    hallCache[mode] = { list: (o.board || []).slice(0, 50), name: o.boardName, champLabel: o.champLabel || "", unit: unit };
     let count = 0;
     if (champEl) {
       if (o.champion) {
@@ -734,6 +740,24 @@
     }
     return count + liveList.length;
   }
+
+  // 칸 탭 → 전체 순위 큰 팝업(이름 안 잘림, 1위=챔피언 강조)
+  function openHallModal(mode) {
+    const c = hallCache[mode];
+    if (!c || !el["hall-modal"]) return;
+    if (el["hall-modal-title"]) el["hall-modal-title"].textContent = `${T.hudMode[mode] || mode} · ${c.name}`;
+    const list = c.list || [];
+    const rows = list.slice(0, 30).map((e, i) => {
+      const top = i === 0;
+      const tag = top && c.champLabel ? `<span class="hm-champ">🏅 ${c.champLabel}</span>` : "";
+      return `<li class="${top ? "hm-top" : ""}"><span class="rk">${i + 1}</span>` +
+        `<span class="nm">${escapeHtml(e.name)}${tag}</span>` +
+        `<span class="sc">${e.score}${c.unit}</span></li>`;
+    }).join("");
+    el["hall-modal-list"].innerHTML = rows || `<li class="empty">${T.rank.empty}</li>`;
+    el["hall-modal"].hidden = false;
+  }
+  function closeHallModal() { if (el["hall-modal"]) el["hall-modal"].hidden = true; }
 
   // ── 공유 카드(canvas) ──
   function drawShareCard(res) {
@@ -983,6 +1007,14 @@
     if (el["btn-legacy"]) el["btn-legacy"].addEventListener("click", () => { rankLegacy = !rankLegacy; renderRankList(); });
     if (el["hall-tab-month"]) el["hall-tab-month"].addEventListener("click", () => { hallView = "month"; refreshHall(); });
     if (el["hall-tab-quarter"]) el["hall-tab-quarter"].addEventListener("click", () => { hallView = "quarter"; refreshHall(); });
+    // 명예의전당 칸 탭 → 전체 순위 팝업
+    document.querySelectorAll(".hall-col").forEach((c) =>
+      c.addEventListener("click", () => openHallModal(c.dataset.mode)));
+    if (el["hall-modal-close"]) el["hall-modal-close"].addEventListener("click", closeHallModal);
+    if (el["hall-modal"]) el["hall-modal"].addEventListener("click", (e) => { if (e.target === el["hall-modal"]) closeHallModal(); });
+    document.addEventListener("keydown", (e) => {
+      if (el["hall-modal"] && !el["hall-modal"].hidden && (e.key === "Escape" || e.key === "Esc")) closeHallModal();
+    });
     if (el["btn-hud-home"]) el["btn-hud-home"].addEventListener("click", () => {
       const msg = I18N.raw(I18N.locale).ui.quitConfirm;
       if (window.confirm(msg)) { stopTimer(); goHome(); }

@@ -353,7 +353,15 @@ body.playing .report-fab { display: none; }
 .hall-tab.active { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
 /* 3모드 나란히(한 화면). 좁은 화면에서는 가로 스크롤 */
 .hall-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.hall-col { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--card); padding: 8px 8px 4px; }
+.hall-col {
+  position: relative; min-width: 0; overflow: hidden;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--card); padding: 8px 8px 4px;
+  color: inherit; font: inherit; text-align: left; cursor: pointer; width: 100%;
+  transition: border-color 0.12s ease, transform 0.12s ease;
+}
+.hall-col:hover { border-color: var(--accent); transform: translateY(-2px); }
+.hall-more { position: absolute; top: 5px; right: 7px; font-size: 12px; color: var(--muted); }
+.hall-hint { text-align: center; color: var(--muted); font-size: 11.5px; margin: 8px 0 0; }
 .hall-col-h { font-size: 12px; font-weight: 800; color: var(--accent-2); text-align: center; margin-bottom: 4px; }
 /* 오픈베타 챔피언 상시 박제(각 모드 1위) — 좁은 컬럼에서도 안 씹히게 2줄 구조 */
 .hall-champ {
@@ -461,6 +469,25 @@ body.playing .report-fab { display: none; }
 }
 .modal-card textarea:focus { outline: none; border-color: var(--accent); }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
+
+/* 명예의전당 전체 순위 팝업 */
+.hall-modal-card { max-width: 460px; }
+.hall-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.hall-modal-head h3 { margin: 0; font-size: 18px; font-weight: 800; }
+.modal-x {
+  flex: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+  border: 1px solid var(--line); background: var(--bg-soft); color: var(--text); font-size: 15px;
+}
+.modal-x:hover { border-color: var(--accent); }
+.hall-modal-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 60vh; overflow-y: auto; }
+.hall-modal-list li { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 10px; background: var(--bg-soft); font-size: 15px; }
+.hall-modal-list li.empty { justify-content: center; color: var(--muted); }
+.hall-modal-list .rk { width: 26px; text-align: center; font-weight: 800; color: var(--accent-2); font-variant-numeric: tabular-nums; }
+.hall-modal-list .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+.hall-modal-list .sc { flex: none; font-weight: 800; font-variant-numeric: tabular-nums; }
+.hall-modal-list .hm-champ { margin-left: 8px; font-size: 11px; font-weight: 800; color: #b8860b; }
+:root[data-theme="dark"] .hall-modal-list .hm-champ { color: #f0cf6a; }
+.hall-modal-list .hm-top { border: 1px solid #e2b23a; background: linear-gradient(180deg, rgba(240,200,80,0.18), rgba(240,200,80,0.06)); }
 
 /* 토스트 */
 .toast {
