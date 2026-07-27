@@ -170,7 +170,7 @@
     if (!b || !window.SVTSeason) return;
     const s = window.SVTSeason.active();
     const d = window.SVTSeason.daysLeft();
-    const name = T.season.month(s.m);
+    const name = activeMonthName(); // 오픈베타(7월) 또는 'M월'
     if (window.SVTSeason.isFinalPush()) {
       b.className = "season-banner final";
       b.innerHTML = `<b>🏆 ${name}</b> · ${T.season.final(d)}`;
@@ -606,8 +606,12 @@
     }, 15000); // 15초 주기
   }
   function unitOf(mode) { return mode === "normal" ? "점" : "개"; }
-  function activeMonthName() { const s = window.SVTSeason && window.SVTSeason.active(); return s ? T.season.month(s.m) : ""; }
-  function prevMonthName() { const p = window.SVTSeason && window.SVTSeason.previous(); return p ? T.season.month(p.m) : ""; }
+  // 2026-07은 '오픈베타' 기간, 그 1위는 '시즌 첫 챔피언'으로 표기(8월부터는 일반 월간)
+  const BETA_YM = "202607";
+  function monthLabelOf(s) { return s ? (s.ym === BETA_YM ? T.season.beta : T.season.month(s.m)) : ""; }
+  function champLabelOf(s) { return (s && s.ym === BETA_YM) ? T.season.firstChamp : T.season.champ(monthLabelOf(s)); }
+  function activeMonthName() { return monthLabelOf(window.SVTSeason && window.SVTSeason.active()); }
+  function prevMonthName() { return monthLabelOf(window.SVTSeason && window.SVTSeason.previous()); }
   function quarterName() { const q = window.SVTSeason && window.SVTSeason.quarter(); return q ? `${q.y} ${T.season.quarter(q.q)}` : T.season.tabQuarter; }
 
   function renderHallTabs() {
@@ -641,27 +645,28 @@
     }
   }
   function paintHallMonth(data) {
+    const active = window.SVTSeason && window.SVTSeason.active();
+    const prev = window.SVTSeason && window.SVTSeason.previous();
     let shown = 0;
     data.forEach((d) => {
       const useCur = d.curList.length >= HALL_SWAP;
-      // 금색 1위 박제는 "지금 보여주는 보드의 실제 1위"로 통일.
-      //  · 이번 달 진행 중(useCur): 이번 달 실시간 1위 = '지금 1위'
-      //  · 이번 달 기록이 아직 적으면: 지난 달(없으면 오픈베타) 1위로 폴백
-      let board, boardName;
+      // 금색 1위 박제 = "지금 보여주는 보드의 실제 1위". 라벨은 그 보드 시즌 기준
+      //  · 오픈베타(2026-07) 1위 → "시즌 첫 챔피언"  · 그 외 → "M월 1위"
+      let board, boardName, champLabel;
       if (useCur) {
-        board = d.curList; boardName = activeMonthName();
+        board = d.curList; boardName = activeMonthName(); champLabel = champLabelOf(active);
+      } else if (d.prevList.length > 0) {
+        board = d.prevList; boardName = prevMonthName(); champLabel = champLabelOf(prev);
       } else {
-        const hasPrev = d.prevList.length > 0;
-        board = hasPrev ? d.prevList : d.betaList;
-        boardName = hasPrev ? prevMonthName() : T.season.beta;
+        board = d.betaList; boardName = T.season.beta; champLabel = T.season.champ(T.season.beta);
       }
       shown += paintHallCol(d.mode, {
-        champion: board[0] || null,     // 박제 = 그 보드의 실제 1위(지금 1위)
-        champName: boardName,           // 라벨도 그 보드 기준(예: "7월 1위")
+        champion: board[0] || null,
+        champLabel: champLabel,
         board: board,
         boardName: boardName,
         boardIsCur: useCur,
-        skipChampInBoard: true,         // 1위는 위에 박제 → 리스트는 2위부터
+        skipChampInBoard: true, // 1위는 위에 박제 → 리스트는 2위부터
       });
     });
     el["hall"].hidden = !(shown > 0);
@@ -701,7 +706,7 @@
       if (o.champion) {
         champEl.hidden = false;
         champEl.innerHTML =
-          `<div class="champ-top"><span class="crown">🏅</span><span class="champ-label">${T.season.champ(o.champName)}</span></div>` +
+          `<div class="champ-top"><span class="crown">🏅</span><span class="champ-label">${o.champLabel || ""}</span></div>` +
           `<div class="champ-bot"><span class="champ-name">${escapeHtml(o.champion.name)}</span><span class="champ-score">${o.champion.score}${unit}</span></div>`;
         count++;
       } else { champEl.hidden = true; champEl.innerHTML = ""; }

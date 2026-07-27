@@ -239,7 +239,7 @@ test("명예의 전당: 이번 달 기록이 임계 이상이면 이번 달 순�
     const cols = await page.$$eval(".hall-col", (els) => els.length);
     assert.equal(cols, 3); // 3모드 한 화면
     const src = await page.textContent("#hall-src-normal");
-    assert.match(src, /7월|Jul/);
+    assert.match(src, /오픈베타|Open Beta/); // 2026-07 = 오픈베타 기간
     // 금색 1위 박제 = 이번 달 실제 1위(julN0, 최고점) — '지금 1위'와 일치
     const champTxt = await page.textContent("#hall-champ-normal");
     assert.ok(/julN0/.test(champTxt), "이번 달 실시간 1위가 박제되지 않음");
@@ -316,7 +316,7 @@ test("시즌 배너: 시작화면에 이번 달 종료 카운트다운(D-N) 노�
     await page.waitForSelector("#screen-start.active");
     await page.waitForSelector("#season-banner:not([hidden])", { timeout: 3000 });
     const txt = await page.textContent("#season-banner");
-    assert.match(txt, /7월|Jul/);
+    assert.match(txt, /오픈베타|Open Beta/); // 2026-07 = 오픈베타
     assert.match(txt, /종료 D-\d+|ends in/);
     const isFinal = await page.$eval("#season-banner", (e) => e.classList.contains("final"));
     assert.ok(!isFinal, "초반인데 막판 강조가 켜짐");
