@@ -1,0 +1,87 @@
+[
+  {
+    "id": "-OyT-x5enxpMJCnTrOqO",
+    "locale": "ko",
+    "status": "open",
+    "text": "test",
+    "ts": 1785062477717,
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0"
+  },
+  {
+    "id": "-OyTTlwR-sedejrsbtxE",
+    "locale": "ko",
+    "status": "open",
+    "text": "love&letter 앨범 리패키지인데 정규로 들어가있어요",
+    "ts": 1785070299089,
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "-OyU4BiIiWyMATVjzDgm",
+    "ctx": {
+      "cardId": "fml",
+      "cardKind": "album",
+      "choices": [
+        "_WORLD",
+        "HOT",
+        "손오공 (Super)",
+        "붐붐 (BOOMBOOM)"
+      ],
+      "correct": "손오공 (Super)",
+      "difficulty": 2,
+      "label": "타이틀곡, 뭐였죠? What was the title track?",
+      "mode": "normal",
+      "typeId": "titleTrack"
+    },
+    "locale": "ko",
+    "status": "open",
+    "text": "",
+    "ts": 1785080367517,
+    "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36"
+  },
+  {
+    "id": "-OyU8Sm2RAGGmZYBcBmx",
+    "ctx": {
+      "cardId": "joshua",
+      "cardKind": "member",
+      "choices": [
+        "우지",
+        "호시",
+        "도겸",
+        "승관"
+      ],
+      "correct": "호시",
+      "difficulty": 3,
+      "label": "조슈아 와 다른 유닛 인 멤버는? Who is in a different unit from Joshua ?",
+      "mode": "normal",
+      "typeId": "memberRoster"
+    },
+    "locale": "ko",
+    "status": "open",
+    "text": "",
+    "ts": 1785081485607,
+    "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/30.0 Chrome/143.0.0.0 Mobile Safari/537.36"
+  },
+  {
+    "id": "-OyVoV797oqQZyHi86Ml",
+    "ctx": {
+      "cardId": "loveandletter",
+      "cardKind": "album",
+      "choices": [
+        "믹스테이프",
+        "정규 앨범",
+        "베스트 앨범",
+        "리패키지"
+      ],
+      "correct": "정규 앨범",
+      "difficulty": 2,
+      "label": "이 앨범, 어떤 유형일까요? What type of release is this?",
+      "mode": "normal",
+      "typeId": "albumType"
+    },
+    "locale": "ko",
+    "status": "open",
+    "text": "1집 정규 리패키지 앨범인데 정답이 정규앨범으로 되어있어요",
+    "ts": 1785109544674,
+    "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_5_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/23F84 Twitter for iPhone/12.11.1"
+  }
+]
