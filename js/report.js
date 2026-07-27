@@ -27,7 +27,8 @@
       try { payload.ts = Date.now(); } catch (e) { payload.ts = 0; }
       if (!fb) { try { console.log("[report:local]", payload); } catch (e) {} return Promise.resolve(false); }
       try {
-        return fetch(fb + "/reports.json", {
+        var NS = root.SVT_DATA_PREFIX || ""; // 테스트베드면 staging/ 로 격리
+        return fetch(fb + "/" + NS + "reports.json", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),

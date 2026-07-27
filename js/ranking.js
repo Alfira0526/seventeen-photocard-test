@@ -13,7 +13,7 @@
   "use strict";
   if (!root) return;
 
-  const LS = "svt-ranking";
+  const LS = "svt-ranking" + (root.SVT_DATA_PREFIX ? "-staging" : "");
   const cfg = root.SVTRankingConfig || {};
   const store = {
     get() { try { return JSON.parse(localStorage.getItem(LS)) || []; } catch (e) { return []; } },
@@ -61,14 +61,16 @@
   function withTimeout(p, ms) {
     return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
   }
+  // 테스트베드 데이터 격리: 스테이징이면 경로 앞에 "staging/" (없으면 프로덕션 그대로)
+  const NS = () => (root.SVT_DATA_PREFIX || "");
   async function remoteKey(key) {
-    const res = await withTimeout(fetch(`${fb}/rankings/${encodeURIComponent(key)}.json`), 4000);
+    const res = await withTimeout(fetch(`${fb}/${NS()}rankings/${encodeURIComponent(key)}.json`), 4000);
     if (!res.ok) throw new Error("http " + res.status);
     const obj = await res.json();
     return obj ? Object.keys(obj).map((k) => obj[k]) : [];
   }
   async function remoteAdd(entry) {
-    await withTimeout(fetch(`${fb}/rankings/${encodeURIComponent(entry.mode)}.json`, {
+    await withTimeout(fetch(`${fb}/${NS()}rankings/${encodeURIComponent(entry.mode)}.json`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry),
     }), 4000);
   }

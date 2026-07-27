@@ -1,0 +1,70 @@
+name: Deploy Pages (prod / + testbed /preview/)
+
+# 프로덕션(/)은 release 브랜치, 테스트베드(/preview/)는 develop 브랜치에서 배포한다.
+# 어느 브랜치에 push 되든 두 소스를 모두 다시 빌드해 하나의 Pages 산출물로 올린다.
+on:
+  push:
+    branches:
+      - "release"
+      - "claude/game-analysis-improvements-7mccdp"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 동시 배포 방지(마지막 것만 반영)
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout STAGING (develop)
+        uses: actions/checkout@v4
+        with:
+          ref: "claude/game-analysis-improvements-7mccdp"
+          path: dev
+
+      - name: Checkout PROD (release)
+        id: prod
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: release
+          path: prod
+
+      - name: Assemble _site (prod at /, testbed at /preview/)
+        run: |
+          set -e
+          # release 브랜치가 아직 없으면(최초 셋업) 프로덕션도 develop 로 폴백 → 사이트가 비지 않게
+          if [ ! -f prod/index.html ]; then
+            echo "release 브랜치 없음 → 프로덕션을 develop 내용으로 폴백"
+            rm -rf prod && cp -r dev prod
+          fi
+          mkdir -p _site
+          rsync -a --delete --exclude '.git' --exclude 'node_modules' prod/ _site/
+          mkdir -p _site/preview
+          rsync -a --delete --exclude '.git' --exclude 'node_modules' dev/ _site/preview/
+          # 테스트베드는 검색엔진 색인 제외
+          printf 'User-agent: *\nDisallow: /preview/\n' > _site/robots.txt
+          echo "built: $(find _site -maxdepth 1 -type f | wc -l) root files, preview=$( [ -f _site/preview/index.html ] && echo ok || echo MISSING )"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

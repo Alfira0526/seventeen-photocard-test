@@ -1,0 +1,33 @@
+name: Promote develop → release (릴리즈 승격)
+
+# 릴리즈일에 수동 실행. develop(테스트베드에서 검수 완료본)을 release(프로덕션)로 올린다.
+# 실수 방지를 위해 입력값에 정확히 'promote' 를 넣어야 실행된다.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "프로덕션으로 승격하려면 promote 를 입력"
+        required: true
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    if: ${{ github.event.inputs.confirm == 'promote' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: "claude/game-analysis-improvements-7mccdp"
+
+      - name: Fast-forward release to develop
+        run: |
+          set -e
+          echo "release 를 develop($(git rev-parse --short HEAD)) 로 승격"
+          # release 가 develop 뒤에 있으면 ff, 없으면 새로 생성. 되돌리려면 release 를 이전 커밋으로.
+          git push origin HEAD:release
+          echo "완료 → deploy-pages 워크플로가 자동으로 프로덕션(/) 갱신"

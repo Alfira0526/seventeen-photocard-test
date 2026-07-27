@@ -16,11 +16,13 @@
   var cfg = root.SVTRankingConfig || {};
   var fb = cfg.firebase ? String(cfg.firebase).replace(/\/$/, "") : null;
   var INC = { ".sv": { increment: 1 } };
+  // 테스트베드 데이터 격리: 스테이징이면 "staging/" 접두사(없으면 프로덕션 그대로)
+  var NS = function () { return root.SVT_DATA_PREFIX || ""; };
 
   function patch(path, body) {
     if (!fb) return;
     try {
-      fetch(fb + path + ".json", {
+      fetch(fb + "/" + NS() + String(path).replace(/^\//, "") + ".json", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
