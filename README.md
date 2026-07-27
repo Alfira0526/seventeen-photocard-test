@@ -10,6 +10,10 @@
 
 <sub>https://alfira0526.github.io/seventeen-photocard-test/ · 폰·PC 어디서나</sub>
 
+### 🧪 **[테스트베드(미리보기)](https://alfira0526.github.io/seventeen-photocard-test/preview/)**
+
+<sub>다음 업데이트를 미리 검수하는 공간 · 실제 랭킹과 분리(데이터 격리) · 상단에 빨간 배너 표시</sub>
+
 <sub>Vanilla JS · 의존성 0 · 단위 19 + E2E 4 테스트 · 웹서치 검증 데이터</sub>
 
 </div>
