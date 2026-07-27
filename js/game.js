@@ -643,16 +643,25 @@
   function paintHallMonth(data) {
     let shown = 0;
     data.forEach((d) => {
-      const hasPrev = d.prevList.length > 0;
-      const oldList = hasPrev ? d.prevList : d.betaList;      // 챔피언·폴백 보드
-      const oldName = hasPrev ? prevMonthName() : T.season.beta;
       const useCur = d.curList.length >= HALL_SWAP;
+      // 금색 1위 박제는 "지금 보여주는 보드의 실제 1위"로 통일.
+      //  · 이번 달 진행 중(useCur): 이번 달 실시간 1위 = '지금 1위'
+      //  · 이번 달 기록이 아직 적으면: 지난 달(없으면 오픈베타) 1위로 폴백
+      let board, boardName;
+      if (useCur) {
+        board = d.curList; boardName = activeMonthName();
+      } else {
+        const hasPrev = d.prevList.length > 0;
+        board = hasPrev ? d.prevList : d.betaList;
+        boardName = hasPrev ? prevMonthName() : T.season.beta;
+      }
       shown += paintHallCol(d.mode, {
-        champion: oldList[0] || null, champName: oldName,
-        board: useCur ? d.curList : oldList,
-        boardName: useCur ? activeMonthName() : oldName,
+        champion: board[0] || null,     // 박제 = 그 보드의 실제 1위(지금 1위)
+        champName: boardName,           // 라벨도 그 보드 기준(예: "7월 1위")
+        board: board,
+        boardName: boardName,
         boardIsCur: useCur,
-        skipChampInBoard: !useCur, // 폴백 보드를 보여줄 땐 1위(=챔피언)를 리스트에서 제외
+        skipChampInBoard: true,         // 1위는 위에 박제 → 리스트는 2위부터
       });
     });
     el["hall"].hidden = !(shown > 0);

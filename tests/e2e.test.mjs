@@ -240,8 +240,12 @@ test("명예의 전당: 이번 달 기록이 임계 이상이면 이번 달 순�
     assert.equal(cols, 3); // 3모드 한 화면
     const src = await page.textContent("#hall-src-normal");
     assert.match(src, /7월|Jul/);
+    // 금색 1위 박제 = 이번 달 실제 1위(julN0, 최고점) — '지금 1위'와 일치
+    const champTxt = await page.textContent("#hall-champ-normal");
+    assert.ok(/julN0/.test(champTxt), "이번 달 실시간 1위가 박제되지 않음");
+    // 리스트는 2위부터(1위는 위에 박제)
     const listTxt = await page.textContent("#hall-normal");
-    assert.ok(/julN0/.test(listTxt), "이번 달 순위가 안 뜸");
+    assert.ok(/julN1/.test(listTxt) && !/julN0/.test(listTxt), "리스트가 2위부터가 아님");
   }, { seedRanking: seed, languages: ["ko-KR", "ko"] });
 });
 
