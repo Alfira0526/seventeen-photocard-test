@@ -160,6 +160,14 @@ test("난이도 밴드: 어려움(3~4)은 쉬운 유형을 거의 안 낸다(폴
   assert.ok(hardCount / total > 0.6, `어려움 밴드 비율 낮음: ${hardCount}/${total}`);
 });
 
+test("자켓 번호 노출 방지: albumNumber는 기본 미출제(numOnCover 미확인)", () => {
+  for (let i = 0; i < 2000; i++) {
+    const al = ALBUMS[i % ALBUMS.length];
+    const q = buildQuestion(al, QCTX);
+    assert.notEqual(q.typeId, "albumNumber", `자켓에 번호가 있는데 '몇 집?' 출제됨: ${al.id}`);
+  }
+});
+
 test("난이도 밴드: 쉬움(1~2)은 쉬운 유형 위주", () => {
   const easy = Object.assign({}, QCTX, { diffMin: 1, diffMax: 2 });
   let easyCount = 0, total = 0;

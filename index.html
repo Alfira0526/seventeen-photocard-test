@@ -54,10 +54,21 @@
           </ul>
           <div id="season-banner" class="season-banner" hidden></div>
           <div class="modes">
-            <button class="mode-btn" data-mode="normal">
-              <b data-i18n="modeNormalT">🎲 그냥 한 판</b>
-              <small data-i18n="modeNormalS">랜덤 20문제 · 100점 만점</small>
-            </button>
+            <!-- 가볍게 한 판 + 그 하위 난이도 선택(원탭 시작). 어려울수록 점수 배수↑ -->
+            <div class="mode-slot">
+              <button class="mode-btn" data-mode="normal">
+                <b data-i18n="modeNormalT">🎲 그냥 한 판</b>
+                <small data-i18n="modeNormalS">랜덤 20문제 · 100점 만점</small>
+              </button>
+              <div class="diff-chips">
+                <span class="diff-row-label" id="diff-row-label">난이도 골라 바로 시작</span>
+                <div class="diff-chips-row">
+                  <button class="diff-chip" data-diff="easy" type="button"><b data-diff-label="easy">쉬움</b><small>×0.8</small></button>
+                  <button class="diff-chip" data-diff="normal" type="button"><b data-diff-label="normal">보통</b><small>×1.0</small></button>
+                  <button class="diff-chip" data-diff="hard" type="button"><b data-diff-label="hard">어려움</b><small>×1.3</small></button>
+                </div>
+              </div>
+            </div>
             <button class="mode-btn" data-mode="endless">
               <b data-i18n="modeEndlessT">♾️ 무한 모드</b>
               <small data-i18n="modeEndlessS">틀리면 끝! 몇 개까지 갈까요?</small>
@@ -66,16 +77,6 @@
               <b data-i18n="modeTimeT">⏱️ 타임어택</b>
               <small data-i18n="modeTimeS">60초 안에 최대한 · 목숨 3개</small>
             </button>
-          </div>
-
-          <!-- 일반 모드 난이도 선택(원탭 시작). 어려울수록 점수 배수↑ -->
-          <div class="diff-row">
-            <span class="diff-row-label" id="diff-row-label">🎲 난이도 골라 바로 시작</span>
-            <div class="diff-chips">
-              <button class="diff-chip" data-diff="easy" type="button"><b data-diff-label="easy">쉬움</b><small>×0.8</small></button>
-              <button class="diff-chip" data-diff="normal" type="button"><b data-diff-label="normal">보통</b><small>×1.0</small></button>
-              <button class="diff-chip" data-diff="hard" type="button"><b data-diff-label="hard">어려움</b><small>×1.3</small></button>
-            </div>
           </div>
 
           <!-- 명예의 전당: 3모드(일반·무한·타임어택) 한 화면에서 각각 롤링 -->

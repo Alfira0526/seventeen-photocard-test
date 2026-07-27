@@ -101,9 +101,11 @@
       },
     },
     // ── A4: 몇 집 (미니/정규 N집) ──
+    // SEVENTEEN 자켓은 대부분 "Nth MINI/정규 ALBUM"이 인쇄돼 있어 '몇 집?'이 정답 노출이 됨.
+    // 그래서 기본은 출제 안 하고, 자켓에 번호가 없다고 '확인된'(numOnCover===false) 앨범만 출제.
     {
       id: "albumNumber", weight: 1.2, difficulty: 3,
-      available: (al) => /(미니|정규)\s*\d+집/.test(al.type),
+      available: (al) => al.numOnCover === false && /(미니|정규)\s*\d+집/.test(al.type),
       make: (al, c) => {
         const cat = categoryOf(al.type);
         const pool = [...new Set(c.albums.map((a) => a.type))]

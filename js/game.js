@@ -161,6 +161,7 @@
     show("screen-start");
     renderSeasonBanner();
     refreshHall();
+    startHallPoll(); // 시작화면에서 실시간 순위 갱신 시작
   }
 
   // 시즌 종료 카운트다운 배너(막판 D-noticeDays 이내엔 '순위 굳히기' 강조)
@@ -184,6 +185,7 @@
   function startMode(mode, band) {
     stopTimer();
     stopHall();
+    stopHallPoll(); // 플레이 시작하면 실시간 폴링 중지
     state.mode = mode;
     // 난이도 밴드는 일반 모드에만 적용(무한·타임어택은 전체·배수 1.0)
     state.diff = (mode === "normal") ? (DIFF[band] || DIFF.normal) : DIFF.normal;
@@ -590,6 +592,19 @@
   const HALL_SWAP = 3, MODES = ["normal", "endless", "timeattack"];
   let hallView = "month"; // "month" | "quarter"
   function stopHall() { /* 컬럼형은 CSS 애니메이션이라 타이머 없음(호환용) */ }
+
+  // 실시간 갱신: 시작화면이 떠 있는 동안 주기적으로 원격 순위를 다시 불러와 1위 변동을 반영
+  let hallPoll = null;
+  function stopHallPoll() { if (hallPoll) { clearInterval(hallPoll); hallPoll = null; } }
+  function startHallPoll() {
+    stopHallPoll();
+    if (!RANK || !RANK.remote) return; // 원격 저장소 없으면 폴링 불필요
+    hallPoll = setInterval(function () {
+      try {
+        if (!document.hidden && el["screen-start"] && el["screen-start"].classList.contains("active")) refreshHall();
+      } catch (e) {}
+    }, 15000); // 15초 주기
+  }
   function unitOf(mode) { return mode === "normal" ? "점" : "개"; }
   function activeMonthName() { const s = window.SVTSeason && window.SVTSeason.active(); return s ? T.season.month(s.m) : ""; }
   function prevMonthName() { const p = window.SVTSeason && window.SVTSeason.previous(); return p ? T.season.month(p.m) : ""; }
