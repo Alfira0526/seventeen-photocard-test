@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  actions: write   # deploy-pages 를 dispatch 하기 위해 필요
 
 jobs:
   promote:
@@ -30,4 +31,10 @@ jobs:
           echo "release 를 develop($(git rev-parse --short HEAD)) 로 승격"
           # release 가 develop 뒤에 있으면 ff, 없으면 새로 생성. 되돌리려면 release 를 이전 커밋으로.
           git push origin HEAD:release
-          echo "완료 → deploy-pages 워크플로가 자동으로 프로덕션(/) 갱신"
+
+      - name: Trigger Pages deploy (기본 브랜치 컨텍스트에서만 배포 허용됨)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run deploy-pages.yml --ref "claude/game-analysis-improvements-7mccdp"
+          echo "완료 → deploy-pages 가 프로덕션(/) 을 새 release 로 갱신"

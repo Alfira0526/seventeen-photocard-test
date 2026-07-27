@@ -53,6 +53,7 @@ release 브랜치  ── push ──▶ 프로덕션  /
 | 리스크 | 보강 |
 |---|---|
 | Pages 소스를 Actions로 바꿨는데 **배포 워크플로가 없어 사이트 정지** | `deploy-pages.yml` 추가로 해결(이 변경의 핵심). |
+| **github-pages 환경은 기본 브랜치에서만 배포 허용** → release push 배포 실패 | 배포는 기본 브랜치(develop)에서만 실행. 승격 워크플로가 release push 후 deploy-pages 를 기본 브랜치에서 dispatch. |
 | 최초에 **release 브랜치가 없어** 빌드 실패 | 워크플로가 release 없으면 **develop 로 폴백**해 프로덕션이 비지 않음. |
 | 빌드 실패 시 **사이트가 깨짐** | 실패하면 배포가 안 될 뿐, Pages는 **직전 성공 배포를 유지**(무중단). |
 | 스테이징 테스트 점수가 **실 랭킹 오염** | 경로/로컬키 `staging` 네임스페이스 격리 + 배너. |
