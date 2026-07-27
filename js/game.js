@@ -297,15 +297,15 @@
       state.deck = state.deck.concat(shuffle(state.pool, state.rng));
     }
     const card = state.deck[state.round];
-    renderCardArt(card);
     updateHud();
 
-    // 카드당 1문제: 카드 종류에 맞는 문제 생성
+    // 카드당 1문제: 카드 종류에 맞는 문제 생성(자켓 크롭 여부를 알려면 렌더보다 먼저 생성)
     const q = card.kind === "member"
       ? buildMemberQuestion(card.ref, mctx(state.rng))
       : card.kind === "yt"
         ? buildYtQuestion(card.ref, ytctx(state.rng))
         : buildQuestion(card.ref, qctx(state.rng));
+    renderCardArt(card, q);
     renderQuestion(q);
     // 현재 문제 맥락(텔레메트리·오류 제보용, 평문)
     state.cur = {
@@ -342,11 +342,21 @@
   }
 
   // ── 카드 렌더: 앨범(자켓) / 멤버(사진) / 유튜브(MV 썸네일) ──
-  function renderCardArt(card) {
+  function renderCardArt(card, q) {
     const stage = el["card-art"];
     el["btn-reload"].hidden = true;
     stage.classList.toggle("member", card.kind === "member");
     stage.classList.toggle("yt", card.kind === "yt");
+    // 자켓 크롭(확대) 난이도: 실제 커버가 있을 때만 무작위 초점으로 확대
+    const crop = !!(q && q.crop && card.kind === "album" && card.ref.art);
+    stage.classList.toggle("cropped", crop);
+    if (crop) {
+      const rnd = state.rng || Math.random;
+      stage.style.setProperty("--cropx", Math.round(22 + rnd() * 56) + "%");
+      stage.style.setProperty("--cropy", Math.round(22 + rnd() * 56) + "%");
+    } else {
+      stage.style.removeProperty("--cropx"); stage.style.removeProperty("--cropy");
+    }
 
     if (card.kind === "member") {
       const m = card.ref;

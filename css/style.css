@@ -226,6 +226,14 @@ body.playing .report-fab { display: none; }
 /* 이미지 블러업: 로드 완료 전 흐릿→선명 */
 .card-art img { opacity: 0; filter: blur(12px); transition: opacity 0.4s ease, filter 0.4s ease; }
 .card-art img.loaded { opacity: 1; filter: blur(0); }
+/* 자켓 크롭(확대) 난이도: 무작위 초점으로 확대 + 돋보기 배지 */
+.card-art.cropped img { transform: scale(2.4); transform-origin: var(--cropx, 50%) var(--cropy, 50%); }
+.card-art.cropped::after {
+  content: "🔍"; position: absolute; top: 8px; right: 8px;
+  width: 34px; height: 34px; display: grid; place-items: center;
+  background: rgba(0, 0, 0, 0.55); color: #fff; border-radius: 50%;
+  font-size: 16px; pointer-events: none;
+}
 /* 로딩 스켈레톤(shimmer) */
 .card-art.loading::after {
   content: ""; position: absolute; inset: 0;

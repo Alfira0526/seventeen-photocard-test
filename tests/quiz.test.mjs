@@ -309,6 +309,44 @@ test("데이터 무결성: 4지선다를 만들 만큼 후보가 충분", () => 
   assert.ok(new Set(ALBUM_YEARS).size >= 2);
 });
 
+// ── 신규 유형: 발매연도 타임라인 정렬 ──
+test("timeline: 정답이 발매순 정렬이고 보기 4개가 서로 다르다", () => {
+  const yearOf = Object.fromEntries(ALBUMS.map((a) => [a.title, a.year]));
+  const al = ALBUMS.find((a) => a.id === "attacca");
+  let seen = 0;
+  for (let i = 0; i < 600 && seen < 5; i++) {
+    const q = buildQuestion(al, QCTX);
+    if (q.typeId !== "timeline") continue;
+    seen++;
+    assert.ok(q.choices.includes(q.correct), "보기에 정답 없음");
+    assert.equal(new Set(q.choices).size, q.choices.length, "보기 중복");
+    const yrs = q.correct.split(" → ").map((tt) => yearOf[tt]);
+    assert.equal(yrs.length, 3, "3개 앨범이 아님");
+    for (let k = 1; k < yrs.length; k++) assert.ok(yrs[k - 1] <= yrs[k], "정답이 발매순이 아님");
+  }
+  assert.ok(seen > 0, "timeline 유형 미출제");
+});
+
+// ── 신규 난이도: 자켓 크롭(확대) ──
+test("albumCrop: 커버(art)가 있을 때만 출제 + crop 플래그 + 정답 포함", () => {
+  const base = ALBUMS.find((a) => !a.titleOnCover && !a.artist);
+  const withArt = Object.assign({}, base, { art: "https://example/cover.jpg" });
+  let sawCrop = false;
+  for (let i = 0; i < 400 && !sawCrop; i++) {
+    const q = buildQuestion(withArt, QCTX);
+    if (q.typeId === "albumCrop") {
+      sawCrop = true;
+      assert.equal(q.crop, true, "crop 플래그 없음");
+      assert.equal(q.correct, withArt.title);
+      assert.ok(q.choices.includes(withArt.title), "보기에 정답 없음");
+    }
+  }
+  assert.ok(sawCrop, "art 있는 앨범인데 albumCrop 미출제");
+  // art 없으면 절대 crop 출제 안 됨(플레이스홀더에 앨범명 노출 방지)
+  const noArt = Object.assign({}, withArt, { art: null });
+  for (let i = 0; i < 400; i++) assert.notEqual(buildQuestion(noArt, QCTX).typeId, "albumCrop");
+});
+
 // ── 신규 유형: 멤버 유닛(팀) 매칭 ──
 test("memberUnit: 멤버의 유닛이 정답이고 보기에 포함된다", () => {
   const I18N = require(resolve(root, "js/i18n.js"));

@@ -42,6 +42,7 @@
       _unit: U.ko,
       q: {
         album: "이 자켓, 어떤 앨범일까요?",
+        albumCrop: "🔍 확대된 자켓, 어떤 앨범일까요?",
         year: "언제 나온 앨범일까요?",
         track: "타이틀곡, 뭐였죠?",
         notInAlbum: "이 중에 이 앨범 수록곡이 <b>아닌</b> 건?",
@@ -50,6 +51,7 @@
         albumType: "이 앨범, 어떤 유형일까요?",
         albumNumber: "이 앨범, 몇 집일까요?",
         laterAlbum: "이 앨범보다 <b>나중에</b> 나온 건?",
+        timeline: "발매가 <b>빠른 순서</b>로 올바른 것은?",
       },
       qm: {
         unitSong: (n) => `<b>${nm(n, "loc")}</b>${ig(nm(n, "loc"))} 부른 <b>유닛곡</b>은?`,
@@ -64,6 +66,7 @@
         lyricist: "살짝 힌트! 세븐틴은 멤버가 직접 작사에 참여해요.",
         unitSong: "살짝 힌트! 유닛곡은 앨범 안에 숨어 있어요.",
         laterAlbum: "살짝 힌트! 나머지 셋은 이 앨범보다 먼저 나왔어요.",
+        timeline: "살짝 힌트! 왼쪽이 먼저 나온 앨범이에요.",
         memberNot: "살짝 힌트! 유닛곡은 그 유닛 멤버만 불러요.",
         roster: "살짝 힌트! 보컬·힙합·퍼포먼스 유닛으로 나뉘어요.",
         mlyric: "살짝 힌트! 나머지 셋은 이 멤버가 작사에 참여하지 않았어요.",
@@ -163,6 +166,7 @@
       },
       q: {
         album: "Which album is this cover?",
+        albumCrop: "🔍 Zoomed-in cover — which album?",
         year: "When did this album come out?",
         track: "What was the title track?",
         notInAlbum: "Which one is <b>NOT</b> on this album?",
@@ -171,6 +175,7 @@
         albumType: "What type of release is this?",
         albumNumber: "Which numbered album is this?",
         laterAlbum: "Which one came out <b>later</b> than this album?",
+        timeline: "Correct order from <b>earliest</b> release?",
       },
       qm: {
         unitSong: (n) => `Which <b>unit song</b> did <b>${nm(n, "en")}</b> sing?`,
@@ -185,6 +190,7 @@
         lyricist: "Hint! SEVENTEEN members write their own songs.",
         unitSong: "Hint! The unit song is hidden on the album.",
         laterAlbum: "Hint! The other three came out earlier.",
+        timeline: "Hint! Left = released earlier.",
         memberNot: "Hint! A unit song is sung only by that unit.",
         roster: "Hint! They split into Vocal, Hip-hop and Performance units.",
         mlyric: "Hint! The other three weren't written by this member.",
@@ -283,6 +289,7 @@
       },
       q: {
         album: "このジャケット、どのアルバム？",
+        albumCrop: "🔍 拡大ジャケット、どのアルバム？",
         year: "いつ出たアルバム？",
         track: "タイトル曲は何だっけ？",
         notInAlbum: "この中でこのアルバムに<b>入っていない</b>曲は？",
@@ -291,6 +298,7 @@
         albumType: "このアルバム、どのタイプ？",
         albumNumber: "このアルバム、第何弾？",
         laterAlbum: "このアルバムより<b>あとに</b>出たのは？",
+        timeline: "<b>発売が早い順</b>に正しい並びは？",
       },
       qm: {
         unitSong: (n) => `<b>${nm(n, "en")}</b>が歌った<b>ユニット曲</b>は？`,
@@ -305,6 +313,7 @@
         lyricist: "ヒント！ SEVENTEENはメンバー自ら作詞に参加します。",
         unitSong: "ヒント！ ユニット曲はアルバムの中に隠れています。",
         laterAlbum: "ヒント！ 残りの3つはこれより前に出ました。",
+        timeline: "ヒント！ 左が先に出たアルバムです。",
         memberNot: "ヒント！ ユニット曲はそのユニットのメンバーだけが歌います。",
         roster: "ヒント！ ボーカル・ヒップホップ・パフォーマンスに分かれます。",
         mlyric: "ヒント！ 残りの3つはこのメンバーが作詞していません。",
@@ -401,6 +410,7 @@
       },
       q: {
         album: "这张封面是哪张专辑？",
+        albumCrop: "🔍 放大的封面是哪张专辑？",
         year: "这张专辑是哪一年发行的？",
         track: "主打歌是哪首来着？",
         notInAlbum: "以下<b>不属于</b>这张专辑的是？",
@@ -409,6 +419,7 @@
         albumType: "这张专辑属于什么类型？",
         albumNumber: "这是第几张专辑？",
         laterAlbum: "哪张比这张专辑<b>更晚</b>发行？",
+        timeline: "按<b>发行先后</b>正确排列的是？",
       },
       qm: {
         unitSong: (n) => `<b>${nm(n, "en")}</b>演唱的<b>小分队歌曲</b>是？`,
@@ -423,6 +434,7 @@
         lyricist: "小提示！ SEVENTEEN 成员会亲自参与作词。",
         unitSong: "小提示！ 小分队歌曲就藏在专辑里。",
         laterAlbum: "小提示！ 其余三张都比它更早发行。",
+        timeline: "小提示！ 左边是更早发行的专辑。",
         memberNot: "小提示！ 小分队歌曲只由该小分队成员演唱。",
         roster: "小提示！ 分为声乐、嘻哈、表演三个小分队。",
         mlyric: "小提示！ 其余三首这位成员没有参与作词。",
@@ -519,6 +531,7 @@
       },
       q: {
         album: "Esta portada, ¿de qué álbum es?",
+        albumCrop: "🔍 Portada ampliada, ¿qué álbum es?",
         year: "¿Cuándo salió este álbum?",
         track: "¿Cuál era la canción principal?",
         notInAlbum: "¿Cuál <b>NO</b> está en este álbum?",
@@ -527,6 +540,7 @@
         albumType: "¿Qué tipo de lanzamiento es este?",
         albumNumber: "¿Qué número de álbum es este?",
         laterAlbum: "¿Cuál salió <b>después</b> de este álbum?",
+        timeline: "¿Orden correcto del <b>más antiguo</b>?",
       },
       qm: {
         unitSong: (n) => `¿Qué <b>canción de unit</b> cantó <b>${nm(n, "en")}</b>?`,
@@ -541,6 +555,7 @@
         lyricist: "¡Pista! Los miembros de SEVENTEEN escriben sus propias canciones.",
         unitSong: "¡Pista! La canción de unit está escondida en el álbum.",
         laterAlbum: "¡Pista! Las otras tres salieron antes.",
+        timeline: "¡Pista! Izquierda = salió antes.",
         memberNot: "¡Pista! Una canción de unit solo la canta esa unit.",
         roster: "¡Pista! Se dividen en units de Vocal, Hip-hop y Performance.",
         mlyric: "¡Pista! Las otras tres no las escribió este miembro.",

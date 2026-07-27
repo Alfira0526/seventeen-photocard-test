@@ -37,6 +37,16 @@
         choices: L.buildYearChoices(al.year, c.years, c.n, c.rng),
       }),
     },
+    // 자켓 크롭(확대) 난이도: 자켓 일부만 확대해서 앨범 맞히기. 실제 베이크된 커버가 있고
+    // 표지에 앨범명이 적혀있지 않은 경우에만(읽어서 맞히는 것 방지). crop 플래그로 렌더러가 확대.
+    {
+      id: "albumCrop", weight: 1.1, difficulty: 4,
+      available: (al) => !al.titleOnCover && !!al.art && !al.artist,
+      make: (al, c) => ({
+        label: t.q.albumCrop, correct: al.title, crop: true,
+        choices: L.buildAlbumChoices(al, c.albums, c.n, c.rng),
+      }),
+    },
     {
       id: "titleTrack", weight: 1, difficulty: 2, available: () => true,
       make: (al, c) => ({
@@ -129,6 +139,30 @@
         const correct = L.shuffle(later, c.rng)[0];
         return { label: t.q.laterAlbum, correct, note: t.note.laterAlbum,
           choices: L.shuffle([correct, ...L.shuffle(earlier, c.rng).slice(0, 3)], c.rng) };
+      },
+    },
+    // 발매연도 타임라인: al 포함 3개 앨범을 발매순으로 나열한 것 고르기(4지선다)
+    {
+      id: "timeline", weight: 1.0, difficulty: 4,
+      available: (al, c) => {
+        const yrs = new Set(c.albums.filter((a) => Number.isInteger(a.year) && !a.artist && a.year !== al.year).map((a) => a.year));
+        return Number.isInteger(al.year) && yrs.size >= 2;
+      },
+      make: (al, c) => {
+        const arrow = " → ";
+        const others = L.shuffle(c.albums.filter((a) => Number.isInteger(a.year) && !a.artist && a.id !== al.id), c.rng);
+        const picked = [al]; const years = new Set([al.year]);
+        for (const a of others) { if (picked.length >= 3) break; if (!years.has(a.year)) { picked.push(a); years.add(a.year); } }
+        if (picked.length < 3) return { label: t.q.album, correct: al.title, choices: L.buildAlbumChoices(al, c.albums, c.n, c.rng) };
+        const seq = [...picked].sort((a, b) => a.year - b.year).map((a) => a.title);
+        const correct = seq.join(arrow);
+        const seen = new Set([correct]); const distract = [];
+        for (let g = 0; g < 60 && distract.length < 3; g++) {
+          const perm = L.shuffle(seq, c.rng).join(arrow);
+          if (!seen.has(perm)) { seen.add(perm); distract.push(perm); }
+        }
+        return { label: t.q.timeline, correct, note: t.note.timeline,
+          choices: L.shuffle([correct, ...distract], c.rng) };
       },
     },
   ];
