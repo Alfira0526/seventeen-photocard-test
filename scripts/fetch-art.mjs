@@ -43,6 +43,10 @@ const OVERRIDE = {
   bss_secondwind: 1668145592,          // BSS - SECOND WIND (2023)
   wonu_mingyu_bittersweet: 1568808261, // WONWOO, MINGYU - Bittersweet (feat. LeeHi) (2021)
   happyburstday: 1846801259,           // SEVENTEEN 5th Album HAPPY BURSTDAY (2025)
+  // Apple Music에서 리패키지가 "Love&Letter"(id 1130828885)로, 원반은 "First 'Love&Letter'"
+  // (id 1107471199)로 표기되어 자동 매칭이 리패키지 자켓(아주 NICE)을 골라오는 문제 수정.
+  // data.js의 loveandletter 는 titleTrack이 "예쁘다(Pretty U)"인 정규 1집 원반이므로 후자로 고정.
+  loveandletter: 1107471199,
   // 믹스테이프(Spider/Ruby/Black Eye/Wait)는 Apple Music 미수록 → 플레이스홀더 유지
 };
 
