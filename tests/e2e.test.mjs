@@ -402,15 +402,34 @@ test("검수 모드: 테스트베드에선 신규(draft) 문제만 모아 출제
     });
     assert.ok(nDraft >= 1, "주입 draft 가 반영되지 않음");
     const sub = await page.textContent("#mode-review");
-    assert.match(sub, new RegExp(`신규 문제 ${nDraft}개|${nDraft} new`));
+    assert.match(sub, new RegExp(`신규 문제 ${nDraft}개|${nDraft} new`)); // 버튼은 '항목' 수
     await page.click("#mode-review");
     await page.waitForSelector("#screen-play.active", { timeout: 3000 });
     const hud = await page.textContent("#hud-mode");
     assert.match(hud, /검수|Review/);
-    // 덱은 '신규 문제 전체'로만 구성됨(전체 앨범 풀 27+ 가 아니라 draft 개수와 일치)
+    // 덱은 '각 draft가 만들 수 있는 모든 유형(경우의 수)'으로 확장됨 → 항목 수보다 많다
     const progress = await page.textContent("#progress");
-    assert.match(progress, new RegExp(`1 / ${nDraft}\\b`), "덱이 draft 전체로 구성되지 않음");
-    assert.ok(nDraft < 15, "검수 덱에 일반 문제가 섞임(격리 실패)");
+    const m = progress.match(/1 \/ (\d+)/);
+    assert.ok(m, "진행 표시 형식 오류");
+    const total = Number(m[1]);
+    assert.ok(total > nDraft, `경우의 수 열거가 항목 수(${nDraft})보다 많아야 하는데 ${total}`);
+    assert.ok(total < 200, "검수 덱에 일반 문제가 섞임(격리 실패로 과다)");
+    // 검수 정보줄: 현재 항목·유형·정답 노출
+    await page.waitForSelector("#review-info:not([hidden])", { timeout: 2000 });
+    const ri = await page.textContent("#review-info");
+    assert.match(ri, /정답:/);
+    // 첫 draft 항목의 여러 유형이 실제로 덱에 있는지: 몇 문제 넘겨보며 typeId가 바뀌는지 확인
+    const types = new Set();
+    for (let i = 0; i < 5; i++) {
+      const t = await page.$eval("#review-info .ri-type", (e) => e.textContent).catch(() => "");
+      if (t) types.add(t);
+      const ch = await page.$(".choice:not([disabled])");
+      if (ch) await ch.click();
+      const nx = await page.$("#btn-next:not([hidden]):not([disabled])");
+      if (nx) await nx.click(); else break;
+      await page.waitForTimeout(80);
+    }
+    assert.ok(types.size >= 2, "여러 유형이 열거되지 않음(경우의 수 미확장)");
   }, { preview: true, testDrafts: draft, languages: ["ko-KR", "ko"] });
 });
 

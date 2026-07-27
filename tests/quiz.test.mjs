@@ -309,6 +309,24 @@ test("데이터 무결성: 4지선다를 만들 만큼 후보가 충분", () => 
   assert.ok(new Set(ALBUM_YEARS).size >= 2);
 });
 
+// ── 검수: 한 항목의 모든 경우의 수(유형) 열거 ──
+test("allAlbumCases: 출제 가능한 모든 유형을 유형별 1개씩(중복 없이) 반환", () => {
+  const { allAlbumCases } = require(resolve(root, "js/questions.js"));
+  const al = ALBUMS.find((a) => a.id === "attacca");
+  const cases = allAlbumCases(al, QCTX);
+  assert.ok(cases.length >= 4, "경우의 수가 너무 적음");
+  const ids = cases.map((c) => c.typeId);
+  assert.equal(new Set(ids).size, ids.length, "유형 중복");
+  // 기본 유형(앨범/연도/타이틀곡)은 항상 포함
+  ["album", "year", "titleTrack"].forEach((k) => assert.ok(ids.includes(k), `${k} 누락`));
+  // 각 케이스는 정답 + 유효한 보기를 가져야 함(검수에서 바로 확인 가능)
+  cases.forEach((c) => {
+    assert.ok(c.correct != null, `${c.typeId} 정답 없음`);
+    assert.ok(Array.isArray(c.choices) && c.choices.length >= 2, `${c.typeId} 보기 부족`);
+    assert.ok(c.choices.includes(c.correct), `${c.typeId} 보기에 정답 없음`);
+  });
+});
+
 // ── 신규 유형: 발매연도 타임라인 정렬 ──
 test("timeline: 정답이 발매순 정렬이고 보기 4개가 서로 다르다", () => {
   const yearOf = Object.fromEntries(ALBUMS.map((a) => [a.title, a.year]));

@@ -10,7 +10,8 @@
 
   const { ALBUMS, albumById, memberById, MEMBERS, ALBUM_YEARS, UNIT_SONGS, YT_SONGS } = window.SVTData;
   const { shuffle } = window.QuizLogic;
-  const { buildQuestion, buildMemberQuestion, availableMemberTypes, buildYtQuestion } = window.QuizQuestions;
+  const { buildQuestion, buildMemberQuestion, availableMemberTypes, buildYtQuestion,
+    allAlbumCases, allMemberCases, allYtCases } = window.QuizQuestions;
   const YTS = YT_SONGS || [];
   const DRAFTS = (window.SVTData && window.SVTData.DRAFTS) || { ALBUMS: [], MEMBERS: [], YT_SONGS: [] };
   const IS_STAGING = !!window.SVT_DATA_PREFIX; // 테스트베드에서만 검수 모드 노출
@@ -116,7 +117,7 @@
       "btn-restart", "btn-next", "btn-share", "btn-save", "btn-tweet", "btn-insta", "btn-kakao", "share-hint",
       "card-art", "card-caption", "btn-reload", "progress", "progress-fill", "score", "hud-mode", "hud-lives",
       "rank-name", "btn-rank", "rank-list", "btn-legacy", "btn-home", "btn-hud-home",
-      "season-banner", "mode-review", "mode-review-title", "mode-review-sub",
+      "season-banner", "mode-review", "mode-review-title", "mode-review-sub", "review-info",
       "hall", "hall-season", "hall-tab-month", "hall-tab-quarter",
       "hall-modal", "hall-modal-title", "hall-modal-list", "hall-modal-close",
       "season-result-modal", "season-result-title", "season-result-intro", "season-result-list", "season-result-close", "season-result-cta",
@@ -221,13 +222,14 @@
     // 난이도 밴드는 일반 모드에만 적용(무한·타임어택은 전체·배수 1.0)
     state.diff = (mode === "normal") ? (DIFF[band] || DIFF.normal) : DIFF.normal;
     state.rng = Math.random;
-    // 검수 모드: 신규(draft) 문제만 모아 한 번씩 출제(테스트베드 전용)
+    // 검수 모드: 신규(draft) 항목이 만들 수 있는 "모든 유형"을 항목별로 빠짐없이 열거(테스트베드 전용)
     if (mode === "review") {
-      const dCards = DRAFTS.ALBUMS.map((a) => ({ kind: "album", ref: a }))
-        .concat(DRAFTS.MEMBERS.filter((m) => availableMemberTypes(m, mctx(state.rng)).length >= 1).map((m) => ({ kind: "member", ref: m })))
-        .concat(DRAFTS.YT_SONGS.map((s) => ({ kind: "yt", ref: s })));
-      if (!dCards.length) { toast(T.review.empty); return; } // 검수할 신규 문제 없음
-      state.pool = dCards;
+      const cases = [];
+      DRAFTS.ALBUMS.forEach((a) => allAlbumCases(a, qctx(state.rng)).forEach((q) => cases.push({ kind: "album", ref: a, forced: q, typeId: q.typeId })));
+      DRAFTS.MEMBERS.forEach((m) => allMemberCases(m, mctx(state.rng)).forEach((q) => cases.push({ kind: "member", ref: m, forced: q, typeId: q.typeId })));
+      DRAFTS.YT_SONGS.forEach((s) => allYtCases(s, ytctx(state.rng)).forEach((q) => cases.push({ kind: "yt", ref: s, forced: q, typeId: q.typeId })));
+      if (!cases.length) { toast(T.review.empty); return; } // 검수할 신규 문제(경우의 수) 없음
+      state.pool = cases;
     } else {
       const albumCards = ALBUMS.map((a) => ({ kind: "album", ref: a }));
       const memberCards = MEMBERS
@@ -243,9 +245,9 @@
     if (window.SVTAnalytics) window.SVTAnalytics.play(mode);
 
     if (mode === "review") {
-      // 신규 문제 전부를 한 번씩(제한 플레이) — 목숨 무한, 슬라이스 없음
+      // 모든 경우의 수를 항목별·유형별 순서대로(섞지 않음) — 제한 플레이, 목숨 무한
       state.limited = true; state.lives = Infinity;
-      state.deck = shuffle(state.pool, state.rng);
+      state.deck = state.pool;
     } else if (mode === "endless") {
       state.limited = false; state.lives = 1;
       state.deck = shuffle(state.pool, state.rng);
@@ -299,14 +301,17 @@
     const card = state.deck[state.round];
     updateHud();
 
-    // 카드당 1문제: 카드 종류에 맞는 문제 생성(자켓 크롭 여부를 알려면 렌더보다 먼저 생성)
-    const q = card.kind === "member"
-      ? buildMemberQuestion(card.ref, mctx(state.rng))
-      : card.kind === "yt"
-        ? buildYtQuestion(card.ref, ytctx(state.rng))
-        : buildQuestion(card.ref, qctx(state.rng));
+    // 카드당 1문제: 검수 모드는 미리 만든 '강제 유형' 문제, 그 외는 카드 종류에 맞게 랜덤 생성
+    const q = card.forced
+      ? card.forced
+      : card.kind === "member"
+        ? buildMemberQuestion(card.ref, mctx(state.rng))
+        : card.kind === "yt"
+          ? buildYtQuestion(card.ref, ytctx(state.rng))
+          : buildQuestion(card.ref, qctx(state.rng));
     renderCardArt(card, q);
     renderQuestion(q);
+    renderReviewInfo(card, q); // 검수 모드: 현재 항목·유형 표시
     // 현재 문제 맥락(텔레메트리·오류 제보용, 평문)
     state.cur = {
       mode: state.mode, typeId: q.typeId, cardKind: card.kind, cardId: card.ref.id,
@@ -463,6 +468,20 @@
 
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])); }
 
+  // 검수 모드: 현재 몇 번째/전체 · 항목 id · 문제 유형을 상단에 표시(정답도 미리 노출해 대조 검수)
+  function renderReviewInfo(card, q) {
+    const box = el["review-info"];
+    if (!box) return;
+    if (state.mode !== "review") { box.hidden = true; return; }
+    const total = state.deck.length, n = state.round + 1;
+    const ans = String(q.correct == null ? "" : q.correct);
+    box.hidden = false;
+    box.innerHTML =
+      `🧪 <b>${n}/${total}</b> · <span class="ri-ref">${escapeHtml(card.ref.id)}</span>` +
+      ` · <code class="ri-type">${escapeHtml(q.typeId)}</code>` +
+      ` · <span class="ri-ans">정답: ${escapeHtml(ans)}</span>`;
+  }
+
   // ── 보기 선택(카드당 1문제) ──
   function selectChoice(btn, correct) {
     const c = el["question"];
@@ -547,6 +566,7 @@
     if (state.over) return;
     if (state.limited) {
       if (state.round + 1 < state.deck.length) { state.round++; renderRound(); }
+      else if (state.mode === "review") { toast(T.review.done || "검수 완료"); goHome(); } // 검수는 결과화면 없이 종료
       else showResult("complete"); // 제한 모드 끝까지 = 완주
     } else {
       state.round++; renderRound(); // 덱은 renderRound에서 확장

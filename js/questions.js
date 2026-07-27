@@ -325,7 +325,25 @@
     return Object.assign({ typeId: ty.id, difficulty: ty.difficulty }, ty.make(s, c));
   }
 
-  const api = { TYPES, availableTypes, buildQuestion, MEMBER_TYPES, availableMemberTypes, buildMemberQuestion, YT_TYPES, availableYtTypes, buildYtQuestion };
+  // ── 검수(review)용: 한 항목이 만들 수 있는 "모든 유형"의 문제를 열거 ──
+  // 무작위 1문제 대신, 출제 가능한 각 유형마다 1문제씩 생성해 빠짐없이 검수할 수 있게 한다.
+  function buildAllOfTypes(typesAvail, ref, c) {
+    const out = [];
+    typesAvail.forEach((ty) => {
+      try {
+        const made = ty.make(ref, c);
+        if (made && Array.isArray(made.choices) && made.choices.length >= 2 && made.correct != null)
+          out.push(Object.assign({ typeId: ty.id, difficulty: ty.difficulty }, made));
+      } catch (e) { /* 특정 유형 생성 실패는 건너뜀(검수에서 나머지 유형은 계속 확인) */ }
+    });
+    return out;
+  }
+  function allAlbumCases(al, ctx) { const c = Object.assign({ n: 4, rng: Math.random }, ctx); return buildAllOfTypes(availableTypes(al, c), al, c); }
+  function allMemberCases(m, ctx) { const c = Object.assign({ n: 4, rng: Math.random }, ctx); return buildAllOfTypes(availableMemberTypes(m, c), m, c); }
+  function allYtCases(s, ctx) { const c = Object.assign({ n: 4, rng: Math.random }, ctx); return buildAllOfTypes(availableYtTypes(s, c), s, c); }
+
+  const api = { TYPES, availableTypes, buildQuestion, MEMBER_TYPES, availableMemberTypes, buildMemberQuestion, YT_TYPES, availableYtTypes, buildYtQuestion,
+    allAlbumCases, allMemberCases, allYtCases };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (root) root.QuizQuestions = api;
 })(typeof window !== "undefined" ? window : null);

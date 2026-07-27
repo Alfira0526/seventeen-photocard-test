@@ -78,7 +78,7 @@
       caption: { loaded: "© 저작권자 · Apple Music", error: "자켓을 못 불러왔어요 · 상상해서 맞혀봐요", noArt: "자켓을 못 불러왔어요 · 인터넷을 확인해 주세요" },
       difficulty: { 1: { label: "쉬움", stars: "★" }, 2: { label: "보통", stars: "★★" }, 3: { label: "어려움", stars: "★★★" }, 4: { label: "최상", stars: "★★★★" } },
       hudMode: { normal: "🎲 일반", endless: "♾️ 무한", timeattack: "⏱️ 타임어택", review: "🧪 검수" },
-      review: { title: "🧪 검수 모드", sub: (n) => `신규 문제 ${n}개 · 테스트베드 전용`, empty: "검수할 신규 문제가 없어요" },
+      review: { title: "🧪 검수 모드", sub: (n) => `신규 문제 ${n}개 · 테스트베드 전용`, empty: "검수할 신규 문제가 없어요", done: "검수 완료! 수고했어요 🧪" },
       trivia: {
         "lyricist__album_al1": "사실 '울고 싶지 않아'는 우지·버논·호시·정한 4명이 함께 썼어요!",
         "titleTrack__album_fml": "FML은 '손오공(Super)'과 'F*ck My Life' 더블 타이틀곡이에요.",
@@ -202,7 +202,7 @@
       caption: { loaded: "© rights holder · Apple Music", error: "Couldn't load the cover · guess from memory", noArt: "Couldn't load the cover · check your connection" },
       difficulty: { 1: { label: "Easy", stars: "★" }, 2: { label: "Normal", stars: "★★" }, 3: { label: "Hard", stars: "★★★" }, 4: { label: "Expert", stars: "★★★★" } },
       hudMode: { normal: "🎲 Normal", endless: "♾️ Endless", timeattack: "⏱️ Time Attack", review: "🧪 Review" },
-      review: { title: "🧪 Review mode", sub: (n) => `${n} new items · testbed only`, empty: "No new items to review" },
+      review: { title: "🧪 Review mode", sub: (n) => `${n} new items · testbed only`, empty: "No new items to review", done: "Review complete 🧪" },
       trivia: {
         "lyricist__album_al1": "Actually 'Don't Wanna Cry' was co-written by Woozi, Vernon, Hoshi & Jeonghan!",
         "titleTrack__album_fml": "FML has double title tracks: 'Super' and 'F*ck My Life'.",
@@ -325,7 +325,7 @@
       caption: { loaded: "© 権利者 · Apple Music", error: "ジャケットを読み込めませんでした · 想像で当ててね", noArt: "ジャケットを読み込めませんでした · 通信環境を確認してね" },
       difficulty: { 1: { label: "やさしい", stars: "★" }, 2: { label: "ふつう", stars: "★★" }, 3: { label: "むずかしい", stars: "★★★" }, 4: { label: "最上級", stars: "★★★★" } },
       hudMode: { normal: "🎲 通常", endless: "♾️ 無限", timeattack: "⏱️ タイムアタック", review: "🧪 検収" },
-      review: { title: "🧪 検収モード", sub: (n) => `新規 ${n}問 · テストベッド専用`, empty: "検収する新規問題がありません" },
+      review: { title: "🧪 検収モード", sub: (n) => `新規 ${n}問 · テストベッド専用`, empty: "検収する新規問題がありません", done: "検収完了 🧪" },
       trivia: {
         "lyricist__album_al1": "実は「Don't Wanna Cry」はウジ・バーノン・ホシ・ジョンハンの4人共作！",
         "titleTrack__album_fml": "FMLは「Super(孫悟空)」と「F*ck My Life」のダブルタイトル曲。",
@@ -446,7 +446,7 @@
       caption: { loaded: "© 版权方 · Apple Music", error: "封面加载失败 · 凭印象猜猜看", noArt: "封面加载失败 · 请检查网络" },
       difficulty: { 1: { label: "简单", stars: "★" }, 2: { label: "普通", stars: "★★" }, 3: { label: "困难", stars: "★★★" }, 4: { label: "顶级", stars: "★★★★" } },
       hudMode: { normal: "🎲 普通", endless: "♾️ 无限", timeattack: "⏱️ 限时", review: "🧪 审核" },
-      review: { title: "🧪 审核模式", sub: (n) => `${n} 道新题 · 仅测试台`, empty: "暂无待审核的新题" },
+      review: { title: "🧪 审核模式", sub: (n) => `${n} 道新题 · 仅测试台`, empty: "暂无待审核的新题", done: "审核完成 🧪" },
       trivia: {
         "lyricist__album_al1": "其实《Don't Wanna Cry》由 Woozi·Vernon·Hoshi·Jeonghan 四人共同作词！",
         "titleTrack__album_fml": "FML 是《Super(孙悟空)》与《F*ck My Life》双主打。",
@@ -567,7 +567,7 @@
       caption: { loaded: "© titular de derechos · Apple Music", error: "No se pudo cargar la portada · adivina de memoria", noArt: "No se pudo cargar la portada · revisa tu conexión" },
       difficulty: { 1: { label: "Fácil", stars: "★" }, 2: { label: "Normal", stars: "★★" }, 3: { label: "Difícil", stars: "★★★" }, 4: { label: "Experto", stars: "★★★★" } },
       hudMode: { normal: "🎲 Normal", endless: "♾️ Infinito", timeattack: "⏱️ Contrarreloj", review: "🧪 Revisión" },
-      review: { title: "🧪 Modo revisión", sub: (n) => `${n} ítems nuevos · solo testbed`, empty: "No hay ítems nuevos para revisar" },
+      review: { title: "🧪 Modo revisión", sub: (n) => `${n} ítems nuevos · solo testbed`, empty: "No hay ítems nuevos para revisar", done: "Revisión completa 🧪" },
       trivia: {
         "lyricist__album_al1": "¡'Don't Wanna Cry' la coescribieron Woozi, Vernon, Hoshi y Jeonghan!",
         "titleTrack__album_fml": "FML tiene doble sencillo: 'Super' y 'F*ck My Life'.",
