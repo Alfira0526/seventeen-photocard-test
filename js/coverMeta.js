@@ -8,7 +8,7 @@ window.SVTCoverMeta = {
     "titleOnCover": false
   },
   "loveandletter": {
-    "titleOnCover": false
+    "titleOnCover": true
   },
   "goingseventeen": {
     "titleOnCover": true

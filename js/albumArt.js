@@ -3,7 +3,7 @@
 window.SVTArt = {
   "17carat": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/75/7d/b9/757db928-7365-3af7-4a95-22c430d2c10d/cover-.jpg/600x600bb.jpg",
   "boysbe": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/15/c3/c5/15c3c59b-22ce-699e-dcb1-23f006cf8410/cover-.jpg/600x600bb.jpg",
-  "loveandletter": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/32/cb/c4/32cbc434-82b9-6b8e-8cc8-752b554b49f9/cover-.jpg/600x600bb.jpg",
+  "loveandletter": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/6b/90/22/6b9022f4-e1ae-0eb1-6ecd-b81fa47e5678/COVER-.jpg/600x600bb.jpg",
   "goingseventeen": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/2e/c0/94/2ec09415-c432-03b6-d032-8854f11dc379/COVER-.jpg/600x600bb.jpg",
   "al1": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/7e/93/76/7e937672-f339-eda1-8d7b-708a0c16acc4/cover-.jpg/600x600bb.jpg",
   "teenage": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/71/f1/26/71f1269f-be8a-dafd-b732-a84c58136d06/cover-.jpg/600x600bb.jpg",
