@@ -139,8 +139,16 @@ body {
 
 /* 모드 선택 */
 .modes { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: flex-start; margin-top: 6px; }
-.mode-slot { flex: 1 1 190px; max-width: 260px; display: flex; flex-direction: column; gap: 8px; }
-.mode-slot .mode-btn { flex: none; max-width: none; width: 100%; }
+/* 가볍게 한 판 + 난이도 = 하나의 박스. 위(버튼)=그냥 시작, 아래=난이도 선택 */
+.mode-slot {
+  flex: 1 1 190px; max-width: 260px; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--bg-soft); border: 1px solid var(--line); border-radius: 14px;
+}
+.mode-slot .mode-btn {
+  flex: none; max-width: none; width: 100%;
+  background: transparent; border: none; border-radius: 0;
+}
+.mode-slot .mode-btn:hover:not(:disabled) { transform: none; background: var(--card); border-color: transparent; }
 .mode-btn {
   flex: 1 1 190px; max-width: 260px; text-align: left;
   background: var(--bg-soft); border: 1px solid var(--line); border-radius: 14px;
@@ -152,10 +160,10 @@ body {
 .mode-btn b { display: block; font-size: 16px; margin-bottom: 4px; }
 .mode-btn small { color: var(--muted); font-size: 13px; line-height: 1.35; }
 
-/* 일반 모드 하위 난이도 칩(원탭 시작) */
+/* 같은 박스 안, 버튼 아래의 난이도 선택 영역(구분선으로 나눔) */
 .diff-chips {
   display: flex; flex-direction: column; gap: 6px;
-  padding: 8px 8px 9px; border: 1px dashed var(--line); border-radius: 12px; background: var(--bg-soft);
+  padding: 10px 12px 12px; border: none; border-top: 1px solid var(--line); background: transparent;
 }
 .diff-row-label { font-size: 11.5px; font-weight: 700; color: var(--muted); text-align: center; }
 .diff-chips-row { display: flex; gap: 6px; }
