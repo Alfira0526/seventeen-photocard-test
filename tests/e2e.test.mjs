@@ -395,14 +395,22 @@ test("검수 모드: 테스트베드에선 신규(draft) 문제만 모아 출제
   await withPage(async (page) => {
     await page.waitForSelector("#screen-start.active");
     await page.waitForSelector("#mode-review:not([hidden])", { timeout: 3000 });
+    // 실제 draft 개수(주입분 포함)를 페이지에서 직접 계산
+    const nDraft = await page.evaluate(() => {
+      const D = window.SVTData.DRAFTS;
+      return D.ALBUMS.length + D.MEMBERS.length + D.YT_SONGS.length;
+    });
+    assert.ok(nDraft >= 1, "주입 draft 가 반영되지 않음");
     const sub = await page.textContent("#mode-review");
-    assert.match(sub, /신규 문제 1개|1 new/); // 주입한 draft 1개
+    assert.match(sub, new RegExp(`신규 문제 ${nDraft}개|${nDraft} new`));
     await page.click("#mode-review");
     await page.waitForSelector("#screen-play.active", { timeout: 3000 });
     const hud = await page.textContent("#hud-mode");
     assert.match(hud, /검수|Review/);
+    // 덱은 '신규 문제 전체'로만 구성됨(전체 앨범 풀 27+ 가 아니라 draft 개수와 일치)
     const progress = await page.textContent("#progress");
-    assert.match(progress, /1 \/ 1/, "덱이 신규 문제 1개로 구성되지 않음");
+    assert.match(progress, new RegExp(`1 / ${nDraft}\\b`), "덱이 draft 전체로 구성되지 않음");
+    assert.ok(nDraft < 15, "검수 덱에 일반 문제가 섞임(격리 실패)");
   }, { preview: true, testDrafts: draft, languages: ["ko-KR", "ko"] });
 });
 
