@@ -12,6 +12,8 @@
   const { shuffle } = window.QuizLogic;
   const { buildQuestion, buildMemberQuestion, availableMemberTypes, buildYtQuestion } = window.QuizQuestions;
   const YTS = YT_SONGS || [];
+  const DRAFTS = (window.SVTData && window.SVTData.DRAFTS) || { ALBUMS: [], MEMBERS: [], YT_SONGS: [] };
+  const IS_STAGING = !!window.SVT_DATA_PREFIX; // 테스트베드에서만 검수 모드 노출
   const I18N = window.I18N;
   const T = I18N.t; // UI 문자열(병기 i18n) — 내용은 setLocale 로 in-place 갱신됨
 
@@ -114,7 +116,7 @@
       "btn-restart", "btn-next", "btn-share", "btn-save", "btn-tweet", "btn-insta", "btn-kakao", "share-hint",
       "card-art", "card-caption", "btn-reload", "progress", "progress-fill", "score", "hud-mode", "hud-lives",
       "rank-name", "btn-rank", "rank-list", "btn-legacy", "btn-home", "btn-hud-home",
-      "season-banner",
+      "season-banner", "mode-review", "mode-review-title", "mode-review-sub",
       "hall", "hall-season", "hall-tab-month", "hall-tab-quarter",
       "hall-modal", "hall-modal-title", "hall-modal-list", "hall-modal-close",
       "season-result-modal", "season-result-title", "season-result-intro", "season-result-list", "season-result-close", "season-result-cta",
@@ -219,19 +221,32 @@
     // 난이도 밴드는 일반 모드에만 적용(무한·타임어택은 전체·배수 1.0)
     state.diff = (mode === "normal") ? (DIFF[band] || DIFF.normal) : DIFF.normal;
     state.rng = Math.random;
-    const albumCards = ALBUMS.map((a) => ({ kind: "album", ref: a }));
-    const memberCards = MEMBERS
-      .filter((m) => availableMemberTypes(m, mctx(state.rng)).length >= 1)
-      .map((m) => ({ kind: "member", ref: m }));
-    const ytCards = YTS.map((s) => ({ kind: "yt", ref: s }));
-    state.pool = albumCards.concat(memberCards, ytCards);
+    // 검수 모드: 신규(draft) 문제만 모아 한 번씩 출제(테스트베드 전용)
+    if (mode === "review") {
+      const dCards = DRAFTS.ALBUMS.map((a) => ({ kind: "album", ref: a }))
+        .concat(DRAFTS.MEMBERS.filter((m) => availableMemberTypes(m, mctx(state.rng)).length >= 1).map((m) => ({ kind: "member", ref: m })))
+        .concat(DRAFTS.YT_SONGS.map((s) => ({ kind: "yt", ref: s })));
+      if (!dCards.length) { toast(T.review.empty); return; } // 검수할 신규 문제 없음
+      state.pool = dCards;
+    } else {
+      const albumCards = ALBUMS.map((a) => ({ kind: "album", ref: a }));
+      const memberCards = MEMBERS
+        .filter((m) => availableMemberTypes(m, mctx(state.rng)).length >= 1)
+        .map((m) => ({ kind: "member", ref: m }));
+      const ytCards = YTS.map((s) => ({ kind: "yt", ref: s }));
+      state.pool = albumCards.concat(memberCards, ytCards);
+    }
 
     state.round = 0; state.score = 0; state.correct = 0; state.over = false; state.answers = []; state.combo = 0;
     el.score.textContent = "0";
     el["hud-mode"].textContent = T.hudMode[mode] || "";
     if (window.SVTAnalytics) window.SVTAnalytics.play(mode);
 
-    if (mode === "endless") {
+    if (mode === "review") {
+      // 신규 문제 전부를 한 번씩(제한 플레이) — 목숨 무한, 슬라이스 없음
+      state.limited = true; state.lives = Infinity;
+      state.deck = shuffle(state.pool, state.rng);
+    } else if (mode === "endless") {
       state.limited = false; state.lives = 1;
       state.deck = shuffle(state.pool, state.rng);
     } else if (mode === "timeattack") {
@@ -1049,6 +1064,13 @@
     });
     const drl = document.getElementById("diff-row-label");
     if (drl && dc.label) drl.textContent = "🎲 " + dc.label;
+    // 검수 모드(테스트베드 전용): 노출 + 신규 문제 수 라벨
+    if (el["mode-review"] && IS_STAGING) {
+      el["mode-review"].hidden = false;
+      const n = DRAFTS.ALBUMS.length + DRAFTS.MEMBERS.length + DRAFTS.YT_SONGS.length;
+      if (el["mode-review-title"]) el["mode-review-title"].textContent = T.review.title;
+      if (el["mode-review-sub"]) el["mode-review-sub"].textContent = T.review.sub(n);
+    }
   }
 
   function buildLangUI() {

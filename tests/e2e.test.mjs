@@ -42,6 +42,10 @@ async function withPage(fn, opts = {}) {
         try { localStorage.setItem("svt-ranking", JSON.stringify(rows)); } catch (e) {}
       }, opts.seedRanking);
     }
+    // 테스트베드(검수 모드)용 임시 draft 문제 주입
+    if (opts.testDrafts) {
+      await page.addInitScript((rows) => { window.__SVT_TEST_DRAFTS = rows; }, opts.testDrafts);
+    }
     if (opts.mockShare) {
       await page.addInitScript(() => {
         window.__shared = null;
@@ -56,7 +60,7 @@ async function withPage(fn, opts = {}) {
         };
       });
     }
-    await page.goto(pageUrl);
+    await page.goto(opts.preview ? pageUrl + "?preview=1" : pageUrl); // ?preview=1 → env.js가 스테이징으로 인식
     return await fn(page);
   } finally {
     await browser.close();
@@ -223,7 +227,9 @@ test("처음으로: 결과에서 시작화면으로 복귀 + 모드 3개", { ski
     await playThrough(page);
     await page.click("#btn-home");
     await page.waitForSelector("#screen-start.active");
-    const modes = await page.$$eval(".mode-btn", (els) => els.map((e) => e.dataset.mode));
+    // 프로덕션에 보이는 모드(검수 버튼은 테스트베드 전용이라 숨김)
+    const modes = await page.$$eval(".mode-btn", (els) =>
+      els.filter((e) => !e.hidden).map((e) => e.dataset.mode));
     assert.deepEqual(modes.sort(), ["endless", "normal", "timeattack"]);
   });
 });
@@ -375,6 +381,29 @@ test("시즌 종료 팝업: 새 시즌 초반에 직전 시즌 각 분야 1위 �
     await page.waitForTimeout(600);
     assert.equal(await page.isVisible("#season-result-modal"), false, "이미 본 시즌인데 또 뜸");
   }, { now, seedRanking: seed, languages: ["ko-KR", "ko"] });
+});
+
+test("검수 모드: 프로덕션에선 버튼이 숨겨진다", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.waitForSelector("#screen-start.active");
+    assert.equal(await page.isVisible("#mode-review"), false, "프로덕션에 검수 버튼이 노출됨");
+  }, { languages: ["ko-KR", "ko"] });
+});
+
+test("검수 모드: 테스트베드에선 신규(draft) 문제만 모아 출제", { skip: !chromium }, async () => {
+  const draft = [{ id: "__test_draft_al", title: "테스트앨범", year: 2026, type: "미니 5집", titleTrack: "테스트곡" }];
+  await withPage(async (page) => {
+    await page.waitForSelector("#screen-start.active");
+    await page.waitForSelector("#mode-review:not([hidden])", { timeout: 3000 });
+    const sub = await page.textContent("#mode-review");
+    assert.match(sub, /신규 문제 1개|1 new/); // 주입한 draft 1개
+    await page.click("#mode-review");
+    await page.waitForSelector("#screen-play.active", { timeout: 3000 });
+    const hud = await page.textContent("#hud-mode");
+    assert.match(hud, /검수|Review/);
+    const progress = await page.textContent("#progress");
+    assert.match(progress, /1 \/ 1/, "덱이 신규 문제 1개로 구성되지 않음");
+  }, { preview: true, testDrafts: draft, languages: ["ko-KR", "ko"] });
 });
 
 test("명예의 전당: '분기 누적' 탭은 그 분기 월간 데이터를 합산해 표시", { skip: !chromium }, async () => {

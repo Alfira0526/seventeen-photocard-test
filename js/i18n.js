@@ -73,7 +73,8 @@
       next: { result: "결과 보러 가기", more: "다음 문제 →" },
       caption: { loaded: "© 저작권자 · Apple Music", error: "자켓을 못 불러왔어요 · 상상해서 맞혀봐요", noArt: "자켓을 못 불러왔어요 · 인터넷을 확인해 주세요" },
       difficulty: { 1: { label: "쉬움", stars: "★" }, 2: { label: "보통", stars: "★★" }, 3: { label: "어려움", stars: "★★★" }, 4: { label: "최상", stars: "★★★★" } },
-      hudMode: { normal: "🎲 일반", endless: "♾️ 무한", timeattack: "⏱️ 타임어택" },
+      hudMode: { normal: "🎲 일반", endless: "♾️ 무한", timeattack: "⏱️ 타임어택", review: "🧪 검수" },
+      review: { title: "🧪 검수 모드", sub: (n) => `신규 문제 ${n}개 · 테스트베드 전용`, empty: "검수할 신규 문제가 없어요" },
       shareMode: { normal: "일반", endless: "무한", timeattack: "타임어택" },
       season: { beta: "오픈베타", firstChamp: "시즌 첫 챔피언", month: (m) => `${m}월`, quarter: (q) => `${q}분기`,
         champ: (nm) => `${nm} 1위`, endsIn: (d) => `종료 D-${d}`, final: (d) => `⏰ 마지막 ${d}일! 순위 굳히기`,
@@ -188,7 +189,8 @@
       next: { result: "See results", more: "Next question →" },
       caption: { loaded: "© rights holder · Apple Music", error: "Couldn't load the cover · guess from memory", noArt: "Couldn't load the cover · check your connection" },
       difficulty: { 1: { label: "Easy", stars: "★" }, 2: { label: "Normal", stars: "★★" }, 3: { label: "Hard", stars: "★★★" }, 4: { label: "Expert", stars: "★★★★" } },
-      hudMode: { normal: "🎲 Normal", endless: "♾️ Endless", timeattack: "⏱️ Time Attack" },
+      hudMode: { normal: "🎲 Normal", endless: "♾️ Endless", timeattack: "⏱️ Time Attack", review: "🧪 Review" },
+      review: { title: "🧪 Review mode", sub: (n) => `${n} new items · testbed only`, empty: "No new items to review" },
       shareMode: { normal: "Normal", endless: "Endless", timeattack: "Time Attack" },
       season: { beta: "Open Beta", firstChamp: "First Champion",
         month: (m) => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1],
@@ -302,7 +304,8 @@
       next: { result: "結果を見る", more: "次の問題 →" },
       caption: { loaded: "© 権利者 · Apple Music", error: "ジャケットを読み込めませんでした · 想像で当ててね", noArt: "ジャケットを読み込めませんでした · 通信環境を確認してね" },
       difficulty: { 1: { label: "やさしい", stars: "★" }, 2: { label: "ふつう", stars: "★★" }, 3: { label: "むずかしい", stars: "★★★" }, 4: { label: "最上級", stars: "★★★★" } },
-      hudMode: { normal: "🎲 通常", endless: "♾️ 無限", timeattack: "⏱️ タイムアタック" },
+      hudMode: { normal: "🎲 通常", endless: "♾️ 無限", timeattack: "⏱️ タイムアタック", review: "🧪 検収" },
+      review: { title: "🧪 検収モード", sub: (n) => `新規 ${n}問 · テストベッド専用`, empty: "検収する新規問題がありません" },
       shareMode: { normal: "通常", endless: "無限", timeattack: "タイムアタック" },
       season: { beta: "オープンβ", firstChamp: "初代チャンピオン", month: (m) => `${m}月`, quarter: (q) => `Q${q}`,
         champ: (nm) => `${nm} 1位`, endsIn: (d) => `終了 D-${d}`, final: (d) => `⏰ ラスト${d}日！ 順位を固めろ`,
@@ -414,7 +417,8 @@
       next: { result: "查看结果", more: "下一题 →" },
       caption: { loaded: "© 版权方 · Apple Music", error: "封面加载失败 · 凭印象猜猜看", noArt: "封面加载失败 · 请检查网络" },
       difficulty: { 1: { label: "简单", stars: "★" }, 2: { label: "普通", stars: "★★" }, 3: { label: "困难", stars: "★★★" }, 4: { label: "顶级", stars: "★★★★" } },
-      hudMode: { normal: "🎲 普通", endless: "♾️ 无限", timeattack: "⏱️ 限时" },
+      hudMode: { normal: "🎲 普通", endless: "♾️ 无限", timeattack: "⏱️ 限时", review: "🧪 审核" },
+      review: { title: "🧪 审核模式", sub: (n) => `${n} 道新题 · 仅测试台`, empty: "暂无待审核的新题" },
       shareMode: { normal: "普通", endless: "无限", timeattack: "限时" },
       season: { beta: "公测", firstChamp: "首季冠军", month: (m) => `${m}月`, quarter: (q) => `第${q}季度`,
         champ: (nm) => `${nm}冠军`, endsIn: (d) => `距结束 ${d}天`, final: (d) => `⏰ 最后${d}天！ 锁定排名`,
@@ -526,7 +530,8 @@
       next: { result: "Ver resultados", more: "Siguiente →" },
       caption: { loaded: "© titular de derechos · Apple Music", error: "No se pudo cargar la portada · adivina de memoria", noArt: "No se pudo cargar la portada · revisa tu conexión" },
       difficulty: { 1: { label: "Fácil", stars: "★" }, 2: { label: "Normal", stars: "★★" }, 3: { label: "Difícil", stars: "★★★" }, 4: { label: "Experto", stars: "★★★★" } },
-      hudMode: { normal: "🎲 Normal", endless: "♾️ Infinito", timeattack: "⏱️ Contrarreloj" },
+      hudMode: { normal: "🎲 Normal", endless: "♾️ Infinito", timeattack: "⏱️ Contrarreloj", review: "🧪 Revisión" },
+      review: { title: "🧪 Modo revisión", sub: (n) => `${n} ítems nuevos · solo testbed`, empty: "No hay ítems nuevos para revisar" },
       shareMode: { normal: "Normal", endless: "Infinito", timeattack: "Contrarreloj" },
       season: { beta: "Beta abierta", firstChamp: "Primer campeón",
         month: (m) => ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"][m - 1],
@@ -632,7 +637,7 @@
   const SUB = (s) => `<span class="i18n-sub">${s}</span>`;
   // 병기 제외(단일언어) 상위 키: 평문/캔버스/컴팩트 칩 등에서 쓰임
   // (tier·resSub 는 화면에 병기, resScore/resLine 은 숫자 위주라 단일언어 유지)
-  const PLAIN_KEYS = { _unit: 1, atype: 1, difficulty: 1, hudMode: 1, shareMode: 1, share: 1, resScore: 1, resLine: 1, season: 1, diffChip: 1 };
+  const PLAIN_KEYS = { _unit: 1, atype: 1, difficulty: 1, hudMode: 1, shareMode: 1, share: 1, resScore: 1, resLine: 1, season: 1, diffChip: 1, review: 1 };
 
   function biStr(loc, en, bi) { return bi && en != null && en !== loc ? MAIN(loc) + SUB(en) : loc; }
   function biFn(locFn, enFn, bi) {

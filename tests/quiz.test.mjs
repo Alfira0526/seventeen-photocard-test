@@ -14,7 +14,8 @@ const require = createRequire(import.meta.url);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const { shuffle, buildChoices, buildYearChoices, buildAlbumChoices, tierFor } =
   require(resolve(root, "js/logic.js"));
-const { ALBUMS, ALBUM_YEARS, MEMBERS, memberById } = require(resolve(root, "js/data.js"));
+const { ALBUMS, ALBUM_YEARS, MEMBERS, memberById, DRAFTS, splitDraft, isDraft, RAW } =
+  require(resolve(root, "js/data.js"));
 const { buildQuestion, availableTypes, buildMemberQuestion, buildYtQuestion } = require(resolve(root, "js/questions.js"));
 const { UNIT_SONGS, YT_SONGS } = require(resolve(root, "js/data.js"));
 const YTCTX = { ytSongs: YT_SONGS, albums: ALBUMS, years: ALBUM_YEARS, n: 4, rng: Math.random };
@@ -306,6 +307,33 @@ test("데이터 무결성: 4지선다를 만들 만큼 후보가 충분", () => 
   assert.ok(new Set(ALBUMS.map((a) => a.title)).size >= 4);
   assert.ok(new Set(ALBUMS.map((a) => a.titleTrack)).size >= 4);
   assert.ok(new Set(ALBUM_YEARS).size >= 2);
+});
+
+// ── draft(테스트 문제) 분리 & 검수 게이트 ──
+test("draft: splitDraft 가 live/draft 를 정확히 가른다", () => {
+  const { live, draft } = splitDraft([
+    { id: "a" }, { id: "b", draft: true }, { id: "c" }, { id: "d", draft: true },
+  ]);
+  assert.deepEqual(live.map((x) => x.id), ["a", "c"]);
+  assert.deepEqual(draft.map((x) => x.id), ["b", "d"]);
+});
+
+test("draft: 공개 ALBUMS 에는 draft 문제가 절대 섞이지 않는다(프로덕션 보호)", () => {
+  assert.ok(ALBUMS.every((a) => !isDraft(a)), "공개 목록에 draft 유입");
+  // RAW(전체) 중 draft 만 DRAFTS 로 분리되어야 함
+  const rawDraft = (RAW.ALBUMS || []).filter(isDraft).map((a) => a.id).sort();
+  assert.deepEqual(DRAFTS.ALBUMS.map((a) => a.id).sort(), rawDraft);
+});
+
+test("draft 검수 게이트: 모든 draft 앨범은 필수 필드 + 4지선다 출제가 가능해야 한다", () => {
+  // 신규 문제를 추가할 때 이 테스트가 CI에서 잘못된 데이터를 걸러낸다.
+  for (const a of DRAFTS.ALBUMS) {
+    ["id", "title", "titleTrack", "type"].forEach((k) => assert.ok(a[k], `draft ${a.id || "?"} ${k} 누락`));
+    assert.ok(Number.isInteger(a.year), `draft ${a.id} year 정수 아님`);
+    const q = buildQuestion(a, QCTX);
+    assert.ok(q && Array.isArray(q.choices) && q.choices.length >= 2, `draft ${a.id} 출제 실패`);
+    assert.ok(q.choices.includes(q.correct), `draft ${a.id} 보기에 정답 없음`);
+  }
 });
 
 // ── season.js (KST 시즌 스케줄) ──

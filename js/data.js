@@ -211,11 +211,34 @@ const ALBUM_YEARS = [...new Set(ALBUMS.map((a) => a.year))].sort((x, y) => x - y
   });
 })();
 
+// ── 테스트/QA: 런타임에 임시 draft(검수용) 문제 주입 (window 있을 때만, 프로덕션 데이터와 무관) ──
+if (typeof window !== "undefined" && Array.isArray(window.__SVT_TEST_DRAFTS)) {
+  window.__SVT_TEST_DRAFTS.forEach((a) => { if (a && a.id) ALBUMS.push(Object.assign({ draft: true }, a)); });
+}
+
+// ── draft(테스트 문제) 분리 ──
+//  · draft:true 로 태그된 항목은 "신규 검수 대기" 문제.
+//  · 일반 플레이(모든 환경)에는 live 만 사용 → 프로덕션은 draft 를 절대 출제하지 않는다.
+//  · 테스트베드의 '검수 모드'에서만 draft 를 모아 출제한다(SVTData.DRAFTS).
+function isDraft(x) { return !!(x && x.draft); }
+function splitDraft(arr) {
+  const live = [], draft = [];
+  (arr || []).forEach((x) => (isDraft(x) ? draft : live).push(x));
+  return { live, draft };
+}
+const _al = splitDraft(ALBUMS), _mb = splitDraft(MEMBERS), _yt = splitDraft(YT_SONGS);
+const PUB_ALBUMS = _al.live, PUB_MEMBERS = _mb.live, PUB_YT = _yt.live;
+const DRAFTS = { ALBUMS: _al.draft, MEMBERS: _mb.draft, YT_SONGS: _yt.draft };
+const PUB_YEARS = [...new Set(PUB_ALBUMS.map((a) => a.year))].sort((x, y) => x - y);
+
+const SVT_EXPORT = {
+  MEMBERS: PUB_MEMBERS, ALBUMS: PUB_ALBUMS, albumById, memberById,
+  ALBUM_YEARS: PUB_YEARS, UNIT_SONGS, YT_SONGS: PUB_YT,
+  DRAFTS, isDraft, splitDraft,
+  RAW: { MEMBERS, ALBUMS, YT_SONGS }, // 전체(검증/도구용, draft 포함)
+};
+
 // 전역 노출
-if (typeof window !== "undefined") {
-  window.SVTData = { MEMBERS, ALBUMS, albumById, memberById, ALBUM_YEARS, UNIT_SONGS, YT_SONGS };
-}
+if (typeof window !== "undefined") { window.SVTData = SVT_EXPORT; }
 // Node(테스트/스크립트)에서 재사용
-if (typeof module !== "undefined" && module.exports) {
-  module.exports = { MEMBERS, ALBUMS, albumById, memberById, ALBUM_YEARS, UNIT_SONGS, YT_SONGS };
-}
+if (typeof module !== "undefined" && module.exports) { module.exports = SVT_EXPORT; }

@@ -77,6 +77,11 @@
               <b data-i18n="modeTimeT">⏱️ 타임어택</b>
               <small data-i18n="modeTimeS">60초 안에 최대한 · 목숨 3개</small>
             </button>
+            <!-- 검수 모드: 테스트베드에서만 노출(신규 draft 문제만 출제). 기본 숨김 → env가 스테이징이면 game.js가 표시 -->
+            <button id="mode-review" class="mode-btn mode-review" data-mode="review" type="button" hidden>
+              <b id="mode-review-title">🧪 검수 모드</b>
+              <small id="mode-review-sub">신규 문제만 모아 테스트 · 테스트베드 전용</small>
+            </button>
           </div>
 
           <!-- 명예의 전당: 3모드(일반·무한·타임어택) 한 화면에서 각각 롤링 -->

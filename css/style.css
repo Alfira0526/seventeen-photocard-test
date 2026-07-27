@@ -159,6 +159,14 @@ body {
 .mode-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .mode-btn b { display: block; font-size: 16px; margin-bottom: 4px; }
 .mode-btn small { color: var(--muted); font-size: 13px; line-height: 1.35; }
+/* 검수 모드(테스트베드 전용): 점선 테두리로 '실서비스 아님' 시각 구분 */
+.mode-btn.mode-review {
+  flex-basis: 100%; max-width: none;
+  border-style: dashed; border-color: #c8323d;
+  background: repeating-linear-gradient(45deg, rgba(200,50,61,0.06) 0 10px, transparent 10px 20px);
+}
+.mode-btn.mode-review[hidden] { display: none; }
+.mode-btn.mode-review:hover:not(:disabled) { border-color: #e0525c; }
 
 /* 같은 박스 안, 버튼 아래의 난이도 선택 영역(구분선으로 나눔) */
 .diff-chips {
