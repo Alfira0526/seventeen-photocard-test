@@ -36,7 +36,12 @@
   var api = {
     enabled: !!fb,
     play: function (mode) { patch("/stats/modes/" + safe(mode), { plays: INC }); patch("/stats", { updated: { ".sv": "timestamp" } }); },
-    finish: function (mode) { patch("/stats/modes/" + safe(mode), { games: INC }); },
+    // reason: "complete"(완주) · "fail"(오답 탈락) · "timeout"(시간초과). 완료율과 별개로 종료 사유를 분리 집계.
+    finish: function (mode, reason) {
+      patch("/stats/modes/" + safe(mode), { games: INC });
+      var r = reason === "fail" || reason === "timeout" ? reason : "complete";
+      patch("/stats/finishReason/" + safe(mode) + "/" + r, INC);
+    },
     answer: function (typeId, ok, itemKey) {
       var body = ok ? { ok: INC, total: INC } : { total: INC };
       patch("/stats/types/" + safe(typeId), body);

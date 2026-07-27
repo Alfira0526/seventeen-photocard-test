@@ -43,6 +43,9 @@ jobs:
           ITUNES_COUNTRY: us
         run: node scripts/fetch-art.mjs
 
+      - name: Audit repackage art mismatches (non-blocking)
+        run: node scripts/audit-art.mjs || true
+
       - name: Install Tesseract OCR
         run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-kor
 

@@ -55,13 +55,24 @@ const typeRows = Object.keys(types)
   .map((k) => ({ k, ok: types[k].ok || 0, total: types[k].total || 0, pct: pct(types[k].ok || 0, types[k].total || 0) }))
   .sort((a, b) => a.pct - b.pct);
 
-// 이상문제 후보: 표본(total) 충분한데 정답률 낮은 문제(데이터 오류 의심)
+// 이상문제 후보: "전체 정답률 낮은 순"이 아니라 "같은 유형 평균 대비 이탈폭(%p)"으로 판정.
+//  → year/ytYear 처럼 유형 자체가 어려운 항목과, loveandletter 처럼 유형 내에서 홀로 튀는
+//    진짜 이상치를 구분한다(2026-07-27 리뷰 §3 제안 반영).
 const SAMPLE_MIN = 8;
+const DEV_FLAG = -15; // 유형평균 대비 이 이상(%p) 하회하면 데이터 오류 의심으로 플래그
+const typePct = Object.fromEntries(typeRows.map((r) => [r.k, r.pct]));
 const itemRows = Object.keys(items)
-  .map((k) => ({ k, ok: items[k].ok || 0, total: items[k].total || 0, pct: pct(items[k].ok || 0, items[k].total || 0) }))
+  .map((k) => {
+    const ok = items[k].ok || 0, total = items[k].total || 0, p = pct(ok, total);
+    const typeId = k.split("__")[0];
+    const typeAvg = typePct[typeId] != null ? typePct[typeId] : null;
+    const dev = typeAvg == null ? null : p - typeAvg; // 음수 = 유형평균보다 낮음
+    return { k, ok, total, pct: p, typeId, typeAvg, dev };
+  })
   .filter((r) => r.total >= SAMPLE_MIN)
-  .sort((a, b) => a.pct - b.pct)
+  .sort((a, b) => (a.dev == null ? 0 : a.dev) - (b.dev == null ? 0 : b.dev)) // 이탈폭 큰(가장 낮은) 순
   .slice(0, 20);
+const flagged = itemRows.filter((r) => r.dev != null && r.dev <= DEV_FLAG);
 
 const stamp = new Date().toISOString().slice(0, 16).replace("T", " ") + "Z";
 const md = [];
@@ -81,11 +92,17 @@ md.push("|---|---:|---:|---:|");
 if (typeRows.length) typeRows.forEach((r) => md.push(`| ${r.k} | ${r.ok} | ${r.total} | ${r.pct}% |`));
 else md.push("| (데이터 없음) | | | |");
 md.push("");
-md.push(`## 3) 이상문제 후보 (표본 ${SAMPLE_MIN}+ · 정답률 낮은 순 상위 20 → 데이터 오류 의심)`);
-md.push("| 문제키(typeId__kind_ref) | 정답 | 응답 | 정답률 |");
-md.push("|---|---:|---:|---:|");
-if (itemRows.length) itemRows.forEach((r) => md.push(`| \`${r.k}\` | ${r.ok} | ${r.total} | ${r.pct}% |`));
-else md.push("| (표본 충분한 문제 없음) | | | |");
+md.push(`## 3) 이상문제 후보 (표본 ${SAMPLE_MIN}+ · **유형평균 대비 이탈폭** 하위 20 → 데이터 오류 의심)`);
+md.push(`> ⚠ = 유형평균보다 ${-DEV_FLAG}%p 이상 낮음(유형 난이도로 설명 안 되는 진짜 이상치 후보). 플래그 ${flagged.length}건.`);
+md.push("| 문제키(typeId__kind_ref) | 정답률 | 유형평균 | 이탈(%p) | 표본 | |");
+md.push("|---|---:|---:|---:|---:|:--:|");
+if (itemRows.length) itemRows.forEach((r) => {
+  const avg = r.typeAvg == null ? "-" : `${r.typeAvg}%`;
+  const dev = r.dev == null ? "-" : `${r.dev > 0 ? "+" : ""}${r.dev}`;
+  const flag = r.dev != null && r.dev <= DEV_FLAG ? "⚠" : "";
+  md.push(`| \`${r.k}\` | ${r.pct}% | ${avg} | ${dev} | ${r.total} | ${flag} |`);
+});
+else md.push("| (표본 충분한 문제 없음) | | | | | |");
 md.push("");
 md.push(`## 4) 미처리 오류 제보 (${open.length}건)`);
 if (open.length) {
@@ -102,4 +119,4 @@ if (open.length) {
 }
 md.push("");
 writeFileSync(resolve(outDir, "SNAPSHOT.md"), md.join("\n"));
-console.log(`완료: 모드 ${modeRows.length} · 유형 ${typeRows.length} · 이상후보 ${itemRows.length} · 미처리제보 ${open.length} → docs/ops/`);
+console.log(`완료: 모드 ${modeRows.length} · 유형 ${typeRows.length} · 이상후보 ${itemRows.length}(플래그 ${flagged.length}) · 미처리제보 ${open.length} → docs/ops/`);

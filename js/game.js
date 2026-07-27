@@ -268,7 +268,7 @@
     state.timerId = setInterval(() => {
       state.timeLeft--;
       updateHud();
-      if (state.timeLeft <= 0) { stopTimer(); gameOver(); }
+      if (state.timeLeft <= 0) { stopTimer(); gameOver("timeout"); }
     }, 1000);
   }
   function stopTimer() { if (state.timerId) { clearInterval(state.timerId); state.timerId = null; } }
@@ -513,14 +513,20 @@
       const flame = state.combo >= 3 ? ` <span class="combo">🔥${state.combo}</span>` : "";
       extra = ` <span class="gain">+${gain}</span>${flame}`;
     }
+    // 오답 시 트리비아 해설(제한 모드에서만 — 답이 남아 있어 읽을 수 있음)
+    let triviaHtml = "";
+    if (!isCorrect && state.limited && state.cur && T.trivia) {
+      const tv = T.trivia[state.cur.typeId + "__" + state.cur.cardKind + "_" + state.cur.cardId];
+      if (tv) triviaHtml = ` <span class="trivia">💡 ${tv}</span>`;
+    }
     el.feedback.innerHTML = (isCorrect ? T.feedback.correct + extra
-      : (ended ? T.feedback.over : T.feedback.wrong));
+      : (ended ? T.feedback.over : T.feedback.wrong)) + triviaHtml;
     el.feedback.className = "feedback " + (isCorrect ? "good" : "mid");
 
     if (state.limited) {
       el["btn-next"].disabled = false; el["btn-next"].focus();
     } else if (ended) {
-      setTimeout(() => gameOver(), 900);
+      setTimeout(() => gameOver("fail"), 900); // 목숨 소진 = 오답 탈락
     } else {
       // 무한/타임어택: 잠깐 정답 보여주고 자동 진행
       setTimeout(() => { if (!state.over) nextRound(); }, 800);
@@ -531,17 +537,18 @@
     if (state.over) return;
     if (state.limited) {
       if (state.round + 1 < state.deck.length) { state.round++; renderRound(); }
-      else showResult();
+      else showResult("complete"); // 제한 모드 끝까지 = 완주
     } else {
       state.round++; renderRound(); // 덱은 renderRound에서 확장
     }
   }
 
-  function gameOver() {
+  // reason: "fail"(오답 탈락) · "timeout"(시간초과)
+  function gameOver(reason) {
     if (state.over) return;
     state.over = true;
     stopTimer();
-    showResult();
+    showResult(reason || "fail");
   }
 
   // ── 결과 ── 모드별 결과 뷰(화면=병기 HTML, 공유카드=평문)
@@ -574,9 +581,10 @@
     };
   }
 
-  function showResult() {
+  function showResult(reason) {
     stopTimer();
-    if (window.SVTAnalytics) window.SVTAnalytics.finish(state.mode);
+    // 종료 사유: complete(완주) · fail(오답 탈락) · timeout(시간초과)
+    if (window.SVTAnalytics) window.SVTAnalytics.finish(state.mode, reason || "complete");
     const res = buildResultView();
     state.lastRes = res;
     el["result-score"].innerHTML = res.scoreHtml;

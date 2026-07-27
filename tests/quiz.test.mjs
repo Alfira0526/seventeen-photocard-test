@@ -309,6 +309,24 @@ test("데이터 무결성: 4지선다를 만들 만큼 후보가 충분", () => 
   assert.ok(new Set(ALBUM_YEARS).size >= 2);
 });
 
+// ── 신규 유형: 멤버 유닛(팀) 매칭 ──
+test("memberUnit: 멤버의 유닛이 정답이고 보기에 포함된다", () => {
+  const I18N = require(resolve(root, "js/i18n.js"));
+  const U = I18N.t._unit; // { vocal, hiphop, performance }
+  const hoshi = memberById["hoshi"]; // performance
+  let seen = 0;
+  for (let i = 0; i < 400 && seen < 5; i++) {
+    const q = buildMemberQuestion(hoshi, MCTX);
+    if (q.typeId !== "memberUnit") continue;
+    seen++;
+    assert.equal(q.correct, U[hoshi.unit], "정답이 멤버 유닛 라벨과 불일치");
+    assert.ok(q.choices.includes(q.correct), "보기에 정답 없음");
+    assert.ok(q.choices.length >= 2, "보기 수 부족");
+    assert.equal(new Set(q.choices).size, q.choices.length, "보기 중복");
+  }
+  assert.ok(seen > 0, "memberUnit 유형이 한 번도 출제되지 않음");
+});
+
 // ── draft(테스트 문제) 분리 & 검수 게이트 ──
 test("draft: splitDraft 가 live/draft 를 정확히 가른다", () => {
   const { live, draft } = splitDraft([

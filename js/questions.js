@@ -178,6 +178,24 @@
   }
 
   const MEMBER_TYPES = [
+    // M0: 이 멤버는 어느 유닛(팀)? — 보컬/힙합/퍼포먼스 매칭
+    {
+      id: "memberUnit", weight: 1.1, difficulty: 2,
+      available: (m, c) => {
+        const units = [...new Set(c.members.map((x) => x.unit))];
+        return !!m.unit && units.length >= 2;
+      },
+      make: (m, c) => {
+        const U = t._unit || {};
+        const label3 = (u) => U[u] || u;
+        const correct = label3(m.unit);
+        const others = [...new Set(c.members.map((x) => x.unit))]
+          .filter((u) => u !== m.unit).map(label3);
+        const choices = L.shuffle([correct, ...L.shuffle(others, c.rng)], c.rng).slice(0, Math.min(c.n, 1 + others.length));
+        return { label: t.qm.unit(c.memberName(m.id)), correct, note: t.note.roster,
+          choices: choices.includes(correct) ? choices : [correct, ...choices].slice(0, c.n) };
+      },
+    },
     // M1: 이 멤버가 부른 유닛곡
     {
       id: "memberUnitSong", weight: 1.3, difficulty: 3,

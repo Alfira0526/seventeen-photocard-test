@@ -56,6 +56,7 @@
         notSong: (n) => `<b>${nm(n, "loc")}</b>${ig(nm(n, "loc"))} 부르지 <b>않은</b> 곡은?`,
         roster: (n) => `<b>${nm(n, "loc")}</b>${wg(nm(n, "loc"))} <b>다른 유닛</b>인 멤버는?`,
         lyricist: (n) => `<b>${nm(n, "loc")}</b>${ig(nm(n, "loc"))} <b>작사</b>한 타이틀곡은?`,
+        unit: (n) => `<b>${nm(n, "loc")}</b>, 어느 <b>유닛(팀)</b>일까요?`,
       },
       qyt: { song: "이 뮤직비디오, 어떤 <b>솔로곡</b>일까요?", year: "이 솔로곡, 언제 나왔을까요?" },
       note: {
@@ -75,6 +76,10 @@
       difficulty: { 1: { label: "쉬움", stars: "★" }, 2: { label: "보통", stars: "★★" }, 3: { label: "어려움", stars: "★★★" }, 4: { label: "최상", stars: "★★★★" } },
       hudMode: { normal: "🎲 일반", endless: "♾️ 무한", timeattack: "⏱️ 타임어택", review: "🧪 검수" },
       review: { title: "🧪 검수 모드", sub: (n) => `신규 문제 ${n}개 · 테스트베드 전용`, empty: "검수할 신규 문제가 없어요" },
+      trivia: {
+        "lyricist__album_al1": "사실 '울고 싶지 않아'는 우지·버논·호시·정한 4명이 함께 썼어요!",
+        "titleTrack__album_fml": "FML은 '손오공(Super)'과 'F*ck My Life' 더블 타이틀곡이에요.",
+      },
       shareMode: { normal: "일반", endless: "무한", timeattack: "타임어택" },
       season: { beta: "오픈베타", firstChamp: "시즌 첫 챔피언", month: (m) => `${m}월`, quarter: (q) => `${q}분기`,
         champ: (nm) => `${nm} 1위`, endsIn: (d) => `종료 D-${d}`, final: (d) => `⏰ 마지막 ${d}일! 순위 굳히기`,
@@ -172,6 +177,7 @@
         notSong: (n) => `Which song did <b>${nm(n, "en")}</b> <b>NOT</b> sing?`,
         roster: (n) => `Who is in a <b>different unit</b> from <b>${nm(n, "en")}</b>?`,
         lyricist: (n) => `Which title track did <b>${nm(n, "en")}</b> help <b>write</b>?`,
+        unit: (n) => `Which <b>unit (team)</b> is <b>${nm(n, "en")}</b> in?`,
       },
       qyt: { song: "Which <b>solo song</b> is this music video?", year: "When did this solo song come out?" },
       note: {
@@ -191,6 +197,10 @@
       difficulty: { 1: { label: "Easy", stars: "★" }, 2: { label: "Normal", stars: "★★" }, 3: { label: "Hard", stars: "★★★" }, 4: { label: "Expert", stars: "★★★★" } },
       hudMode: { normal: "🎲 Normal", endless: "♾️ Endless", timeattack: "⏱️ Time Attack", review: "🧪 Review" },
       review: { title: "🧪 Review mode", sub: (n) => `${n} new items · testbed only`, empty: "No new items to review" },
+      trivia: {
+        "lyricist__album_al1": "Actually 'Don't Wanna Cry' was co-written by Woozi, Vernon, Hoshi & Jeonghan!",
+        "titleTrack__album_fml": "FML has double title tracks: 'Super' and 'F*ck My Life'.",
+      },
       shareMode: { normal: "Normal", endless: "Endless", timeattack: "Time Attack" },
       season: { beta: "Open Beta", firstChamp: "First Champion",
         month: (m) => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1],
@@ -287,6 +297,7 @@
         notSong: (n) => `<b>${nm(n, "en")}</b>が<b>歌っていない</b>曲は？`,
         roster: (n) => `<b>${nm(n, "en")}</b>と<b>別ユニット</b>のメンバーは？`,
         lyricist: (n) => `<b>${nm(n, "en")}</b>が<b>作詞</b>したタイトル曲は？`,
+        unit: (n) => `<b>${nm(n, "en")}</b>はどの<b>ユニット(チーム)</b>？`,
       },
       qyt: { song: "このMV、どの<b>ソロ曲</b>？", year: "このソロ曲、いつ出た？" },
       note: {
@@ -306,6 +317,10 @@
       difficulty: { 1: { label: "やさしい", stars: "★" }, 2: { label: "ふつう", stars: "★★" }, 3: { label: "むずかしい", stars: "★★★" }, 4: { label: "最上級", stars: "★★★★" } },
       hudMode: { normal: "🎲 通常", endless: "♾️ 無限", timeattack: "⏱️ タイムアタック", review: "🧪 検収" },
       review: { title: "🧪 検収モード", sub: (n) => `新規 ${n}問 · テストベッド専用`, empty: "検収する新規問題がありません" },
+      trivia: {
+        "lyricist__album_al1": "実は「Don't Wanna Cry」はウジ・バーノン・ホシ・ジョンハンの4人共作！",
+        "titleTrack__album_fml": "FMLは「Super(孫悟空)」と「F*ck My Life」のダブルタイトル曲。",
+      },
       shareMode: { normal: "通常", endless: "無限", timeattack: "タイムアタック" },
       season: { beta: "オープンβ", firstChamp: "初代チャンピオン", month: (m) => `${m}月`, quarter: (q) => `Q${q}`,
         champ: (nm) => `${nm} 1位`, endsIn: (d) => `終了 D-${d}`, final: (d) => `⏰ ラスト${d}日！ 順位を固めろ`,
@@ -400,6 +415,7 @@
         notSong: (n) => `<b>${nm(n, "en")}</b><b>没有</b>演唱的歌曲是？`,
         roster: (n) => `谁和<b>${nm(n, "en")}</b>在<b>不同小分队</b>？`,
         lyricist: (n) => `<b>${nm(n, "en")}</b>参与<b>作词</b>的主打歌是？`,
+        unit: (n) => `<b>${nm(n, "en")}</b>属于哪个<b>小组(队)</b>？`,
       },
       qyt: { song: "这支MV是哪首<b>solo曲</b>？", year: "这首solo曲哪年发行？" },
       note: {
@@ -419,6 +435,10 @@
       difficulty: { 1: { label: "简单", stars: "★" }, 2: { label: "普通", stars: "★★" }, 3: { label: "困难", stars: "★★★" }, 4: { label: "顶级", stars: "★★★★" } },
       hudMode: { normal: "🎲 普通", endless: "♾️ 无限", timeattack: "⏱️ 限时", review: "🧪 审核" },
       review: { title: "🧪 审核模式", sub: (n) => `${n} 道新题 · 仅测试台`, empty: "暂无待审核的新题" },
+      trivia: {
+        "lyricist__album_al1": "其实《Don't Wanna Cry》由 Woozi·Vernon·Hoshi·Jeonghan 四人共同作词！",
+        "titleTrack__album_fml": "FML 是《Super(孙悟空)》与《F*ck My Life》双主打。",
+      },
       shareMode: { normal: "普通", endless: "无限", timeattack: "限时" },
       season: { beta: "公测", firstChamp: "首季冠军", month: (m) => `${m}月`, quarter: (q) => `第${q}季度`,
         champ: (nm) => `${nm}冠军`, endsIn: (d) => `距结束 ${d}天`, final: (d) => `⏰ 最后${d}天！ 锁定排名`,
@@ -513,6 +533,7 @@
         notSong: (n) => `¿Qué canción <b>NO</b> cantó <b>${nm(n, "en")}</b>?`,
         roster: (n) => `¿Quién está en una <b>unit distinta</b> a <b>${nm(n, "en")}</b>?`,
         lyricist: (n) => `¿Qué canción principal ayudó a <b>escribir</b> <b>${nm(n, "en")}</b>?`,
+        unit: (n) => `¿En qué <b>unidad (equipo)</b> está <b>${nm(n, "en")}</b>?`,
       },
       qyt: { song: "¿De qué <b>canción solista</b> es este videoclip?", year: "¿Cuándo salió esta canción solista?" },
       note: {
@@ -532,6 +553,10 @@
       difficulty: { 1: { label: "Fácil", stars: "★" }, 2: { label: "Normal", stars: "★★" }, 3: { label: "Difícil", stars: "★★★" }, 4: { label: "Experto", stars: "★★★★" } },
       hudMode: { normal: "🎲 Normal", endless: "♾️ Infinito", timeattack: "⏱️ Contrarreloj", review: "🧪 Revisión" },
       review: { title: "🧪 Modo revisión", sub: (n) => `${n} ítems nuevos · solo testbed`, empty: "No hay ítems nuevos para revisar" },
+      trivia: {
+        "lyricist__album_al1": "¡'Don't Wanna Cry' la coescribieron Woozi, Vernon, Hoshi y Jeonghan!",
+        "titleTrack__album_fml": "FML tiene doble sencillo: 'Super' y 'F*ck My Life'.",
+      },
       shareMode: { normal: "Normal", endless: "Infinito", timeattack: "Contrarreloj" },
       season: { beta: "Beta abierta", firstChamp: "Primer campeón",
         month: (m) => ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"][m - 1],
@@ -637,7 +662,7 @@
   const SUB = (s) => `<span class="i18n-sub">${s}</span>`;
   // 병기 제외(단일언어) 상위 키: 평문/캔버스/컴팩트 칩 등에서 쓰임
   // (tier·resSub 는 화면에 병기, resScore/resLine 은 숫자 위주라 단일언어 유지)
-  const PLAIN_KEYS = { _unit: 1, atype: 1, difficulty: 1, hudMode: 1, shareMode: 1, share: 1, resScore: 1, resLine: 1, season: 1, diffChip: 1, review: 1 };
+  const PLAIN_KEYS = { _unit: 1, atype: 1, difficulty: 1, hudMode: 1, shareMode: 1, share: 1, resScore: 1, resLine: 1, season: 1, diffChip: 1, review: 1, trivia: 1 };
 
   function biStr(loc, en, bi) { return bi && en != null && en !== loc ? MAIN(loc) + SUB(en) : loc; }
   function biFn(locFn, enFn, bi) {
