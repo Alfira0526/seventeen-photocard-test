@@ -73,7 +73,8 @@
   function ytctx(rng) {
     return Object.assign({ ytSongs: YTS, albums: ALBUMS, years: ALBUM_YEARS, n: CONFIG.choices, rng }, diffRange());
   }
-  const LS = { theme: "svt-theme", ranking: "svt-ranking", name: "svt-name" };
+  const LS = { theme: "svt-theme", ranking: "svt-ranking", name: "svt-name",
+    seasonResult: "svt-season-result" + (window.SVT_DATA_PREFIX ? "-staging" : "") + "-" };
 
   const state = {
     mode: "normal",
@@ -116,6 +117,7 @@
       "season-banner",
       "hall", "hall-season", "hall-tab-month", "hall-tab-quarter",
       "hall-modal", "hall-modal-title", "hall-modal-list", "hall-modal-close",
+      "season-result-modal", "season-result-title", "season-result-intro", "season-result-list", "season-result-close", "season-result-cta",
       "hall-h-normal", "hall-h-endless", "hall-h-timeattack",
       "hall-src-normal", "hall-src-endless", "hall-src-timeattack",
       "hall-champ-normal", "hall-champ-endless", "hall-champ-timeattack",
@@ -163,16 +165,18 @@
     renderSeasonBanner();
     refreshHall();
     startHallPoll(); // 시작화면에서 실시간 순위 갱신 시작
+    maybeShowSeasonResult(); // 새 시즌 초반이면 직전 시즌 1위 발표 팝업(최초 1회)
   }
 
-  // 시즌 종료 배너: 종료 2일 전부터 '순위 굳히기' 공지, 종료 2시간 전부터 실시간 카운트다운(H:MM:SS)
+  // 시즌 종료 배너 단계: 평상시 D-N → 2일 전 '순위 굳히기' → 하루 전 실시간 카운트다운(H:MM:SS) → 1시간 전 긴급 강조
   function renderSeasonBanner() {
     const b = el["season-banner"];
     if (!b || !window.SVTSeason) return;
     const S = window.SVTSeason;
     const name = activeMonthName(); // 오픈베타(7월) 또는 'M월'
     if (S.isFinalCountdown && S.isFinalCountdown()) {
-      b.className = "season-banner final countdown";
+      const urgent = S.isFinalUrgent && S.isFinalUrgent();
+      b.className = "season-banner countdown" + (urgent ? " final urgent" : "");
       b.innerHTML = `<b>🏆 ${name}</b> · ${T.season.countdown(S.hms())}`;
     } else if (S.isFinalPush()) {
       b.className = "season-banner final";
@@ -184,7 +188,7 @@
     b.hidden = false;
     manageCountdownTick();
   }
-  // 종료 2시간 이내에만 1초 간격으로 배너를 갱신(그 외 구간은 타이머 없음)
+  // 종료 하루 이내(카운트다운 구간)에만 1초 간격으로 배너 갱신(그 외 구간은 타이머 없음)
   let cdTick = null;
   function stopCountdownTick() { if (cdTick) { clearInterval(cdTick); cdTick = null; } }
   function manageCountdownTick() {
@@ -194,10 +198,10 @@
     if (live && !cdTick) {
       cdTick = setInterval(function () {
         try {
-          if (document.hidden || !el["screen-start"] || !el["screen-start"].classList.contains("active")
-              || !window.SVTSeason.isFinalCountdown()) { renderSeasonBanner(); return; }
-          const b = el["season-banner"];
-          if (b) b.innerHTML = `<b>🏆 ${activeMonthName()}</b> · ${T.season.countdown(window.SVTSeason.hms())}`;
+          const stillOn = el["screen-start"] && el["screen-start"].classList.contains("active");
+          if (!stillOn || !window.SVTSeason.isFinalCountdown()) { stopCountdownTick(); if (stillOn) renderSeasonBanner(); return; }
+          if (document.hidden) return; // 백그라운드면 갱신 생략(타이머는 유지)
+          renderSeasonBanner(); // 남은 시간 + 1시간 전 긴급 전환까지 반영
         } catch (e) {}
       }, 1000);
     } else if (!live && cdTick) {
@@ -783,6 +787,53 @@
   }
   function closeHallModal() { if (el["hall-modal"]) el["hall-modal"].hidden = true; }
 
+  // ── 시즌 종료 팝업: 새 시즌 초반 최초 1회, 직전 시즌 각 분야 1위 발표 ──
+  const SEASON_RESULT_WINDOW = 3; // 새 시즌 시작 후 며칠 이내에만 노출
+  async function maybeShowSeasonResult() {
+    if (window.__SVT_NO_SEASON_RESULT) return; // 테스트/억제 훅
+    if (!window.SVTSeason || !RANK || !el["season-result-modal"]) return;
+    const S = window.SVTSeason;
+    const active = S.active(), prev = S.previous();
+    const daysSinceStart = (S.nowMs() - active.start) / 86400000;
+    if (daysSinceStart < 0 || daysSinceStart > SEASON_RESULT_WINDOW) return; // 시즌 초반에만
+    const seenKey = LS.seasonResult + prev.ym;
+    if (store.get(seenKey, false) === true) return; // 이미 본 시즌
+    if (el["announce-modal"] && !el["announce-modal"].hidden) return; // 업데이트 공지와 겹치면 다음 방문에
+    let winners;
+    try {
+      winners = await Promise.all(MODES.map(async (m) => {
+        const list = await RANK.list(m, { suffix: prev.suffix });
+        return { mode: m, top: list[0] || null };
+      }));
+    } catch (e) { return; }
+    if (!winners.some((w) => w.top)) return; // 직전 시즌 기록이 전혀 없으면 표시하지 않음
+    // 표시 시점에 이미 다른 화면이면(플레이 시작 등) 중단
+    if (!el["screen-start"] || !el["screen-start"].classList.contains("active")) return;
+    store.set(seenKey, true);
+    renderSeasonResult(prev, winners);
+  }
+  function renderSeasonResult(prev, winners) {
+    const champLabel = champLabelOf(prev); // 오픈베타면 '시즌 첫 챔피언'
+    if (el["season-result-title"]) el["season-result-title"].textContent = T.season.endTitle(monthLabelOf(prev));
+    if (el["season-result-intro"]) el["season-result-intro"].textContent = T.season.endIntro;
+    if (el["season-result-close"]) el["season-result-close"].textContent = T.season.endClose;
+    if (el["season-result-cta"]) el["season-result-cta"].textContent = T.season.endCta;
+    const rows = winners.map((w) => {
+      const modeName = T.hudMode[w.mode] || w.mode;
+      if (w.top) {
+        return `<li class="sr-win"><span class="sr-mode">${modeName}</span>` +
+          `<span class="sr-name">🏅 ${escapeHtml(w.top.name)}</span>` +
+          `<span class="sr-score">${w.top.score}${unitOf(w.mode)}</span></li>`;
+      }
+      return `<li class="sr-win sr-empty"><span class="sr-mode">${modeName}</span>` +
+        `<span class="sr-name">${T.season.endNone}</span><span class="sr-score">—</span></li>`;
+    }).join("");
+    if (el["season-result-list"]) el["season-result-list"].innerHTML =
+      `<li class="sr-champ">🏆 ${champLabel}</li>` + rows;
+    el["season-result-modal"].hidden = false;
+  }
+  function closeSeasonResult() { if (el["season-result-modal"]) el["season-result-modal"].hidden = true; }
+
   // ── 공유 카드(canvas) ──
   function drawShareCard(res) {
     const cv = el["result-canvas"], ctx = cv.getContext("2d");
@@ -1036,8 +1087,14 @@
       c.addEventListener("click", () => openHallModal(c.dataset.mode)));
     if (el["hall-modal-close"]) el["hall-modal-close"].addEventListener("click", closeHallModal);
     if (el["hall-modal"]) el["hall-modal"].addEventListener("click", (e) => { if (e.target === el["hall-modal"]) closeHallModal(); });
+    // 시즌 종료 팝업
+    if (el["season-result-close"]) el["season-result-close"].addEventListener("click", closeSeasonResult);
+    if (el["season-result-cta"]) el["season-result-cta"].addEventListener("click", closeSeasonResult);
+    if (el["season-result-modal"]) el["season-result-modal"].addEventListener("click", (e) => { if (e.target === el["season-result-modal"]) closeSeasonResult(); });
     document.addEventListener("keydown", (e) => {
-      if (el["hall-modal"] && !el["hall-modal"].hidden && (e.key === "Escape" || e.key === "Esc")) closeHallModal();
+      if (e.key !== "Escape" && e.key !== "Esc") return;
+      if (el["hall-modal"] && !el["hall-modal"].hidden) closeHallModal();
+      if (el["season-result-modal"] && !el["season-result-modal"].hidden) closeSeasonResult();
     });
     if (el["btn-hud-home"]) el["btn-hud-home"].addEventListener("click", () => {
       const msg = I18N.raw(I18N.locale).ui.quitConfirm;

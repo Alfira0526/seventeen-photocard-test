@@ -336,11 +336,23 @@ test("시즌: 공지(막판 강조)는 종료 2일 전부터, 3일 전엔 아직
   assert.equal(d2.isFinalPush(), true, "2일 전인데 막판 강조 안 켜짐");
 });
 
-test("시즌: 종료 2시간 이내 카운트다운 + H:MM:SS 포맷", () => {
-  const end = UTC(2026, 7, 1) - 9 * 3600000;
-  const far = loadSeason(end - 3 * 3600000); // 3시간 전 → 카운트다운 아님
+test("시즌: 종료 하루 이내 카운트다운, 1시간 이내 긴급 강조", () => {
+  const end = UTC(2026, 7, 1) - 9 * 3600000; // 7월 종료 순간(UTC)
+  const far = loadSeason(end - 26 * 3600000); // 26시간 전 → 카운트다운 아님
   assert.equal(far.isFinalCountdown(), false);
-  const near = loadSeason(end - (3600000 + 2 * 60000 + 3000)); // 1시간 2분 3초 전
-  assert.equal(near.isFinalCountdown(), true);
-  assert.equal(near.hms(), "1:02:03");
+  assert.equal(far.isFinalUrgent(), false);
+  const cd = loadSeason(end - 12 * 3600000); // 12시간 전 → 카운트다운 O, 긴급 X
+  assert.equal(cd.isFinalCountdown(), true);
+  assert.equal(cd.isFinalUrgent(), false);
+  const urgent = loadSeason(end - (30 * 60000)); // 30분 전 → 긴급 O
+  assert.equal(urgent.isFinalCountdown(), true);
+  assert.equal(urgent.isFinalUrgent(), true);
+});
+
+test("시즌: hms() 는 H:MM:SS (하루 이내 시(hour) 두 자리 가능)", () => {
+  const end = UTC(2026, 7, 1) - 9 * 3600000;
+  const s = loadSeason(end - (3600000 + 2 * 60000 + 3000)); // 1시간 2분 3초 전
+  assert.equal(s.hms(), "1:02:03");
+  const s2 = loadSeason(end - (23 * 3600000 + 59 * 60000 + 5000)); // 23:59:05 전
+  assert.equal(s2.hms(), "23:59:05");
 });

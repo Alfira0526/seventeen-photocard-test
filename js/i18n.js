@@ -78,6 +78,8 @@
       season: { beta: "오픈베타", firstChamp: "시즌 첫 챔피언", month: (m) => `${m}월`, quarter: (q) => `${q}분기`,
         champ: (nm) => `${nm} 1위`, endsIn: (d) => `종료 D-${d}`, final: (d) => `⏰ 마지막 ${d}일! 순위 굳히기`,
         countdown: (t) => `⏰ 종료까지 ${t}`,
+        endTitle: (name) => `🏁 ${name} 시즌 종료!`, endIntro: "각 분야 1위를 발표합니다 🎉",
+        endNone: "기록 없음", endClose: "닫기", endCta: "이번 시즌 도전하기",
         tabMonth: "이번 달", tabQuarter: "분기 누적" },
       diffChip: { easy: "쉬움", normal: "보통", hard: "어려움", label: "난이도 골라 바로 시작" },
       tier: {
@@ -193,6 +195,8 @@
         quarter: (q) => `Q${q}`, champ: (nm) => `${nm} #1`,
         endsIn: (d) => `ends in ${d}d`, final: (d) => `⏰ Final ${d} days! Lock your rank`,
         countdown: (t) => `⏰ Ends in ${t}`,
+        endTitle: (name) => `🏁 ${name} season closed!`, endIntro: "Announcing the #1 of each mode 🎉",
+        endNone: "No records", endClose: "Close", endCta: "Play this season",
         tabMonth: "This month", tabQuarter: "Quarter" },
       diffChip: { easy: "Easy", normal: "Normal", hard: "Hard", label: "Pick a difficulty & play" },
       tier: {
@@ -303,6 +307,8 @@
       season: { beta: "オープンβ", firstChamp: "初代チャンピオン", month: (m) => `${m}月`, quarter: (q) => `Q${q}`,
         champ: (nm) => `${nm} 1位`, endsIn: (d) => `終了 D-${d}`, final: (d) => `⏰ ラスト${d}日！ 順位を固めろ`,
         countdown: (t) => `⏰ 終了まで ${t}`,
+        endTitle: (name) => `🏁 ${name} シーズン終了！`, endIntro: "各モードの1位を発表 🎉",
+        endNone: "記録なし", endClose: "閉じる", endCta: "今シーズンに挑戦",
         tabMonth: "今月", tabQuarter: "四半期" },
       diffChip: { easy: "やさしい", normal: "普通", hard: "むずかしい", label: "難易度を選んで開始" },
       tier: {
@@ -413,6 +419,8 @@
       season: { beta: "公测", firstChamp: "首季冠军", month: (m) => `${m}月`, quarter: (q) => `第${q}季度`,
         champ: (nm) => `${nm}冠军`, endsIn: (d) => `距结束 ${d}天`, final: (d) => `⏰ 最后${d}天！ 锁定排名`,
         countdown: (t) => `⏰ 距结束 ${t}`,
+        endTitle: (name) => `🏁 ${name} 赛季结束！`, endIntro: "公布各模式第一名 🎉",
+        endNone: "暂无记录", endClose: "关闭", endCta: "挑战本赛季",
         tabMonth: "本月", tabQuarter: "本季度" },
       diffChip: { easy: "简单", normal: "普通", hard: "困难", label: "选难度直接开始" },
       tier: {
@@ -525,6 +533,8 @@
         quarter: (q) => `T${q}`, champ: (nm) => `${nm} #1`,
         endsIn: (d) => `termina en ${d}d`, final: (d) => `⏰ ¡Últimos ${d} días! Asegura tu puesto`,
         countdown: (t) => `⏰ Termina en ${t}`,
+        endTitle: (name) => `🏁 ¡Temporada ${name} cerrada!`, endIntro: "Presentamos al #1 de cada modo 🎉",
+        endNone: "Sin registros", endClose: "Cerrar", endCta: "Jugar esta temporada",
         tabMonth: "Este mes", tabQuarter: "Trimestre" },
       diffChip: { easy: "Fácil", normal: "Normal", hard: "Difícil", label: "Elige dificultad y juega" },
       tier: {

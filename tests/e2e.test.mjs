@@ -335,15 +335,46 @@ test("시즌 배너: 말일 임박(D-3 이내)엔 '막판 순위 굳히기' 강�
   }, { now, languages: ["ko-KR", "ko"] });
 });
 
-test("시즌 배너: 종료 2시간 이내엔 실시간 카운트다운(H:MM:SS) 노출", { skip: !chromium }, async () => {
-  // 7월 종료 = 8/1 00:00 KST = 7/31 15:00 UTC. 그 1시간 전(=7/31 14:00 UTC).
-  const now = Date.parse("2026-07-31T14:00:00Z");
+test("시즌 배너: 종료 하루 이내엔 실시간 카운트다운(H:MM:SS), 1시간 전엔 긴급 강조", { skip: !chromium }, async () => {
+  // 7월 종료 = 8/1 00:00 KST = 7/31 15:00 UTC.
+  // (1) 12시간 전 → 카운트다운 O, 긴급(urgent) X
   await withPage(async (page) => {
     await page.waitForSelector("#season-banner.countdown", { timeout: 3000 });
     const txt = await page.textContent("#season-banner");
     assert.match(txt, /종료까지|Ends in|終了まで|距结束|Termina/);
     assert.match(txt, /\d:\d\d:\d\d/, "H:MM:SS 카운트다운 형식 아님");
-  }, { now, languages: ["ko-KR", "ko"] });
+    const urgent = await page.$eval("#season-banner", (e) => e.classList.contains("urgent"));
+    assert.ok(!urgent, "12시간 전인데 긴급 강조가 켜짐");
+  }, { now: Date.parse("2026-07-31T03:00:00Z"), languages: ["ko-KR", "ko"] });
+  // (2) 30분 전 → 긴급 강조 O
+  await withPage(async (page) => {
+    await page.waitForSelector("#season-banner.countdown.urgent", { timeout: 3000 });
+    const txt = await page.textContent("#season-banner");
+    assert.match(txt, /\d:\d\d:\d\d/);
+  }, { now: Date.parse("2026-07-31T14:30:00Z"), languages: ["ko-KR", "ko"] });
+});
+
+test("시즌 종료 팝업: 새 시즌 초반에 직전 시즌 각 분야 1위 발표", { skip: !chromium }, async () => {
+  // 8/2 → 8월 시즌 초반. 직전(7월) 데이터 시드 → 각 모드 1위 발표 팝업.
+  const now = Date.parse("2026-08-02T00:00:00Z");
+  const seed = [
+    { name: "julNormalKing", score: 99999, mode: "normal_202607", season: "202607", ts: 10 },
+    { name: "julEndlessKing", score: 88888, mode: "endless_202607", season: "202607", ts: 11 },
+    { name: "julTAKing", score: 77777, mode: "timeattack_202607", season: "202607", ts: 12 },
+  ];
+  await withPage(async (page) => {
+    await page.waitForSelector("#season-result-modal:not([hidden])", { timeout: 5000 });
+    const txt = await page.textContent("#season-result-modal");
+    assert.match(txt, /시즌 종료|season closed/);
+    assert.ok(/julNormalKing/.test(txt), "일반 1위가 발표에 없음");
+    // 닫으면 사라지고, 재방문(reload) 시 다시 뜨지 않아야 함(최초 1회)
+    await page.click("#season-result-close");
+    assert.equal(await page.isVisible("#season-result-modal"), false);
+    await page.reload();
+    await page.waitForSelector("#screen-start.active");
+    await page.waitForTimeout(600);
+    assert.equal(await page.isVisible("#season-result-modal"), false, "이미 본 시즌인데 또 뜸");
+  }, { now, seedRanking: seed, languages: ["ko-KR", "ko"] });
 });
 
 test("명예의 전당: '분기 누적' 탭은 그 분기 월간 데이터를 합산해 표시", { skip: !chromium }, async () => {

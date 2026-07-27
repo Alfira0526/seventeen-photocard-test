@@ -8,7 +8,8 @@
  *  · 오픈베타: 월간 도입 이전의 구 기록(접미사 없음, "").
  *
  * 기준 시각은 KST(UTC+9). 시각 계산은 내부적으로 UTC ms 에 +9h 보정하여 한국 벽시계로 환산한다.
- * 공지(막판 강조)는 종료 noticeDays 일 전부터, 카운트다운은 종료 countdownMs 이내에 노출.
+ * 공지(막판 강조)는 종료 noticeDays 일 전, 카운트다운은 종료 countdownMs(하루) 이내,
+ * 강조(긴급)는 종료 urgentMs(1시간) 이내에 노출.
  *
  * 테스트/자동화 오버라이드:
  *  · window.__SVT_NOW : 현재시각(ms, UTC epoch) 고정
@@ -18,7 +19,7 @@
   if (!root) return;
   var DAY = 86400000;
   var KST = 9 * 3600000; // 한국시간 오프셋(UTC+9)
-  var CFG = { noticeDays: 2, countdownMs: 2 * 3600000 }; // 종료 2일 전 공지 / 종료 2시간 전 카운트다운
+  var CFG = { noticeDays: 2, countdownMs: 24 * 3600000, urgentMs: 3600000 }; // 2일 전 공지 / 하루 전 카운트다운 / 1시간 전 강조
 
   function nowMs() {
     if (typeof root.__SVT_NOW === "number") return root.__SVT_NOW;
@@ -39,9 +40,11 @@
   function msLeft() { return Math.max(0, active().end - nowMs()); }
   function daysLeft() { return Math.max(0, Math.ceil(msLeft() / DAY)); }
   function isFinalPush() { var d = daysLeft(); return d > 0 && d <= CFG.noticeDays; }
-  // 종료 2시간 이내: 실시간 카운트다운 노출
+  // 종료 하루 이내: 실시간 카운트다운 노출
   function isFinalCountdown() { var ms = msLeft(); return ms > 0 && ms <= CFG.countdownMs; }
-  // 남은 시간 "H:MM:SS" (2시간 이내라 시(hour)는 0~1)
+  // 종료 1시간 이내: 강조(긴급) 표시
+  function isFinalUrgent() { var ms = msLeft(); return ms > 0 && ms <= CFG.urgentMs; }
+  // 남은 시간 "H:MM:SS" (하루 이내라 시(hour)는 0~23)
   function hms() {
     var s = Math.floor(msLeft() / 1000);
     var h = Math.floor(s / 3600); s -= h * 3600;
@@ -60,7 +63,7 @@
   root.SVTSeason = {
     CFG: CFG, nowMs: nowMs, active: active, previous: previous,
     msLeft: msLeft, daysLeft: daysLeft, isFinalPush: isFinalPush,
-    isFinalCountdown: isFinalCountdown, hms: hms,
+    isFinalCountdown: isFinalCountdown, isFinalUrgent: isFinalUrgent, hms: hms,
     quarter: quarter, quarterMonths: quarterMonths,
   };
 })(typeof window !== "undefined" ? window : null);

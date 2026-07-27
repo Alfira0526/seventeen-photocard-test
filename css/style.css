@@ -491,6 +491,22 @@ body.playing .report-fab { display: none; }
 :root[data-theme="dark"] .hall-modal-list .hm-champ { color: #f0cf6a; }
 .hall-modal-list .hm-top { border: 1px solid #e2b23a; background: linear-gradient(180deg, rgba(240,200,80,0.18), rgba(240,200,80,0.06)); }
 
+/* 시즌 종료 발표 팝업 */
+.season-winners { margin: 4px 0 18px; padding: 0; list-style: none; display: grid; gap: 8px; }
+.season-winners .sr-champ {
+  text-align: center; font-weight: 800; font-size: 13px; color: #b8860b;
+  padding: 6px 0 2px; letter-spacing: .3px;
+}
+:root[data-theme="dark"] .season-winners .sr-champ { color: #f0cf6a; }
+.season-winners .sr-win {
+  display: grid; grid-template-columns: 84px 1fr auto; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 11px; border: 1px solid var(--line); background: var(--bg-soft);
+}
+.season-winners .sr-mode { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.season-winners .sr-name { font-size: 15px; font-weight: 800; color: var(--text); overflow: hidden; text-overflow: ellipsis; }
+.season-winners .sr-score { font-size: 14px; font-weight: 800; color: var(--accent-2); font-variant-numeric: tabular-nums; }
+.season-winners .sr-empty .sr-name, .season-winners .sr-empty .sr-score { color: var(--muted); font-weight: 600; }
+
 /* 토스트 */
 .toast {
   position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px);

@@ -206,6 +206,19 @@
       </div>
     </div>
 
+    <!-- 시즌 종료 발표: 새 시즌 초반 최초 1회, 직전 시즌 각 분야 1위 -->
+    <div id="season-result-modal" class="modal-overlay" hidden>
+      <div class="modal-card season-result-card" role="dialog" aria-modal="true" aria-labelledby="season-result-title">
+        <h3 id="season-result-title">🏁</h3>
+        <p id="season-result-intro" class="modal-desc"></p>
+        <ol id="season-result-list" class="season-winners"></ol>
+        <div class="modal-actions">
+          <button id="season-result-close" class="btn ghost" type="button">닫기</button>
+          <button id="season-result-cta" class="btn primary" type="button">이번 시즌 도전하기</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 업데이트 공지: 사용자당 1회 노출 -->
     <div id="announce-modal" class="modal-overlay" hidden>
       <div class="modal-card announce-card" role="dialog" aria-modal="true" aria-labelledby="announce-title">
