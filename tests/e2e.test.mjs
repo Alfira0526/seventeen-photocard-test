@@ -335,6 +335,17 @@ test("시즌 배너: 말일 임박(D-3 이내)엔 '막판 순위 굳히기' 강�
   }, { now, languages: ["ko-KR", "ko"] });
 });
 
+test("시즌 배너: 종료 2시간 이내엔 실시간 카운트다운(H:MM:SS) 노출", { skip: !chromium }, async () => {
+  // 7월 종료 = 8/1 00:00 KST = 7/31 15:00 UTC. 그 1시간 전(=7/31 14:00 UTC).
+  const now = Date.parse("2026-07-31T14:00:00Z");
+  await withPage(async (page) => {
+    await page.waitForSelector("#season-banner.countdown", { timeout: 3000 });
+    const txt = await page.textContent("#season-banner");
+    assert.match(txt, /종료까지|Ends in|終了まで|距结束|Termina/);
+    assert.match(txt, /\d:\d\d:\d\d/, "H:MM:SS 카운트다운 형식 아님");
+  }, { now, languages: ["ko-KR", "ko"] });
+});
+
 test("명예의 전당: '분기 누적' 탭은 그 분기 월간 데이터를 합산해 표시", { skip: !chromium }, async () => {
   // 2026 Q3 = 7·8·9월. 7월·8월에 각각 시드 → 분기 탭에서 둘 다 합산
   const seed = [

@@ -77,6 +77,7 @@
       shareMode: { normal: "일반", endless: "무한", timeattack: "타임어택" },
       season: { beta: "오픈베타", firstChamp: "시즌 첫 챔피언", month: (m) => `${m}월`, quarter: (q) => `${q}분기`,
         champ: (nm) => `${nm} 1위`, endsIn: (d) => `종료 D-${d}`, final: (d) => `⏰ 마지막 ${d}일! 순위 굳히기`,
+        countdown: (t) => `⏰ 종료까지 ${t}`,
         tabMonth: "이번 달", tabQuarter: "분기 누적" },
       diffChip: { easy: "쉬움", normal: "보통", hard: "어려움", label: "난이도 골라 바로 시작" },
       tier: {
@@ -191,6 +192,7 @@
         month: (m) => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][m - 1],
         quarter: (q) => `Q${q}`, champ: (nm) => `${nm} #1`,
         endsIn: (d) => `ends in ${d}d`, final: (d) => `⏰ Final ${d} days! Lock your rank`,
+        countdown: (t) => `⏰ Ends in ${t}`,
         tabMonth: "This month", tabQuarter: "Quarter" },
       diffChip: { easy: "Easy", normal: "Normal", hard: "Hard", label: "Pick a difficulty & play" },
       tier: {
@@ -300,6 +302,7 @@
       shareMode: { normal: "通常", endless: "無限", timeattack: "タイムアタック" },
       season: { beta: "オープンβ", firstChamp: "初代チャンピオン", month: (m) => `${m}月`, quarter: (q) => `Q${q}`,
         champ: (nm) => `${nm} 1位`, endsIn: (d) => `終了 D-${d}`, final: (d) => `⏰ ラスト${d}日！ 順位を固めろ`,
+        countdown: (t) => `⏰ 終了まで ${t}`,
         tabMonth: "今月", tabQuarter: "四半期" },
       diffChip: { easy: "やさしい", normal: "普通", hard: "むずかしい", label: "難易度を選んで開始" },
       tier: {
@@ -409,6 +412,7 @@
       shareMode: { normal: "普通", endless: "无限", timeattack: "限时" },
       season: { beta: "公测", firstChamp: "首季冠军", month: (m) => `${m}月`, quarter: (q) => `第${q}季度`,
         champ: (nm) => `${nm}冠军`, endsIn: (d) => `距结束 ${d}天`, final: (d) => `⏰ 最后${d}天！ 锁定排名`,
+        countdown: (t) => `⏰ 距结束 ${t}`,
         tabMonth: "本月", tabQuarter: "本季度" },
       diffChip: { easy: "简单", normal: "普通", hard: "困难", label: "选难度直接开始" },
       tier: {
@@ -520,6 +524,7 @@
         month: (m) => ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"][m - 1],
         quarter: (q) => `T${q}`, champ: (nm) => `${nm} #1`,
         endsIn: (d) => `termina en ${d}d`, final: (d) => `⏰ ¡Últimos ${d} días! Asegura tu puesto`,
+        countdown: (t) => `⏰ Termina en ${t}`,
         tabMonth: "Este mes", tabQuarter: "Trimestre" },
       diffChip: { easy: "Fácil", normal: "Normal", hard: "Difícil", label: "Elige dificultad y juega" },
       tier: {

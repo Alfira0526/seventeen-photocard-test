@@ -7,6 +7,8 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { readFileSync } from "node:fs";
+import vm from "node:vm";
 
 const require = createRequire(import.meta.url);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -304,4 +306,41 @@ test("데이터 무결성: 4지선다를 만들 만큼 후보가 충분", () => 
   assert.ok(new Set(ALBUMS.map((a) => a.title)).size >= 4);
   assert.ok(new Set(ALBUMS.map((a) => a.titleTrack)).size >= 4);
   assert.ok(new Set(ALBUM_YEARS).size >= 2);
+});
+
+// ── season.js (KST 시즌 스케줄) ──
+const SEASON_SRC = readFileSync(resolve(root, "js/season.js"), "utf8");
+function loadSeason(nowMs) {
+  const ctx = { window: { __SVT_NOW: nowMs }, Date, Math };
+  vm.createContext(ctx);
+  vm.runInContext(SEASON_SRC, ctx);
+  return ctx.window.SVTSeason;
+}
+const UTC = Date.UTC;
+
+test("시즌: 종료 경계는 KST 말일 자정(=다음 달 1일 00:00 KST)", () => {
+  // 7/31 23:59:59 KST = 7/31 14:59:59 UTC → 아직 7월, 남은시간 > 0
+  const s1 = loadSeason(UTC(2026, 6, 31, 14, 59, 59));
+  assert.equal(s1.active().ym, "202607");
+  assert.ok(s1.msLeft() > 0, "말일 자정 직전인데 이미 종료됨");
+  // 8/1 00:00 KST = 7/31 15:00 UTC → 8월로 넘어감
+  const s2 = loadSeason(UTC(2026, 6, 31, 15, 0, 0));
+  assert.equal(s2.active().ym, "202608");
+});
+
+test("시즌: 공지(막판 강조)는 종료 2일 전부터, 3일 전엔 아직 아님", () => {
+  const end = UTC(2026, 7, 1) - 9 * 3600000; // 7월 종료 순간(UTC)
+  const d3 = loadSeason(end - 3 * 86400000 - 3600000); // 약 3일 전
+  assert.equal(d3.isFinalPush(), false, "3일 전인데 벌써 막판 강조");
+  const d2 = loadSeason(end - 1.5 * 86400000); // 약 1.5일 전(=D-2)
+  assert.equal(d2.isFinalPush(), true, "2일 전인데 막판 강조 안 켜짐");
+});
+
+test("시즌: 종료 2시간 이내 카운트다운 + H:MM:SS 포맷", () => {
+  const end = UTC(2026, 7, 1) - 9 * 3600000;
+  const far = loadSeason(end - 3 * 3600000); // 3시간 전 → 카운트다운 아님
+  assert.equal(far.isFinalCountdown(), false);
+  const near = loadSeason(end - (3600000 + 2 * 60000 + 3000)); // 1시간 2분 3초 전
+  assert.equal(near.isFinalCountdown(), true);
+  assert.equal(near.hms(), "1:02:03");
 });

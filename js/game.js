@@ -165,21 +165,44 @@
     startHallPoll(); // 시작화면에서 실시간 순위 갱신 시작
   }
 
-  // 시즌 종료 카운트다운 배너(막판 D-noticeDays 이내엔 '순위 굳히기' 강조)
+  // 시즌 종료 배너: 종료 2일 전부터 '순위 굳히기' 공지, 종료 2시간 전부터 실시간 카운트다운(H:MM:SS)
   function renderSeasonBanner() {
     const b = el["season-banner"];
     if (!b || !window.SVTSeason) return;
-    const s = window.SVTSeason.active();
-    const d = window.SVTSeason.daysLeft();
+    const S = window.SVTSeason;
     const name = activeMonthName(); // 오픈베타(7월) 또는 'M월'
-    if (window.SVTSeason.isFinalPush()) {
+    if (S.isFinalCountdown && S.isFinalCountdown()) {
+      b.className = "season-banner final countdown";
+      b.innerHTML = `<b>🏆 ${name}</b> · ${T.season.countdown(S.hms())}`;
+    } else if (S.isFinalPush()) {
       b.className = "season-banner final";
-      b.innerHTML = `<b>🏆 ${name}</b> · ${T.season.final(d)}`;
+      b.innerHTML = `<b>🏆 ${name}</b> · ${T.season.final(S.daysLeft())}`;
     } else {
       b.className = "season-banner";
-      b.innerHTML = `<b>🏆 ${name}</b> · ${T.season.endsIn(d)}`;
+      b.innerHTML = `<b>🏆 ${name}</b> · ${T.season.endsIn(S.daysLeft())}`;
     }
     b.hidden = false;
+    manageCountdownTick();
+  }
+  // 종료 2시간 이내에만 1초 간격으로 배너를 갱신(그 외 구간은 타이머 없음)
+  let cdTick = null;
+  function stopCountdownTick() { if (cdTick) { clearInterval(cdTick); cdTick = null; } }
+  function manageCountdownTick() {
+    const S = window.SVTSeason;
+    const onStart = el["screen-start"] && el["screen-start"].classList.contains("active");
+    const live = onStart && S && S.isFinalCountdown && S.isFinalCountdown();
+    if (live && !cdTick) {
+      cdTick = setInterval(function () {
+        try {
+          if (document.hidden || !el["screen-start"] || !el["screen-start"].classList.contains("active")
+              || !window.SVTSeason.isFinalCountdown()) { renderSeasonBanner(); return; }
+          const b = el["season-banner"];
+          if (b) b.innerHTML = `<b>🏆 ${activeMonthName()}</b> · ${T.season.countdown(window.SVTSeason.hms())}`;
+        } catch (e) {}
+      }, 1000);
+    } else if (!live && cdTick) {
+      stopCountdownTick();
+    }
   }
 
   // ── 시작: 모드 선택 ──
@@ -187,6 +210,7 @@
     stopTimer();
     stopHall();
     stopHallPoll(); // 플레이 시작하면 실시간 폴링 중지
+    stopCountdownTick(); // 시즌 카운트다운 갱신 중지
     state.mode = mode;
     // 난이도 밴드는 일반 모드에만 적용(무한·타임어택은 전체·배수 1.0)
     state.diff = (mode === "normal") ? (DIFF[band] || DIFF.normal) : DIFF.normal;
