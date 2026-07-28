@@ -180,22 +180,27 @@ test("다국어: 영어 선택 시 앨범 유형 보기도 영어로(한글 미�
   await withPage(async (page) => {
     await page.waitForSelector("#lang-select");
     await page.selectOption("#lang-select", "en");
-    await page.click('.mode-btn[data-mode="normal"]');
-    await page.waitForSelector("#screen-play.active");
+    // 유형 문제는 랜덤 출제라 한 판에 안 나올 수 있음 → 여러 판 반복(플래키 방지)
     let sawType = false;
-    for (let r = 0; r < 20; r++) {
-      const label = await page.$eval(".q-label", (e) => e.textContent);
-      if (/type of release|numbered album/i.test(label)) {
-        sawType = true;
-        const choices = await page.$$eval("#question .choice", (els) => els.map((e) => e.textContent));
-        for (const ch of choices) assert.doesNotMatch(ch, /[가-힣]/, `유형 보기에 한글: ${ch}`);
+    for (let game = 0; game < 12 && !sawType; game++) {
+      await page.waitForSelector("#screen-start.active");
+      await page.click('.mode-btn[data-mode="normal"]');
+      await page.waitForSelector("#screen-play.active");
+      for (let r = 0; r < 20; r++) {
+        const label = await page.$eval(".q-label", (e) => e.textContent);
+        if (/type of release|numbered album/i.test(label)) {
+          sawType = true;
+          const choices = await page.$$eval("#question .choice", (els) => els.map((e) => e.textContent));
+          for (const ch of choices) assert.doesNotMatch(ch, /[가-힣]/, `유형 보기에 한글: ${ch}`);
+        }
+        await page.click("#question .choice:first-child");
+        await page.waitForSelector("#btn-next:not([disabled])");
+        await page.click("#btn-next");
+        if (await page.$("#screen-result.active")) break;
       }
-      await page.click("#question .choice:first-child");
-      await page.waitForSelector("#btn-next:not([disabled])");
-      await page.click("#btn-next");
-      if (await page.$("#screen-result.active")) break;
+      if (!sawType) { await page.click("#btn-home"); } // 다음 판을 위해 시작화면 복귀
     }
-    assert.ok(sawType, "유형 문제가 한 번도 안 나옴(20문제)");
+    assert.ok(sawType, "유형 문제가 12판 내내 안 나옴");
   });
 });
 

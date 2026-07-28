@@ -93,8 +93,8 @@ const ALBUMS = [
  */
 const TRACKLISTS = {
   al1: [
-    { title: "Don't Wanna Cry" },
-    { title: "Habit", unit: "vocal" },
+    { title: "울고 싶지 않아 (Don't Wanna Cry)" },
+    { title: "입버릇 (Habit)", unit: "vocal" },
     { title: "If I", unit: "hiphop" },
     { title: "Swimming Fool", unit: "performance" },
     { title: "My I" },
@@ -103,16 +103,16 @@ const TRACKLISTS = {
     { title: "Check-In" },
   ],
   teenage: [
-    { title: "CLAP" },
+    { title: "박수 (CLAP)" },
     { title: "Change Up" },
     { title: "Trauma", unit: "hiphop" },
-    { title: "Lilili Yabbay", unit: "performance" },
-    { title: "Pinwheel", unit: "vocal" },
+    { title: "13월의 춤 (Lilili Yabbay)", unit: "performance" },
+    { title: "바람개비 (Pinwheel)", unit: "vocal" },
   ],
   anode: [
     { title: "Hit" },
-    { title: "Lie Again" },
-    { title: "Fear" },
+    { title: "거짓말을 해 (Lie Again)" },
+    { title: "독 (Fear)" },
     { title: "Let Me Hear You Say" },
     { title: "247", unit: "performance" },
     { title: "Second Life", unit: "vocal" },
@@ -125,10 +125,10 @@ const TRACKLISTS = {
   henggarae: [
     { title: "Fearless" },
     { title: "Left & Right" },
-    { title: "I Wish" },
+    { title: "좋겠다 (I Wish)" },
     { title: "My My" },
-    { title: "Kidult" },
-    { title: "Together" },
+    { title: "어른 아이 (Kidult)" },
+    { title: "같이 가요 (Together)" },
   ],
   yourchoice: [
     { title: "Heaven's Cloud" },
@@ -136,7 +136,7 @@ const TRACKLISTS = {
     { title: "Anyone" },
     { title: "GAM3 BO1" },
     { title: "Wave" },
-    { title: "Same dream, same mind, same night" },
+    { title: "같은 꿈, 같은 맘, 같은 밤 (Same dream, same mind, same night)" },
   ],
 };
 
