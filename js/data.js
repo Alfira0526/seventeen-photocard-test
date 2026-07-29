@@ -81,7 +81,7 @@ const ALBUMS = [
   // draft:true 는 프로덕션에 출제되지 않는다. 테스트베드 🧪 검수 모드에서 확인 후,
   // 이상 없으면 draft 를 제거하고 승격(promote)하면 프로덕션에 반영된다. (docs/QUESTION_REVIEW.md)
   { id: "jp_fallinflower", title: "Fallin' Flower", year: 2020, type: "일본 싱글",   titleTrack: "Fallin' Flower", itunes: "SEVENTEEN Fallin Flower", draft: true },
-  { id: "jp_dream",        title: "DREAM",          year: 2023, type: "일본 베스트", titleTrack: "DREAM",          itunes: "SEVENTEEN DREAM",        draft: true },
+  { id: "jp_dream",        title: "DREAM",          year: 2022, type: "일본 미니 1집", titleTrack: "DREAM",          itunes: "SEVENTEEN DREAM",        draft: true },
 ];
 
 /**
