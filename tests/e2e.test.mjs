@@ -78,6 +78,15 @@ async function playThrough(page, pick = "first-child") {
   await page.waitForSelector("#screen-result.active");
 }
 
+// 언어는 이제 ⚙️ 설정 패널 안의 셀렉터로 고른다 → 모달을 열고 선택 후 닫는다.
+async function openSettingsAndPick(page, code) {
+  await page.click("#settings-open");
+  await page.waitForSelector("#settings-modal:not([hidden]) #lang-select");
+  await page.selectOption("#lang-select", code);
+  await page.click("#settings-close");
+  await page.waitForSelector("#settings-modal", { state: "hidden" });
+}
+
 test("일반 모드: 완주 → 결과·공유카드 렌더", { skip: !chromium }, async () => {
   await withPage(async (page) => {
     await page.click('.mode-btn[data-mode="normal"]');
@@ -164,9 +173,8 @@ test("다국어: 자동 감지(한국어권) → 영문 병기 표시", { skip: 
 
 test("다국어: 특정 언어 직접 선택 시 병기 사라짐(단독 표기)", { skip: !chromium }, async () => {
   await withPage(async (page) => {
-    await page.waitForSelector("#lang-select");
     // 자동은 병기였지만, 사용자가 한국어를 직접 고르면 영문 보조가 사라져야 함
-    await page.selectOption("#lang-select", "ko");
+    await openSettingsAndPick(page, "ko");
     const tagHtml = await page.$eval('[data-i18n="tagline"]', (e) => e.innerHTML);
     assert.doesNotMatch(tagHtml, /i18n-sub/, "직접 선택했는데 영문 병기가 남아있음");
     await page.click('.mode-btn[data-mode="normal"]');
@@ -178,8 +186,7 @@ test("다국어: 특정 언어 직접 선택 시 병기 사라짐(단독 표기)
 
 test("다국어: 영어 선택 시 앨범 유형 보기도 영어로(한글 미노출)", { skip: !chromium }, async () => {
   await withPage(async (page) => {
-    await page.waitForSelector("#lang-select");
-    await page.selectOption("#lang-select", "en");
+    await openSettingsAndPick(page, "en");
     // 유형 문제는 랜덤 출제라 한 판에 안 나올 수 있음 → 여러 판 반복(플래키 방지)
     let sawType = false;
     for (let game = 0; game < 12 && !sawType; game++) {
@@ -206,8 +213,7 @@ test("다국어: 영어 선택 시 앨범 유형 보기도 영어로(한글 미�
 
 test("다국어: 영어 선택 시 단일 언어(병기 없음)", { skip: !chromium }, async () => {
   await withPage(async (page) => {
-    await page.waitForSelector("#lang-select");
-    await page.selectOption("#lang-select", "en");
+    await openSettingsAndPick(page, "en");
     const tagHtml = await page.$eval('[data-i18n="tagline"]', (e) => e.innerHTML);
     assert.doesNotMatch(tagHtml, /i18n-sub/, "영어 단일인데 병기 스팬이 있음");
     const modeT = await page.textContent('[data-i18n="modeNormalT"]');

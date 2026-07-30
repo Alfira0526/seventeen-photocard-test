@@ -36,8 +36,25 @@
   </head>
   <body>
     <div class="top-controls">
-      <select id="lang-select" class="lang-select" aria-label="Language"></select>
-      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="테마 전환" data-i18n-attr="title:themeTitle" title="라이트/다크 전환">🌙</button>
+      <button id="settings-open" class="settings-btn" type="button" aria-label="설정" aria-haspopup="dialog" title="설정">⚙️</button>
+    </div>
+    <div id="settings-modal" class="modal-overlay" hidden>
+      <div class="modal-card settings-card" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <h3 id="settings-title">⚙️ 설정</h3>
+        <div class="settings-row">
+          <label class="settings-label" id="settings-lang-label" for="lang-select">언어</label>
+          <select id="lang-select" class="lang-select" aria-label="Language"></select>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label" id="settings-theme-label">테마</span>
+          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="테마 전환" data-i18n-attr="title:themeTitle" title="라이트/다크 전환">🌙</button>
+        </div>
+        <div class="settings-row" id="settings-bi-row">
+          <span class="settings-label" id="settings-bi-label">영문 병기</span>
+          <button id="bi-toggle" class="bi-toggle" type="button" role="switch" aria-checked="true">ON</button>
+        </div>
+        <button id="settings-close" class="btn-secondary settings-close" type="button">닫기</button>
+      </div>
     </div>
     <main class="app">
       <!-- 시작 화면 -->

@@ -76,8 +76,19 @@
   function ytctx(rng) {
     return Object.assign({ ytSongs: YTS, albums: ALBUMS, years: ALBUM_YEARS, n: CONFIG.choices, rng }, diffRange());
   }
-  const LS = { theme: "svt-theme", ranking: "svt-ranking", name: "svt-name",
+  const LS = { theme: "svt-theme", ranking: "svt-ranking", name: "svt-name", bi: "svt-bi",
     seasonResult: "svt-season-result" + (window.SVT_DATA_PREFIX ? "-staging" : "") + "-" };
+
+  // 설정 패널 전용 문구(로케일 트리와 분리 · 7개 언어). 값이 없으면 en 폴백.
+  const SETTINGS_L10N = {
+    ko: { title: "⚙️ 설정", lang: "언어", theme: "테마", bi: "영문 병기", close: "닫기" },
+    en: { title: "⚙️ Settings", lang: "Language", theme: "Theme", bi: "Show English", close: "Close" },
+    ja: { title: "⚙️ 設定", lang: "言語", theme: "テーマ", bi: "英語併記", close: "閉じる" },
+    zh: { title: "⚙️ 设置", lang: "语言", theme: "主题", bi: "同时显示英文", close: "关闭" },
+    es: { title: "⚙️ Ajustes", lang: "Idioma", theme: "Tema", bi: "Mostrar inglés", close: "Cerrar" },
+    th: { title: "⚙️ ตั้งค่า", lang: "ภาษา", theme: "ธีม", bi: "แสดงภาษาอังกฤษ", close: "ปิด" },
+    pt: { title: "⚙️ Configurações", lang: "Idioma", theme: "Tema", bi: "Mostrar inglês", close: "Fechar" },
+  };
 
   const state = {
     mode: "normal",
@@ -128,6 +139,7 @@
       "question", "question-note", "feedback",
       "result-score", "result-detail", "result-canvas",
       "theme-toggle", "lang-select",
+      "settings-open", "settings-modal", "settings-close", "settings-title", "settings-lang-label", "settings-theme-label", "settings-bi-label", "settings-bi-row", "bi-toggle",
       "btn-report", "btn-report-result", "btn-report-play", "report-modal", "report-ctx", "report-text", "report-cancel", "report-send",
     ].forEach((id) => (el[id] = document.getElementById(id)));
   }
@@ -1117,19 +1129,63 @@
     sel.innerHTML = I18N.SUPPORTED.map((c) => `<option value="${c}">${I18N.LANG_NAMES[c]}</option>`).join("");
     sel.value = I18N.locale;
     sel.addEventListener("change", () => {
-      if (window.SVTGeo) window.SVTGeo.choose(sel.value);
-      else I18N.setLocale(sel.value);
+      const code = sel.value;
+      if (window.SVTGeo) window.SVTGeo.choose(code);
+      else I18N.setLocale(code, false);
+      applyBiPref(code); // 저장된 '영문 병기' 선호가 있으면 반영
     });
   }
   function syncLangUI() { if (el["lang-select"]) el["lang-select"].value = I18N.locale; }
+
+  // ── 설정 패널(⚙️): 언어·테마·영문 병기 on/off ──
+  function biPref() { return store.get(LS.bi); } // "1"(켬) | "0"(끔) | null(미설정)
+  function applyBiPref(code) {
+    const p = biPref();
+    if (p === "1") I18N.setLocale(code, true);
+    else if (p === "0") I18N.setLocale(code, false);
+  }
+  function buildSettingsUI() {
+    const openM = () => { if (el["settings-modal"]) el["settings-modal"].hidden = false; };
+    const closeM = () => { if (el["settings-modal"]) el["settings-modal"].hidden = true; };
+    if (el["settings-open"]) el["settings-open"].addEventListener("click", openM);
+    if (el["settings-close"]) el["settings-close"].addEventListener("click", closeM);
+    if (el["settings-modal"]) el["settings-modal"].addEventListener("click", (e) => { if (e.target === el["settings-modal"]) closeM(); });
+    if (el["bi-toggle"]) el["bi-toggle"].addEventListener("click", () => {
+      const on = !I18N.bilingual;
+      store.set(LS.bi, on ? "1" : "0");
+      I18N.setLocale(I18N.locale, on); // onChange → applySettingsL10n + syncBiToggle 재실행
+    });
+    applySettingsL10n();
+    syncBiToggle();
+  }
+  function applySettingsL10n() {
+    const s = SETTINGS_L10N[I18N.locale] || SETTINGS_L10N.en;
+    if (el["settings-open"]) el["settings-open"].setAttribute("aria-label", s.title);
+    if (el["settings-title"]) el["settings-title"].textContent = s.title;
+    if (el["settings-lang-label"]) el["settings-lang-label"].textContent = s.lang;
+    if (el["settings-theme-label"]) el["settings-theme-label"].textContent = s.theme;
+    if (el["settings-bi-label"]) el["settings-bi-label"].textContent = s.bi;
+    if (el["settings-close"]) el["settings-close"].textContent = s.close;
+  }
+  function syncBiToggle() {
+    // 'en'(영어 단독)은 병기 개념이 없어 행 숨김
+    if (el["settings-bi-row"]) el["settings-bi-row"].hidden = (I18N.locale === "en");
+    if (el["bi-toggle"]) {
+      const on = !!I18N.bilingual;
+      el["bi-toggle"].setAttribute("aria-checked", on ? "true" : "false");
+      el["bi-toggle"].classList.toggle("on", on);
+      el["bi-toggle"].textContent = on ? "ON" : "OFF";
+    }
+  }
 
   // ── 초기화 ──
   function init() {
     cacheDom();
     initTheme();
     buildLangUI();
+    buildSettingsUI();
     applyStatic();
-    I18N.onChange(() => { applyStatic(); syncLangUI(); refreshHall(); });
+    I18N.onChange(() => { applyStatic(); syncLangUI(); applySettingsL10n(); syncBiToggle(); refreshHall(); });
     document.querySelectorAll(".mode-btn").forEach((b) =>
       b.addEventListener("click", () => { if (!b.disabled) startMode(b.dataset.mode); }));
     // 난이도 칩: 원탭으로 그 난이도의 일반 모드 시작
@@ -1155,6 +1211,7 @@
       if (e.key !== "Escape" && e.key !== "Esc") return;
       if (el["hall-modal"] && !el["hall-modal"].hidden) closeHallModal();
       if (el["season-result-modal"] && !el["season-result-modal"].hidden) closeSeasonResult();
+      if (el["settings-modal"] && !el["settings-modal"].hidden) el["settings-modal"].hidden = true;
     });
     if (el["btn-hud-home"]) el["btn-hud-home"].addEventListener("click", () => {
       const msg = I18N.raw(I18N.locale).ui.quitConfirm;
@@ -1179,7 +1236,9 @@
     goHome();
     // 접속 지역(IP) 기반 로케일 보정 — IP가 브라우저 언어보다 우선(사용자가 직접 고른 경우 제외)
     // 시작화면이면 정적 문구가 즉시 갱신되고, 플레이 중이면 다음 문제부터 반영됨.
-    if (window.SVTGeo) window.SVTGeo.init((code) => I18N.setLocale(code));
+    if (window.SVTGeo) window.SVTGeo.init((code) => { I18N.setLocale(code); applyBiPref(code); });
+    // 저장된 '영문 병기' 선호를 초기 로케일에 반영(geo 유무 무관)
+    applyBiPref(I18N.locale);
   }
 
   document.addEventListener("DOMContentLoaded", init);
