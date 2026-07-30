@@ -1,7 +1,7 @@
 /**
  * i18n — 다국어 + 병기(영문 + 접속지역 언어) 엔진.
  *
- * 지원 로케일: ko(한국어) · en(English) · ja(日本語) · zh(简体中文) · es(Español)
+ * 지원 로케일(선택기 우선순위 순): ko(한국어) · ja(日本語) · en(English) · zh(简体中文) · es(Español)
  * 영문(en)을 기준(anchor)으로 두고, 감지된 지역 언어를 주(主)로, 영문을 보조로 병기한다.
  *   - I18N.t         : 현재 로케일의 "병기 HTML" 문자열/함수 트리 (DOM innerHTML 용, 안정 참조)
  *   - I18N.raw(code) : 특정 로케일의 단일언어 원본(캔버스·공유텍스트 등 평문 용)
@@ -645,7 +645,8 @@
     },
   };
 
-  const SUPPORTED = ["ko", "en", "ja", "zh", "es"];
+  // 언어 선택기 노출 순서(= 우선순위). 일본어를 한국어 다음으로 상향(주요 팬덤 시장).
+  const SUPPORTED = ["ko", "ja", "en", "zh", "es"];
   const LANG_NAMES = { ko: "한국어", en: "English", ja: "日本語", zh: "中文", es: "Español" };
 
   // 국가 코드 → 로케일(감지 보조). 없으면 언어태그로 폴백.
