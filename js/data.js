@@ -77,11 +77,8 @@ const ALBUMS = [
   { id: "dino_wait",     title: "Wait",               year: 2023, type: "믹스테이프", titleTrack: "Wait",                   itunes: "Wait", artist: "DINO" },
   { id: "wonu_mingyu_bittersweet", title: "Bittersweet", year: 2021, type: "디지털 싱글", titleTrack: "Bittersweet (feat. 이하이)", itunes: "Bittersweet", artist: "WONWOO" },
 
-  // ── 검수 대기(draft) 예시 ──────────────────────────────────────────────
-  // draft:true 는 프로덕션에 출제되지 않는다. 테스트베드 🧪 검수 모드에서 확인 후,
-  // 이상 없으면 draft 를 제거하고 승격(promote)하면 프로덕션에 반영된다. (docs/QUESTION_REVIEW.md)
-  { id: "jp_fallinflower", title: "Fallin' Flower", year: 2020, type: "일본 싱글",   titleTrack: "Fallin' Flower", itunes: "SEVENTEEN Fallin Flower", draft: true },
-  { id: "jp_dream",        title: "DREAM",          year: 2022, type: "일본 미니 1집", titleTrack: "DREAM",          itunes: "SEVENTEEN DREAM",        draft: true },
+  { id: "jp_fallinflower", title: "Fallin' Flower", year: 2020, type: "일본 싱글",   titleTrack: "Fallin' Flower", itunes: "SEVENTEEN Fallin Flower" },
+  { id: "jp_dream",        title: "DREAM",          year: 2022, type: "일본 미니 1집", titleTrack: "DREAM",          itunes: "SEVENTEEN DREAM" },
 ];
 
 /**
