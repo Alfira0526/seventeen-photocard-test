@@ -83,5 +83,120 @@
     "text": "1집 정규 리패키지 앨범인데 정답이 정규앨범으로 되어있어요",
     "ts": 1785109544674,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_5_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/23F84 Twitter for iPhone/12.11.1"
+  },
+  {
+    "id": "-OyX7BflCnpaTfI4oIvh",
+    "ctx": {
+      "cardId": "al1",
+      "cardKind": "album",
+      "choices": [
+        "민규",
+        "승관",
+        "버논",
+        "에스쿱스"
+      ],
+      "correct": "버논",
+      "difficulty": 3,
+      "label": "‘울고 싶지 않아 (Don't Wanna Cry)’ 작사에 참여한 멤버는 누구일까요? Who helped write ‘울고 싶지 않아 (Don't Wanna Cry)’?",
+      "mode": "normal",
+      "typeId": "lyricist"
+    },
+    "locale": "ko",
+    "status": "open",
+    "text": "작사에 참여한 멤버는 우지,쿱스,정한,호시입니다",
+    "ts": 1785131485383,
+    "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/30.0 Chrome/143.0.0.0 Mobile Safari/537.36"
+  },
+  {
+    "id": "-OyY4yrsSnOdaWuRIqaY",
+    "ctx": {
+      "cardId": "al1",
+      "cardKind": "album",
+      "choices": [
+        "버논",
+        "승관",
+        "조슈아",
+        "에스쿱스"
+      ],
+      "correct": "버논",
+      "difficulty": 3,
+      "label": "‘울고 싶지 않아 (Don't Wanna Cry)’ 작사에 참여한 멤버는 누구일까요? Who helped write ‘울고 싶지 않아 (Don't Wanna Cry)’?",
+      "mode": "normal",
+      "typeId": "lyricist"
+    },
+    "locale": "ko",
+    "status": "open",
+    "text": "버논이 아니고 에스쿱스,호시,정한,우지입니다",
+    "ts": 1785147681481,
+    "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_5_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/23F84 Twitter for iPhone/12.11.1"
+  },
+  {
+    "id": "-OyZAPKnq9v3Jdtej58x",
+    "ctx": {
+      "cardId": "al1",
+      "cardKind": "album",
+      "choices": [
+        "에스쿱스",
+        "준",
+        "민규",
+        "버논"
+      ],
+      "correct": "버논",
+      "difficulty": 3,
+      "label": "‘울고 싶지 않아 (Don't Wanna Cry)’ 작사에 참여한 멤버는 누구일까요? Who helped write ‘울고 싶지 않아 (Don't Wanna Cry)’?",
+      "mode": "timeattack",
+      "typeId": "lyricist"
+    },
+    "locale": "ko",
+    "status": "open",
+    "text": "에스쿱스",
+    "ts": 1785165882088,
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+  },
+  {
+    "id": "-OynEkNTg9Xyf1ejnT-C",
+    "ctx": {
+      "cardId": "the8",
+      "cardKind": "member",
+      "choices": [
+        "호시",
+        "준",
+        "디노",
+        "버논"
+      ],
+      "correct": "버논",
+      "difficulty": 3,
+      "label": "디에잇 과 다른 유닛 인 멤버는? Who is in a different unit from The8 ?",
+      "mode": "endless",
+      "typeId": "memberRoster"
+    },
+    "locale": "ko",
+    "status": "open",
+    "text": "퍼포 보컬 힙합으로 유닛 분류하는 것은 알지만, 이제 버논과 명호도 같은 유닛이라서 문제와 답안에 모순이 생기네요 ㅠㅠㅋㅋㅋ",
+    "ts": 1785418679270,
+    "ua": "Mozilla/5.0 (iPad; CPU OS 18_6_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/150.0.7871.51 Mobile/15E148 Safari/604.1"
+  },
+  {
+    "id": "-OynKoHycvzKke4nr_7i",
+    "ctx": {
+      "cardId": "dk",
+      "cardKind": "member",
+      "choices": [
+        "조슈아",
+        "우지",
+        "정한",
+        "디노"
+      ],
+      "correct": "디노",
+      "difficulty": 3,
+      "label": "도겸 과 다른 유닛 인 멤버는? Who is in a different unit from DK ?",
+      "mode": "endless",
+      "typeId": "memberRoster"
+    },
+    "locale": "ko",
+    "status": "open",
+    "text": "해당 문제에 오류가 있는 건 아니지만, 제보하기 버튼을 누르면 답안까지 함께 나와버리는 건 수정 불가능한 부분인가요!",
+    "ts": 1785420268140,
+    "ua": "Mozilla/5.0 (iPad; CPU OS 18_6_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/150.0.7871.51 Mobile/15E148 Safari/604.1"
   }
 ]
