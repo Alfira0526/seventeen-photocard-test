@@ -284,7 +284,7 @@ const TRACKLISTS = {
 };
 
 const TITLE_LYRICISTS = {
-  al1: ["woozi", "vernon", "hoshi", "jeonghan"], // Don't Wanna Cry
+  al1: ["woozi", "scoups", "hoshi", "jeonghan"], // Don't Wanna Cry
   anode: ["woozi", "scoups", "vernon"], // Fear
   henggarae: ["woozi", "vernon"], // Left & Right
   fml: ["woozi", "scoups", "vernon"], // Super
