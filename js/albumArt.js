@@ -27,5 +27,7 @@ window.SVTArt = {
   "woozi_ruby": "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/25/fb/ea/25fbea1f-87c0-4c0c-92e7-43eaafd104f5/192641819964_Cover.jpg/600x600bb.jpg",
   "vernon_blackeye": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/06/23/3c/06233c72-7f95-9ab8-f884-94f8a318bd15/196922282140_Cover.jpg/600x600bb.jpg",
   "dino_wait": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/63/6d/a0/636da08d-ae57-f64b-51a7-b4110a2ed872/196922722578_Cover.jpg/600x600bb.jpg",
-  "wonu_mingyu_bittersweet": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/43/f1/3e/43f13eb9-c323-ca37-b43b-549f5d1e4a64/192641603914_Cover.jpg/600x600bb.jpg"
+  "wonu_mingyu_bittersweet": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/43/f1/3e/43f13eb9-c323-ca37-b43b-549f5d1e4a64/192641603914_Cover.jpg/600x600bb.jpg",
+  "jp_fallinflower": "https://is1-ssl.mzstatic.com/image/thumb/Music113/v4/ff/b7/47/ffb747fe-3c24-7774-1ad9-2d5e6b071992/20UMGIM17491.rgb.jpg/600x600bb.jpg",
+  "jp_dream": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/61/c3/5c/61c35c39-7926-8a7d-5722-bc0c56937a22/22UM1IM08530.rgb.jpg/600x600bb.jpg"
 };

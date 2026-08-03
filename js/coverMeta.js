@@ -81,5 +81,11 @@ window.SVTCoverMeta = {
   },
   "wonu_mingyu_bittersweet": {
     "titleOnCover": false
+  },
+  "jp_fallinflower": {
+    "titleOnCover": false
+  },
+  "jp_dream": {
+    "titleOnCover": true
   }
 };
