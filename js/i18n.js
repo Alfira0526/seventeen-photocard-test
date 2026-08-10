@@ -84,6 +84,8 @@
       trivia: {
         "lyricist__album_al1": "사실 '울고 싶지 않아'는 우지·에스쿱스·호시·정한 4명이 함께 썼어요!",
         "titleTrack__album_fml": "FML은 '손오공(Super)'과 'F*ck My Life' 더블 타이틀곡이에요.",
+        "titleTrack__album_v8_ep": "V8은 버논·디에잇의 유닛이에요(6번째 서브유닛). 리드곡 'singasong'은 하이퍼팝이고 Mechatok이 공동 프로듀싱했어요.",
+        "album__album_v8_ep": "V8은 'Vernon'의 V + 'THE8'의 8 · 2026년 데뷔한 버논·디에잇 유닛이에요.",
       },
       shareMode: { normal: "일반", endless: "무한", timeattack: "타임어택" },
       season: { beta: "오픈베타", firstChamp: "시즌 첫 챔피언", month: (m) => `${m}월`, quarter: (q) => `${q}분기`,
@@ -208,6 +210,8 @@
       trivia: {
         "lyricist__album_al1": "Actually 'Don't Wanna Cry' was co-written by Woozi, S.Coups, Hoshi & Jeonghan!",
         "titleTrack__album_fml": "FML has double title tracks: 'Super' and 'F*ck My Life'.",
+        "titleTrack__album_v8_ep": "V8 is Vernon & THE8's unit (the 6th sub-unit). Lead single 'singasong' is hyperpop, co-produced by Mechatok.",
+        "album__album_v8_ep": "V8 = the 'V' from Vernon + the '8' from THE8 — the duo's unit, debuted 2026.",
       },
       shareMode: { normal: "Normal", endless: "Endless", timeattack: "Time Attack" },
       season: { beta: "Open Beta", firstChamp: "First Champion",

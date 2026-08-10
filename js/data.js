@@ -77,8 +77,16 @@ const ALBUMS = [
   { id: "dino_wait",     title: "Wait",               year: 2023, type: "믹스테이프", titleTrack: "Wait",                   itunes: "Wait", artist: "DINO" },
   { id: "wonu_mingyu_bittersweet", title: "Bittersweet", year: 2021, type: "디지털 싱글", titleTrack: "Bittersweet (feat. 이하이)", itunes: "Bittersweet", artist: "WONWOO" },
 
+  // 일본 앨범(주간 리뷰에서 검수 후 프로덕션 승격됨)
   { id: "jp_fallinflower", title: "Fallin' Flower", year: 2020, type: "일본 싱글",   titleTrack: "Fallin' Flower", itunes: "SEVENTEEN Fallin Flower" },
   { id: "jp_dream",        title: "DREAM",          year: 2022, type: "일본 미니 1집", titleTrack: "DREAM",          itunes: "SEVENTEEN DREAM" },
+
+  // ── 검수 대기(draft) ──────────────────────────────────────────────────
+  // draft:true 는 프로덕션에 출제되지 않는다. 테스트베드 🧪 검수 모드에서 확인 후,
+  // 이상 없으면 draft 를 제거하고 승격(promote)하면 프로덕션에 반영된다. (docs/QUESTION_REVIEW.md)
+  // V8 = 버논+디에잇 유닛(6번째 서브유닛), 2026-06-29 데뷔 EP. 리드곡 "singasong"(하이퍼팝, 공동 프로듀서 Mechatok).
+  // 웹 교차검증: Wikipedia·Korea Times·Forbes 등. 검수 후 type/itunes id 확정하여 승격 예정.
+  { id: "v8_ep",           title: "V8",             year: 2026, type: "유닛 미니앨범", titleTrack: "singasong",      itunes: "SEVENTEEN V8 Vernon THE8", artist: "V8 (Vernon, THE8)", draft: true },
 ];
 
 /**

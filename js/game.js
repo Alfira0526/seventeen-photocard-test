@@ -90,6 +90,12 @@
     pt: { title: "⚙️ Configurações", lang: "Idioma", theme: "Tema", bi: "Mostrar inglês", close: "Fechar" },
   };
 
+  // 테마 칩(초창기 자켓 모드) 라벨 — 로케일 트리와 분리 · 7개 언어(연도 소제목은 공용).
+  const ERA_L10N = {
+    ko: { early: "🕰️ 초창기" }, en: { early: "🕰️ Early era" }, ja: { early: "🕰️ 初期" },
+    zh: { early: "🕰️ 初期" }, es: { early: "🕰️ Época inicial" }, th: { early: "🕰️ ยุคแรก" }, pt: { early: "🕰️ Início" },
+  };
+
   const state = {
     mode: "normal",
     rng: Math.random,
@@ -225,7 +231,7 @@
   }
 
   // ── 시작: 모드 선택 ──
-  function startMode(mode, band) {
+  function startMode(mode, band, era) {
     stopTimer();
     stopHall();
     stopHallPoll(); // 플레이 시작하면 실시간 폴링 중지
@@ -248,7 +254,15 @@
         .filter((m) => availableMemberTypes(m, mctx(state.rng)).length >= 1)
         .map((m) => ({ kind: "member", ref: m }));
       const ytCards = YTS.map((s) => ({ kind: "yt", ref: s }));
-      state.pool = albumCards.concat(memberCards, ytCards);
+      if (era === "early") {
+        // 초창기 자켓 모드: 2015~2017 앨범 자켓만 집중(저인지도 초기 앨범 재조명).
+        // 보기(오답)는 전체 앨범에서 생성되므로 그대로 성립. 랭킹은 일반과 통합(배수 1.0).
+        state.pool = albumCards.filter((cd) => cd.ref.year && cd.ref.year <= 2017);
+        state.era = "early";
+      } else {
+        state.pool = albumCards.concat(memberCards, ytCards);
+        state.era = null;
+      }
     }
 
     state.round = 0; state.score = 0; state.correct = 0; state.over = false; state.answers = []; state.combo = 0;
@@ -977,7 +991,9 @@
     const R = I18N.raw(I18N.locale);
     const c = state.cur;
     if (c && el["screen-play"].classList.contains("active")) {
-      el["report-ctx"].textContent = `${R.ui.reportCtxLabel}: ${c.label}` + (c.correct != null ? ` · ✔ ${c.correct}` : "");
+      // 아직 안 푼 문제는 정답을 숨긴다(제보 버튼으로 정답이 노출되던 문제 수정).
+      const answered = el["question"] && el["question"].dataset.answered === "true";
+      el["report-ctx"].textContent = `${R.ui.reportCtxLabel}: ${c.label}` + (answered && c.correct != null ? ` · ✔ ${c.correct}` : "");
       el["report-ctx"].hidden = false;
     } else {
       el["report-ctx"].hidden = true;
@@ -1114,6 +1130,11 @@
     });
     const drl = document.getElementById("diff-row-label");
     if (drl && dc.label) drl.textContent = "🎲 " + dc.label;
+    // 테마 칩(초창기) 라벨
+    const era = ERA_L10N[I18N.locale] || ERA_L10N.en;
+    document.querySelectorAll("[data-era-label]").forEach((n) => {
+      const k = n.getAttribute("data-era-label"); if (era[k] != null) n.textContent = era[k];
+    });
     // 검수 모드(테스트베드 전용): 노출 + 신규 문제 수 라벨
     if (el["mode-review"] && IS_STAGING) {
       el["mode-review"].hidden = false;
@@ -1191,9 +1212,12 @@
     // 난이도 칩: 원탭으로 그 난이도의 일반 모드 시작
     document.querySelectorAll(".diff-chip").forEach((c) =>
       c.addEventListener("click", () => startMode("normal", c.dataset.diff)));
+    // 테마 칩(초창기 자켓 등): 원탭으로 해당 테마의 일반 모드 시작
+    document.querySelectorAll(".era-chip").forEach((c) =>
+      c.addEventListener("click", () => startMode("normal", "normal", c.dataset.era)));
     el["btn-next"].addEventListener("click", nextRound);
     // 한 판 더: 방금 한 모드로 바로 재시작 / 처음으로: 시작화면 복귀
-    el["btn-restart"].addEventListener("click", () => { stopTimer(); startMode(state.mode); });
+    el["btn-restart"].addEventListener("click", () => { stopTimer(); startMode(state.mode, null, state.era); });
     el["btn-home"].addEventListener("click", () => { stopTimer(); goHome(); });
     if (el["btn-legacy"]) el["btn-legacy"].addEventListener("click", () => { rankLegacy = !rankLegacy; renderRankList(); });
     if (el["hall-tab-month"]) el["hall-tab-month"].addEventListener("click", () => { hallView = "month"; refreshHall(); });

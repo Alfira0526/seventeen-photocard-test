@@ -477,3 +477,31 @@ test("업데이트 공지: 최초 1회 노출 → 닫으면 재방문 시 미노
     assert.ok(!shown, "재방문인데 공지가 다시 뜸");
   }, { showAnnounce: true });
 });
+
+test("초창기 모드: 🕰️ 칩으로 일반 모드 시작(2015~17 자켓 집중)", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.click('.era-chip[data-era="early"]');
+    await page.waitForSelector("#screen-play.active");
+    // era 칩은 난이도 칩과 분리 → .diff-chip 셀렉터에 섞이지 않아야 함
+    const diffs = await page.$$eval(".diff-chip", (els) => els.map((e) => e.dataset.diff));
+    assert.deepEqual([...diffs].sort(), ["easy", "hard", "normal"], "era 칩이 .diff-chip 로 잡힘");
+  });
+});
+
+test("제보: 플레이 중 아직 안 푼 문제는 정답(✔) 미노출, 답한 뒤엔 노출", { skip: !chromium }, async () => {
+  await withPage(async (page) => {
+    await page.click('.mode-btn[data-mode="normal"]');
+    await page.waitForSelector("#screen-play.active");
+    await page.click("#btn-report-play");
+    await page.waitForSelector("#report-modal:not([hidden])");
+    const before = await page.textContent("#report-ctx");
+    assert.doesNotMatch(before, /✔/, "안 푼 문제인데 정답(✔)이 노출됨");
+    await page.click("#report-cancel");
+    await page.click("#question .choice:first-child");
+    await page.waitForSelector("#btn-next:not([disabled])");
+    await page.click("#btn-report-play");
+    await page.waitForSelector("#report-modal:not([hidden])");
+    const after = await page.textContent("#report-ctx");
+    assert.match(after, /✔/, "답한 뒤엔 정답이 표기돼야 함");
+  });
+});

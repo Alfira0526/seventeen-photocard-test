@@ -204,17 +204,19 @@ body {
 }
 .diff-row-label { font-size: 11.5px; font-weight: 700; color: var(--muted); text-align: center; }
 .diff-chips-row { display: flex; gap: 6px; }
-.diff-chip {
+.diff-chip, .era-chip {
   flex: 1 1 0; min-width: 0;
   display: flex; flex-direction: column; align-items: center; gap: 1px;
   padding: 7px 6px; border-radius: 10px; cursor: pointer; color: var(--text);
   background: var(--card); border: 1px solid var(--line);
   transition: transform 0.12s ease, border-color 0.12s ease;
 }
-.diff-chip:hover { transform: translateY(-2px); border-color: var(--accent); }
-.diff-chip b { font-size: 13.5px; font-weight: 800; }
-.diff-chip small { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.diff-chip:hover, .era-chip:hover { transform: translateY(-2px); border-color: var(--accent); }
+.diff-chip b, .era-chip b { font-size: 13.5px; font-weight: 800; }
+.diff-chip small, .era-chip small { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .diff-chip[data-diff="hard"] b { color: var(--accent); }
+.era-chip { border-style: dashed; }
+.era-chip b { color: var(--accent-2, var(--accent)); }
 
 /* HUD */
 .hud { display: flex; justify-content: space-between; align-items: center; font-size: 13px; letter-spacing: 1px; color: var(--muted); margin-bottom: 16px; padding-right: 52px; }

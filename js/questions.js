@@ -20,6 +20,18 @@
   // 앨범 유형을 현재 로케일로 표기(ko는 원문 유지 → 정답 매칭·테스트 불변)
   const locType = (s) => (I.localizeType ? I.localizeType(s) : s);
 
+  // 원반↔리패키지 혼동 방지 보조 문구(로케일 트리와 분리 · 7개 언어). albumType 보기에 '리패키지'가 섞일 때만 노출.
+  const ALBUMTYPE_HINT = {
+    ko: "힌트! 원반과 리패키지(재발매반)는 서로 다른 유형이에요.",
+    en: "Hint! An original and its repackage count as different types.",
+    ja: "ヒント！原盤とリパッケージ盤は別の種類です。",
+    zh: "提示！原版和改版属于不同类型。",
+    es: "¡Pista! El original y su reedición son tipos distintos.",
+    th: "คำใบ้! ฉบับต้นฉบับกับฉบับรีแพ็กเกจนับเป็นคนละประเภท",
+    pt: "Dica! O original e a repackage contam como tipos diferentes.",
+  };
+  const albumTypeHint = () => ALBUMTYPE_HINT[I.locale] || ALBUMTYPE_HINT.en;
+
   const TYPES = [
     {
       id: "album", weight: 1, difficulty: 1,
@@ -107,7 +119,10 @@
         const correct = categoryOf(al.type);
         const pool = [...new Set(c.albums.map((a) => categoryOf(a.type)))].filter((x) => x !== correct);
         const choices = L.shuffle([correct, ...L.shuffle(pool, c.rng).slice(0, 3)], c.rng);
-        return { label: t.q.albumType, correct: locType(correct), choices: choices.map(locType) };
+        const q = { label: t.q.albumType, correct: locType(correct), choices: choices.map(locType) };
+        // 보기에 '리패키지'가 섞이면 원반↔리패키지 구분 보조 문구를 붙인다(2주 연속 혼동 신호 대응).
+        if (choices.some((x) => /리패키지/.test(x))) q.note = albumTypeHint();
+        return q;
       },
     },
     // ── A4: 몇 집 (미니/정규 N집) ──
