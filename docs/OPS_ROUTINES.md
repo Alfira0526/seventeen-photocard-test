@@ -39,6 +39,12 @@
 
 ## 리뷰 루틴이 하는 일 (안전 규칙)
 
+0. `docs/ops/SNAPSHOT.md`의 타임스탬프가 이번 주(리뷰 시작일 기준 7일 이내)가 아니면
+   `ops-snapshot` 자동 스케줄이 미발동한 것으로 간주하고, Actions 탭에서
+   `workflow_dispatch`로 즉시 수동 실행해 최신 데이터를 확보한 뒤 리뷰를 진행한다
+   (2026-08-31부터 반복 관측된 패턴 — GitHub Actions cron 스케줄러의 best-effort
+   특성상 미발동이 수 주 간격으로 재발할 수 있음. 근본 해결은 별도 워치독 워크플로/
+   실패 알림 구현이 필요하며, 이는 "제안"으로 남기고 사용자 승인 후 반영한다).
 1. `docs/ops/SNAPSHOT.md`(+ json) 를 읽는다.
 2. **오류 제보 교차검증**: 각 제보를 웹서치로 사실 확인. 데이터 오류가 **확증**되면 즉시 수정
    (예: Face the Sun 타이틀곡 → HOT). 처리한 제보 id 는 `docs/ops/handled.json` 에 추가.
