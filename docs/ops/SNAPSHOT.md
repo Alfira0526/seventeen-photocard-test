@@ -1,4 +1,4 @@
-# 운영 스냅샷 (2026-11-02 06:15Z)
+# 운영 스냅샷 (2026-11-09 06:42Z)
 
 > 이 파일은 GitHub Actions(ops-snapshot)가 Firebase에서 자동 생성합니다. 주간 리뷰 루틴이 읽습니다.
 
@@ -6,30 +6,30 @@
 | 모드 | 시작(plays) | 완료(games) | 비중 |
 |---|---:|---:|---:|
 | endless | 2451 | 2328 | 14.8% |
-| normal | 10692 | 5007 | 64.7% |
+| normal | 10695 | 5009 | 64.7% |
 | timeattack | 3373 | 1301 | 20.4% |
 
 ## 2) 문제 유형별 정답률 (낮은 순)
 | 유형 | 정답 | 응답 | 정답률 |
 |---|---:|---:|---:|
-| ytYear | 3528 | 6194 | 57% |
-| memberLyricist | 1090 | 1749 | 62.3% |
-| year | 10732 | 17173 | 62.5% |
+| ytYear | 3529 | 6196 | 57% |
+| memberLyricist | 1091 | 1752 | 62.3% |
+| year | 10735 | 17177 | 62.5% |
 | lyricist | 2455 | 3249 | 75.6% |
-| notInAlbum | 3866 | 5064 | 76.3% |
-| albumType | 13785 | 17289 | 79.7% |
+| notInAlbum | 3869 | 5069 | 76.3% |
+| albumType | 13785 | 17290 | 79.7% |
 | albumNumber | 7175 | 8912 | 80.5% |
-| timeline | 1628 | 2002 | 81.3% |
-| unitSong | 2226 | 2705 | 82.3% |
-| memberNotSong | 15174 | 17979 | 84.4% |
-| memberUnitSong | 15362 | 18142 | 84.7% |
-| laterAlbum | 19455 | 22004 | 88.4% |
-| albumCrop | 1015 | 1117 | 90.9% |
-| album | 12976 | 14120 | 91.9% |
-| memberRoster | 13144 | 13790 | 95.3% |
-| titleTrack | 16431 | 17203 | 95.5% |
+| timeline | 1629 | 2005 | 81.2% |
+| unitSong | 2226 | 2706 | 82.3% |
+| memberNotSong | 15176 | 17982 | 84.4% |
+| memberUnitSong | 15366 | 18147 | 84.7% |
+| laterAlbum | 19456 | 22007 | 88.4% |
+| albumCrop | 1016 | 1119 | 90.8% |
+| album | 12976 | 14121 | 91.9% |
+| memberRoster | 13147 | 13793 | 95.3% |
+| titleTrack | 16435 | 17208 | 95.5% |
 | ytSong | 9799 | 10141 | 96.6% |
-| memberUnit | 1256 | 1296 | 96.9% |
+| memberUnit | 1258 | 1298 | 96.9% |
 
 ## 3) 이상문제 후보 (표본 8+ · **유형평균 대비 이탈폭** 하위 20 → 데이터 오류 의심)
 > ⚠ = 유형평균보다 15%p 이상 낮음(유형 난이도로 설명 안 되는 진짜 이상치 후보). 플래그 7건.
@@ -37,21 +37,21 @@
 |---|---:|---:|---:|---:|:--:|
 | `albumType__album_loveandletter` | 52.8% | 79.7% | -26.900000000000006 | 892 | ⚠ |
 | `year__album_directorscut` | 45.6% | 62.5% | -16.9 | 698 | ⚠ |
-| `timeline__album_directorscut` | 64.8% | 81.3% | -16.5 | 91 | ⚠ |
-| `albumCrop__album_boysbe` | 74.6% | 90.9% | -16.30000000000001 | 71 | ⚠ |
+| `timeline__album_directorscut` | 64.8% | 81.2% | -16.400000000000006 | 91 | ⚠ |
 | `album__album_boysbe` | 75.6% | 91.9% | -16.30000000000001 | 794 | ⚠ |
+| `albumCrop__album_boysbe` | 74.6% | 90.8% | -16.200000000000003 | 71 | ⚠ |
 | `lyricist__album_al1` | 59.8% | 75.6% | -15.799999999999997 | 659 | ⚠ |
 | `unitSong__album_goingseventeen` | 66.9% | 82.3% | -15.399999999999991 | 133 | ⚠ |
 | `year__album_goingseventeen` | 47.6% | 62.5% | -14.899999999999999 | 998 |  |
 | `year__album_boysbe` | 48.1% | 62.5% | -14.399999999999999 | 842 |  |
 | `album__album_directorscut` | 78.1% | 91.9% | -13.800000000000011 | 676 |  |
-| `notInAlbum__album_sector17` | 62.8% | 76.3% | -13.5 | 94 |  |
 | `albumType__album_wonu_mingyu_bittersweet` | 66.3% | 79.7% | -13.400000000000006 | 712 |  |
-| `albumType__album_directorscut` | 68% | 79.7% | -11.700000000000003 | 687 |  |
+| `notInAlbum__album_sector17` | 63.2% | 76.3% | -13.099999999999994 | 95 |  |
+| `albumType__album_directorscut` | 67.9% | 79.7% | -11.799999999999997 | 688 |  |
 | `album__album_youmademydawn` | 81.5% | 91.9% | -10.400000000000006 | 588 |  |
-| `albumCrop__album_anode` | 80.6% | 90.9% | -10.300000000000011 | 36 |  |
+| `albumCrop__album_anode` | 80.6% | 90.8% | -10.200000000000003 | 36 |  |
 | `notInAlbum__album_al1` | 66.2% | 76.3% | -10.099999999999994 | 625 |  |
-| `unitSong__album_boysbe` | 73.1% | 82.3% | -9.200000000000003 | 93 |  |
+| `unitSong__album_boysbe` | 72.3% | 82.3% | -10 | 94 |  |
 | `year__album_vernon_blackeye` | 53.4% | 62.5% | -9.100000000000001 | 696 |  |
 | `albumType__album_semicolon` | 70.9% | 79.7% | -8.799999999999997 | 876 |  |
 | `albumNumber__album_facethesun` | 72.1% | 80.5% | -8.400000000000006 | 513 |  |
